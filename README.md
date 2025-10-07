@@ -38,7 +38,7 @@ Elle permet de :
 
 ### 🔄 Schéma général
 
-[comment]: <> (Integrate a architecture here)
+![Architecture](./Documentation/Resources/Architecture.png)
 
 - **Frontend (Next.js)** : Interface utilisateur moderne et réactive  
 - **Backend (Express.js)** : API RESTful sécurisée et extensible  
@@ -159,7 +159,7 @@ Swagger est intégré directement dans le backend :
 
 ---
 
-##🧪 Tests et Qualité
+## 🧪 Tests et Qualité
 - Tests unitaires : Jest
 - Linting : ESLint + Prettier
 - CI/CD : GitHub Actions
