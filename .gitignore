@@ -8,6 +8,9 @@
 # Backend
 # =========================
 
+#environnement
+.env 
+
 # Node.js
 backend/node_modules/
 backend/npm-debug.log*
