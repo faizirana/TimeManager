@@ -3,3 +3,37 @@
 
 # VS Code
 .vscode/
+
+# =========================
+# Backend
+# =========================
+
+# Node.js
+backend/node_modules/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/pnpm-debug.log*
+backend/.npm/
+backend/.cache/
+backend/dist/
+backend/build/
+backend/tmp/
+backend/temp/
+
+# Environment and config
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.production.local
+backend/.env.test.local
+backend/*.local
+
+# =========================
+# Docker
+# =========================
+
+docker-compose.override.yml
+.docker/
+docker-data/
+.dockerignore
