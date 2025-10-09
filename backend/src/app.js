@@ -1,12 +1,16 @@
-const express = require("express");
-const morgan = require("morgan");
+import express from "express";
+import morgan from "morgan";
+
+import usersRoutes from "./routes/userRoutes.js";
 
 const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
+app.use("/users", usersRoutes);
+
 app.get("/", (req, res) => {
-  res.json({ message: "Backend is running 🚀" });
+  res.send({ message: "Backend is running 🚀" });
 });
 
-module.exports = app;
+export default app;
