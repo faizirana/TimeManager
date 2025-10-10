@@ -1,28 +1,69 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextPlugin from "@next/eslint-plugin-next";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-config-prettier";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default [
+    // Base rules for JavaScript
+    js.configs.recommended,
 
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-});
+    // Recommended rules for TypeScript
+    ...tseslint.configs.recommended,
 
-const eslintConfig = [
-    ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
+    // Next.js specific rules
+    {
+        plugins: {
+            "@next/next": nextPlugin,
+        },
+        rules: {
+            ...nextPlugin.configs.recommended.rules,
+        },
+    },
+
+    // Files and folders to ignore
     {
         ignores: [
-            "node_modules/**",
-            ".next/**",
-            "out/**",
-            "build/**",
+            "**/node_modules/**",
+            "**/.next/**",
+            "**/out/**",
+            "**/build/**",
+            "**/dist/**",
             "next-env.d.ts",
+            ".DS_Store",
+            "eslint.config.mjs",
         ],
-        // If I want to enable prettier as an ESLint rule (optional)
-        plugins: { "prettier": require("eslint-plugin-prettier") },
-        rules: { "prettier/prettier": "error" }
     },
-];
 
-export default eslintConfig;
+    // Global project configuration
+    {
+        files: ["**/*.{js,jsx}"], // ✅ Applies only to your JS/JSX source files
+        languageOptions: {
+            parserOptions: {
+                ecmaVersion: "latest",
+                sourceType: "module",
+            },
+        },
+        rules: {
+            "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+            "no-console": "warn",
+        },
+    },
+
+    {
+        files: ["**/*.{ts,tsx}"], // ✅ Applies only to your TS/TSX source files
+        languageOptions: {
+            parserOptions: {
+                ecmaVersion: "latest",
+                sourceType: "module",
+                project: "./tsconfig.json",
+            },
+        },
+        rules: {
+            "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+            "no-console": "warn",
+        },
+    },
+
+    // Prettier integration (disables rules that conflict with Prettier)
+    prettier,
+];
