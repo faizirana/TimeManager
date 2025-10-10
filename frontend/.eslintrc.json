@@ -1,0 +1,38 @@
+{
+  "root": true, // Make sure eslint picks up the config at the root of the project
+  "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
+  "parserOptions": {
+    "ecmaVersion": 2020, // Allows for the parsing of modern ECMAScript features
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true // Allows for the parsing of JSX
+    },
+    "project": "./tsconfig.json" // Specify it only for TypeScript files
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "env": {
+    "browser": true, // Enables browser globals like window and document
+    "es2021": true, // Enables ES2021 globals and automatically sets the ecmaVersion parser option to ES12
+    "node": true // Enables Node.js global variables and Node.js scoping
+  },
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended",
+    "eslint:recommended",
+    "prettier"
+  ],
+  "plugins": ["@typescript-eslint", "react", "react-hooks"],
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }], // Warns on console.log but allows console.warn and console.error
+    "react/react-in-jsx-scope": "off", // Not needed with Next.js
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }], // Warns on unused variables but ignores those starting with an underscore
+    "@typescript-eslint/explicit-function-return-type": "off", // Turned off to reduce verbosity
+    "@typescript-eslint/no-explicit-any": "off", // Turned off to allow flexibility
+    "react-hooks/exhaustive-deps": "warn" // Warns if dependencies are missing in useEffect and similar hooks
+  }
+}
