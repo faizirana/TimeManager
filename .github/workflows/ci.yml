@@ -40,7 +40,7 @@ jobs:
   # Second job : build des images Docker
   build-docker-images:
     name: Build Docker Images
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     # Ce job ne démarrera que si 'lint-and-test-backend' a réussi
     needs: lint-and-test-backend
     steps:
