@@ -19,7 +19,9 @@ services:
       start_period: 5s
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.dev
     container_name: backend
     environment:
       NODE_ENV: development
@@ -29,7 +31,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -37,7 +39,7 @@ services:
       - q_net
     volumes:
       - ./backend:/app
-      - backend_node_modules:/app/node_modules
+      - ./backend/node_modules:/app/node_modules
     working_dir: /app
     command: >
       sh -c "
@@ -47,8 +49,79 @@ services:
       npm start
       "
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+    working_dir: /app
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+    networks:
+      - q_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: q_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+      PGPASSFILE: /config/pgpass  
+    
+    configs:
+      - source: pgadmin-pgpass
+        target: /config/pgpass
+        uid: "5050"
+        gid: "5050"
+        mode: 0400
+      - source: pgadmin-servers
+        target: /pgadmin4/servers.json
+        mode: 0444
+
+    ports:
+      - "8081:80"
+    networks:
+      - q_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+configs:
+  pgadmin-servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "QuantumTrader DB",
+            "Group": "PostgreSQL",
+            "Host": "db",
+            "Port": 5432,
+            "MaintenanceDB": "mydb",
+            "Username": "myuser",
+            "SSLMode": "prefer",
+            "PassFile": "/config/pgpass"
+          }
+        }
+      }
+  pgadmin-pgpass:
+    content: |
+      db:5432:mydb:myuser:mypass
+
 volumes:
   backend_node_modules:
+  frontend_node_modules:
   pgdata:
 
 networks:
