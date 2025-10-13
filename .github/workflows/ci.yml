@@ -16,7 +16,7 @@ jobs:
   # Premier job : lint et tests du backend
   lint-and-test-backend:
     name: Lint & Test Backend
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
