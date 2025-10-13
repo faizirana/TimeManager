@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-# Create workspace
+# Create workspace 
 WORKDIR /app
 
 # Use non-root user to run our application for better security
