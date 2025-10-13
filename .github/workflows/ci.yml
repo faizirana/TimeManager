@@ -1,0 +1,54 @@
+# Nom du workflow
+name: CI Pipeline
+
+# Déclencheurs
+on:
+  # Se déclenche lors d'un push sur la branche KAN-21
+  push:
+    branches: [ "KAN-21" ]
+  
+  # Se déclenche aussi lors d'une pull request vers la branche KAN-21
+  pull_request:
+    branches: [ "KAN-21" ]
+
+# Liste des jobs à exécuter
+jobs:
+  # Premier job : lint et tests du backend
+  lint-and-test-backend:
+    name: Lint & Test Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+
+      - name: Run linter
+        run: npm run lint --prefix backend
+
+      - name: Run tests
+        run: npm run test --prefix backend
+
+  # Second job : build des images Docker
+  build-docker-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    # Ce job ne démarrera que si 'lint-and-test-backend' a réussi
+    needs: lint-and-test-backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build with Docker Compose
+        run: docker-compose build
