@@ -6,6 +6,7 @@ import {
   updateUser,
   deleteUser
 } from "../controllers/userController.js";
+import { authenticate } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -45,7 +46,7 @@ const router = express.Router();
  *                     type: string
  *                     example: "kevin@example.com"
  */
-router.get("/", getUsers);
+router.get("/",authenticate, getUsers);
 
 /**
  * @swagger
@@ -79,7 +80,7 @@ router.get("/", getUsers);
  *       404:
  *         description: User not found
  */
-router.get("/:id", getUserById);
+router.get("/:id",authenticate, getUserById);
 
 /**
  * @swagger
@@ -113,7 +114,7 @@ router.get("/:id", getUserById);
  *       400:
  *         description: Missing parameters
  */
-router.post("/", createUser);
+router.post("/",authenticate, createUser);
 
 /**
  * @swagger
@@ -150,7 +151,7 @@ router.post("/", createUser);
  *       404:
  *         description: User not found
  */
-router.put("/:id", updateUser);
+router.put("/:id",authenticate, updateUser);
 
 /**
  * @swagger
@@ -171,6 +172,6 @@ router.put("/:id", updateUser);
  *       404:
  *         description: User not found
  */
-router.delete("/:id", deleteUser);
+router.delete("/:id",authenticate, deleteUser);
 
 export default router;
