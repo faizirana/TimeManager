@@ -1,7 +1,9 @@
 import db from "../../models/index.cjs";
-const { User } = db;
+import bcrypt from "bcryptjs";
 
-// GET /users
+const { User } = db;
+const SALT_ROUNDS = 10;
+
 export const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -14,13 +16,14 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// GET /users/:id
+
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
       attributes: ["id", "name", "surname", "mobileNumber", "email", "role", "id_manager"],
     });
     if (!user) return res.status(404).json({ message: "User not found" });
+
     res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -28,7 +31,7 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// POST /users
+
 export const createUser = async (req, res) => {
   const { name, surname, mobileNumber, email, password, role, id_manager } = req.body;
   if (!name || !surname || !mobileNumber || !email || !password || !role) {
@@ -38,16 +41,23 @@ export const createUser = async (req, res) => {
   }
 
   try {
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     const newUser = await User.create({
       name,
       surname,
       mobileNumber,
       email,
-      password,
+      password: hashedPassword,
       role,
       id_manager: id_manager || null,
     });
-    res.status(201).json(newUser);
+
+
+    const newUserObj = newUser.toJSON();
+    delete newUserObj.password;
+
+    res.status(201).json(newUserObj);
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: error.message || "Internal server error" });
@@ -62,24 +72,32 @@ export const updateUser = async (req, res) => {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    await user.update({
+    const updatedData = {
       name: name ?? user.name,
       surname: surname ?? user.surname,
       mobileNumber: mobileNumber ?? user.mobileNumber,
       email: email ?? user.email,
-      password: password ?? user.password,
       role: role ?? user.role,
       id_manager: id_manager ?? user.id_manager,
-    });
+    };
 
-    res.status(200).json(user);
+    if (password) {
+      updatedData.password = await bcrypt.hash(password, SALT_ROUNDS);
+    }
+
+    await user.update(updatedData);
+
+    const updatedUserObj = user.toJSON();
+    delete updatedUserObj.password;
+
+    res.status(200).json(updatedUserObj);
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
 
-// DELETE /users/:id
+
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
