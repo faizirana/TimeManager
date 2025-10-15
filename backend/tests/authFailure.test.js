@@ -9,7 +9,7 @@ beforeAll(async () => {
   await db.sequelize.sync({ force: true });
 
   await db.User.destroy({ where: {} });
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const hashedPassword = "Password123!";//await bcrypt.hash("Password123!", 10);
   await db.User.create({
     name: "Admin",
     surname: "User",
@@ -21,7 +21,7 @@ beforeAll(async () => {
 
   const res = await request(app)
     .post("/auth/login")
-    .send({ email: "admin@example.com", password: "password123" });
+    .send({ email: "admin@example.com", password: "Password123!" });
 
   accessToken = res.body.accessToken;
 });
@@ -54,9 +54,9 @@ describe("User API - Negative tests", () => {
       name: "Claire",
       surname: "Durand",
       email: "claire.durand@example.com",
-      password: "password123",
+      password: "pAssword123@",
       mobileNumber: "0604050607",
-      role: "user",
+      role: "employee",
     });
 
     expect(res.statusCode).toBe(401);

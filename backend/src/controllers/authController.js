@@ -1,21 +1,38 @@
 import db from "../../models/index.cjs";
 import bcrypt from "bcryptjs";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../service/tokenService";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../service/tokenService.js";
 
 const { User } = db;
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+  console.log('Login attempt with:', { email, password });
+  if (!email || !password){
+    console.log('Missing email or password');
+    return res.status(400).json({ message: "Email and password required" });
+  }
 
+  try{
+  console.log('Searching for user with email:', email);
   const user = await User.findOne({ where: { email } });
-  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  console.log('User found:', !!user);
+  if (!user){
+    console.log('User not found'); 
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+  console.log('Checking password match');
+  const isMatch = await user.validPassword(password);//bcrypt.compare(password, user.password);
+  console.log('Password match:', isMatch);
+  if (!isMatch) {
+    console.log('Password does not match');
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
 
+  console.log('Generating tokens');
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
+  console.log('Tokens generated:', !!accessToken, !!refreshToken);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -24,8 +41,13 @@ export const loginUser = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
+  console.log('Sending response');
   res.status(200).json({ accessToken });
-};
+  } catch (error) {
+    console.error('Login error:', error); // Log détaillé de l'erreur
+    res.status(500).json({ message: "Internal server error", error: error.message }); // Retourner le message d'erreur
+  }
+}
 
 export const logoutUser = (req, res) => {
   res.clearCookie("refreshToken");
