@@ -5,4 +5,8 @@ module.exports = {
     "^.+\\.js$": "babel-jest",
   },
   setupFiles: ["<rootDir>/jest.setup.js"],
+  moduleFileExtensions: ['js', 'json'],
+  transformIgnorePatterns: [
+    'node_modules/(?!module-to-transform)'
+  ]
 };
