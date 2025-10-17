@@ -1,0 +1,38 @@
+{
+  "name": "project-tls-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "lint:frontend": "cd frontend && npm run lint --if-present",
+    "lint:backend": "cd backend && npm run lint --if-present",
+    "test:frontend": "cd frontend && npm test --if-present",
+    "test:backend": "cd backend && npm test --if-present"
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx}": [
+      "cd frontend && npm run lint:fix --if-present",
+      "cd frontend && npm run format --if-present"
+    ],
+    "frontend/**/*.{json,css,md}": [
+      "cd frontend && npm run format --if-present"
+    ],
+    "backend/**/*.{js,ts,jsx}": [
+      "cd backend && npm run lint:fix --if-present",
+      "cd backend && npm run format --if-present"
+    ],
+    "backend/**/*.{json,md}": [
+      "cd backend && npm run format --if-present"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.4"
+  }
+}
