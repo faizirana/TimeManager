@@ -5,5 +5,12 @@ dist
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Ignore misc
 .DS_Store
+
+# Ignore IDE folder
 .vscode
+
+# Ignore all markdown files
+*.md

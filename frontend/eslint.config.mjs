@@ -1,11 +1,9 @@
 import nextPlugin from "@next/eslint-plugin-next";
-import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import prettier from "eslint-config-prettier";
+import base from '../eslint.config.mjs';
 
 export default [
-    // Base rules for JavaScript
-    js.configs.recommended,
+    ...base,
 
     // Recommended rules for TypeScript
     ...tseslint.configs.recommended,
@@ -23,20 +21,14 @@ export default [
     // Files and folders to ignore
     {
         ignores: [
-            "**/node_modules/**",
             "**/.next/**",
             "**/out/**",
-            "**/build/**",
-            "**/dist/**",
             "next-env.d.ts",
-            ".DS_Store",
-            "eslint.config.mjs",
         ],
     },
 
-    // Global project configuration
     {
-        files: ["**/*.{js,jsx}"], // ✅ Applies only to your JS/JSX source files
+        files: ["**/*.{js,jsx}"], // Applies only to your JS/JSX source files
         languageOptions: {
             parserOptions: {
                 ecmaVersion: "latest",
@@ -50,7 +42,7 @@ export default [
     },
 
     {
-        files: ["**/*.{ts,tsx}"], // ✅ Applies only to your TS/TSX source files
+        files: ["**/*.{ts,tsx}"], // Applies only to your TS/TSX source files
         languageOptions: {
             parserOptions: {
                 ecmaVersion: "latest",
@@ -63,7 +55,4 @@ export default [
             "no-console": "warn",
         },
     },
-
-    // Prettier integration (disables rules that conflict with Prettier)
-    prettier,
 ];
