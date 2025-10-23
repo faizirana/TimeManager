@@ -26,6 +26,18 @@ jobs:
                   github.event_name == 'pull_request' &&
                   github.event.pull_request.base.ref == 'main' &&
                   github.event.pull_request.head.ref != 'dev'
-              uses: peter-evans/close-pull@v3
+              uses: actions/github-script@v7
               with:
-                  comment: "Only pull requests from dev to main are allowed. Please rebase your branch on dev and open the PR again."
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: 'Only pull requests from dev to main are allowed. Please rebase your branch on dev and open the PR again.'
+                      })
+                      github.rest.pulls.update({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: context.issue.number,
+                        state: 'closed'
+                      })
