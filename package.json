@@ -1,5 +1,5 @@
 {
-  "name": "project-tls-monorepo",
+  "name": "t-dev-700-tls_4",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "lint": "cd frontend && npm run lint --if-present && cd ../backend && npm run lint --if-present",
-    "lint:fix": "cd frontend && npm run lint:fix --if-present && cd ../backend && npm run lint:fix --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "test:frontend": "cd frontend && npm test --if-present",
@@ -27,6 +27,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "prettier": "^3.6.2"
   }
 }

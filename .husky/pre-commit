@@ -1,7 +1,6 @@
 echo "🔍 Running lint-staged..."
 
-npm run lint:fix
-npm run format
+npx lint-staged
 
 if [ $? -ne 0 ]; then
   echo "❌ Pre-commit checks failed — commit aborted."

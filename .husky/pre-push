@@ -1,6 +1,6 @@
 branch=$(git rev-parse --abbrev-ref HEAD)
 if [ $branch = "main" ] || [ $branch = "dev" ]; then
-  echo "🚫 You cannot push directly to $branch!"
+  echo "You cannot push directly to $branch!"
   exit 1
 fi
 
