@@ -17,8 +17,8 @@ jobs:
             - name: Block direct push to main
               if: github.event_name == 'push'
               run: |
-                  echo "❌ Direct pushes to 'main' are not allowed."
-                  echo "Please use a Pull Request from 'dev' instead."
+                  echo "Direct pushes to main are not allowed."
+                  echo "Please use a Pull Request from dev instead."
                   exit 1
 
             - name: Close PRs not from dev
@@ -28,7 +28,4 @@ jobs:
                   github.event.pull_request.head.ref != 'dev'
               uses: peter-evans/close-pull@v3
               with:
-                  comment: |
-                      🚫 Only pull requests **from `dev` to `main`** are allowed.
-
-                      Please rebase your branch on `dev` and open the PR again.
+                  comment: "Only pull requests from dev to main are allowed. Please rebase your branch on dev and open the PR again."
