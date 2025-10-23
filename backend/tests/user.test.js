@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 process.env.NODE_ENV = 'test';
 
 const { sequelize, User } = require('../models');
@@ -134,7 +135,7 @@ describe('User Model', () => {
           role: 'manager',
           id_manager: null,
         })
-      ).rejects.toThrow('The password must contain at least one lowercase letter, one uppercase letter, one number, one special character (@$!%*?&) and be at least 8 characters long.');
+      ).rejects.toThrow('Password must be at least 8 characters long, with 1 uppercase letter and 1 number.');
     });
 
     it('should not create a user without a role', async () => {
@@ -161,7 +162,7 @@ describe('User Model', () => {
           role: 'invalid_role',
           id_manager: null,
         })
-      ).rejects.toThrow('Role must be either "manager" or "employee"!');
+      ).rejects.toThrow('Role must be either "manager" or "employee" or "admin"!');
     });
   });
 

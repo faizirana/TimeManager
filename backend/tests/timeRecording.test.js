@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 process.env.NODE_ENV = 'test';
 
 const { sequelize, TimeRecording, User } = require('../models');
@@ -20,7 +21,7 @@ describe('TimeRecording Model', () => {
         surname: 'Smith',
         mobileNumber: '0123456789',
         email: 'alice.smith@example.com',
-        password: 'Secure123@',
+        password: await bcrypt.hash('Secure123@',12),
         role: 'manager',
         id_manager: null,
       });
@@ -86,7 +87,7 @@ describe('TimeRecording Model', () => {
         surname: 'Johnson',
         mobileNumber: '0123456789',
         email: 'bob.johnson@example.com',
-        password: 'Secure123@',
+        password: await bcrypt.hash('Secure123@',10),
         role: 'employee',
         id_manager: null,
       });
