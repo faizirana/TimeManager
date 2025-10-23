@@ -11,7 +11,7 @@ on:
 
 jobs:
     protect-main:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
 
         steps:
             - name: Block direct push to main
@@ -26,7 +26,7 @@ jobs:
                   github.event_name == 'pull_request' &&
                   github.event.pull_request.base.ref == 'main' &&
                   github.event.pull_request.head.ref != 'dev'
-              uses: peter-evans/close-pull@v3
+              uses: superbrothers/close-pull-request@v3
               with:
                   comment: |
                       🚫 Only pull requests **from `dev` to `main`** are allowed.
