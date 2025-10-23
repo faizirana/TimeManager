@@ -2,7 +2,7 @@ import db from "../../models/index.cjs";
 import bcrypt from "bcryptjs";
 
 const { User } = db;
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12;
 
 export const getUsers = async (req, res) => {
   try {
@@ -41,7 +41,7 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    const hashedPassword = password; //await bcrypt.hash(password, SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     const newUser = await User.create({
       name,
