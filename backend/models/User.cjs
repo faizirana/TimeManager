@@ -41,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+      comment: 'Storing hashed password',
       validate: {
         notEmpty: { msg: "Password must be filled and cannot be null !" }
       }
@@ -52,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: { msg: "Role must be filled and cannot be null !" },
         isIn: {
           args: [['manager', 'employee','admin']],
-          msg: 'Role must be either "manager" or "employee"!'
+          msg: 'Role must be either "manager" or "employee" or "admin"!'
         }
       }
     },
@@ -68,69 +69,105 @@ module.exports = (sequelize, DataTypes) => {
     freezeTableName: true,
     tableName: "User",
     hooks: {
-      beforeCreate: async (user, options) => {
-        // Vérification du manager
-        if (user.id_manager) {
-          const manager = await sequelize.models.User.findByPk(user.id_manager, options.transaction ? { transaction: options.transaction } : {});
-          if (!manager || manager.role !== 'manager') {
-            throw new Error('Only users with the role "manager" can be assigned as a manager.');
-          }
-        }
-
-        if (user.password) {
-          const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-          if (!passwordRegex.test(user.password)) {
-            throw new Error('The password must contain at least one lowercase letter, one uppercase letter, one number, one special character (@$!%*?&) and be at least 8 characters long.');
-          }
-
-          // Hachage du mot de passe
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(user.password, salt);
-        }
-      },
-      beforeUpdate: async (user, options) => {
-        // Vérification du manager
-        if (user.id_manager) {
-          const manager = await sequelize.models.User.findByPk(user.id_manager, options.transaction ? { transaction: options.transaction } : {});
-          if (!manager || manager.role !== 'manager') {
-            throw new Error('Only users with the role "manager" can be assigned as a manager.');
-          }
-        }
-
-        if (user.changed('password')) {
-          const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-          if (!passwordRegex.test(user.password)) {
-            throw new Error('The password must contain at least one lowercase letter, one uppercase letter, one number, one special character (@$!%*?&) and be at least 8 characters long.');
-          }
-
-          // Hachage du mot de passe
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(user.password, salt);
-        }
-      },
       beforeValidate: (user, options) => {
-        // Vérification des valeurs null pour chaque champ requis
+        // Vérifier que tous les champs obligatoires sont présents
         const fieldsToCheck = ['name', 'surname', 'mobileNumber', 'email', 'password', 'role'];
         fieldsToCheck.forEach(field => {
-          if (user[field] === null || user[field] === undefined) {
+          if (user[field] === null || user[field] === undefined || user[field] === '') {
             throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} must be filled and cannot be null !`);
           }
         });
+      },
+
+      beforeCreate: async (user, options) => {
+        const bcryptRegex = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+        try {
+        // Vérification du manager
+          if (user.id_manager) {
+            const manager = await sequelize.models.User.findByPk(
+              user.id_manager,
+              options.transaction ? { transaction: options.transaction } : {}
+            );
+            if (!manager || manager.role !== 'manager') {
+              throw new Error('Only users with the role "manager" can be assigned as a manager.');
+            }
+          }
+
+          // Gestion du mot de passe
+          if (user.password) {
+            const isAlreadyHashed = bcryptRegex.test(user.password);
+
+            if (!isAlreadyHashed) {
+            // Valide la force du mot de passe EN CLAIR
+              const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+              if (!passwordRegex.test(user.password)) {
+                throw new Error('Password must be at least 8 characters long, with 1 uppercase letter and 1 number.');
+              }
+              // Hache le mot de passe
+              const salt = await bcrypt.genSalt(12);
+              user.password = await bcrypt.hash(user.password, salt);
+            }
+          }
+      } catch (error) {
+        // Nettoyer le mot de passe en clair en cas d'erreur
+        if (user.password && !bcryptRegex.test(user.password)) {
+          user.password = null;
+        }
+        throw error;
       }
+      },
+
+      beforeUpdate: async (user, options) => {
+        try {
+          // Vérification du manager si changé
+          if (user.changed('id_manager') && user.id_manager) {
+            const manager = await sequelize.models.User.findByPk(
+            user.id_manager,
+            options.transaction ? { transaction: options.transaction } : {}
+            );
+            if (!manager || manager.role !== 'manager') {
+              throw new Error('Only users with the role "manager" can be assigned as a manager.');
+            }
+          }
+
+          // Re-hashing si le password a changé ET qu'il n'est pas déjà hashé
+          if (user.changed('password') && user.password) {
+            const bcryptRegex = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+            const isAlreadyHashed = bcryptRegex.test(user.password);
+
+            if (!isAlreadyHashed) {
+              const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+              if (!passwordRegex.test(user.password)) {
+                throw new Error('Password must be at least 8 characters long, with 1 uppercase letter and 1 number.');
+              }
+              const salt = await bcrypt.genSalt(12);
+              user.password = await bcrypt.hash(user.password, salt);
+            }
+          }
+        } catch (error) {
+          if (user.password && !bcryptRegex.test(user.password)) {
+            user.password = null;
+          }
+          throw error;
+        }
+      },
+
     }
   });
 
-  // Méthode d'instance pour vérifier le mot de passe
-  User.prototype.validPassword = async function(password) {
+  /**
+   * Vérifier le mot de passe en clair
+   * @param {string} plainPassword - Mot de passe en clair
+   * @returns {Promise<boolean>}
+   */
+  User.prototype.verifyPassword = async function(plainPassword) {
     try {
-    console.log('Comparing passwords:', password, this.password);
-    const isMatch = await bcrypt.compare(password, this.password);
-    console.log('Password comparison result:', isMatch);
-    return isMatch;
-  } catch (error) {
-    console.error('Error in validPassword:', error);
-    throw error;
-  }
+      // Compare le mot de passe en clair avec le hash stocké
+      return await bcrypt.compare(plainPassword, this.password);
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      return false;
+    }
   };
 
   User.associate = (models) => {

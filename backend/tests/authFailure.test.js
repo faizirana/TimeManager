@@ -9,7 +9,7 @@ beforeAll(async () => {
   await db.sequelize.sync({ force: true });
 
   await db.User.destroy({ where: {} });
-  const hashedPassword = "Password123!";//await bcrypt.hash("Password123!", 10);
+  const hashedPassword = await bcrypt.hash("Password123!", 12);
   await db.User.create({
     name: "Admin",
     surname: "User",
@@ -54,7 +54,7 @@ describe("User API - Negative tests", () => {
       name: "Claire",
       surname: "Durand",
       email: "claire.durand@example.com",
-      password: "pAssword123@",
+      password: await bcrypt.hash("pAssword123@",12),
       mobileNumber: "0604050607",
       role: "employee",
     });

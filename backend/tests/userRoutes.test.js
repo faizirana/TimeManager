@@ -2,6 +2,7 @@ import request from "supertest";
 import bcrypt from "bcryptjs";
 import app from "../src/app.js";
 import db from "../models/index.cjs";
+//import { use } from "react";
 
 let accessToken;
 
@@ -9,7 +10,10 @@ beforeAll(async () => {
   await db.sequelize.sync({ force: true });
 
   await db.User.destroy({ where: {} });
-  const hashedPassword = "Password123!";//await bcrypt.hash("Password123!", 10);
+
+  const hashedPassword = await bcrypt.hash("Password123!",12);
+  //console.log("Hash du mot de passe avant création :",hashedPassword);
+  
   await db.User.create({
     name: "Admin",
     surname: "User",
@@ -59,7 +63,7 @@ describe("User API", () => {
         name: "Claire",
         surname: "Durand",
         email: "claire.durand@example.com",
-        password: "P@ssword123!",
+        password: await bcrypt.hash("P@ssword123!",12),
         mobileNumber: "0604050607",
         role: "employee",
       });
