@@ -1,20 +1,24 @@
 FROM node:18-alpine
 
-# Create workspace
+# Set working directory to workspace root
 WORKDIR /app
 
-# Copy package files first (for layer caching)
+# Copy workspace package files (for npm workspaces support)
 COPY package*.json ./
+COPY backend/package*.json ./backend/
 
-# Install dependencies and fix permissions in one layer
-RUN npm ci && \
-    chown -R node:node /app
+# Install all workspace dependencies
+RUN npm ci
 
-# Switch to non-root user
+# Copy backend source code
+COPY backend ./backend
+
+# Set working directory to backend
+WORKDIR /app/backend
+
+# Fix permissions and switch to non-root user
+RUN chown -R node:node /app
 USER node
-
-# Copy the rest of the application code
-COPY --chown=node:node . .
 
 EXPOSE 3000
 

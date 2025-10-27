@@ -1,22 +1,24 @@
 FROM node:18-alpine
 
-# Create workspace 
+# Set working directory to workspace root
 WORKDIR /app
 
-# Use non-root user to run our application for better security
-RUN chown -R node:node /app
-USER node
+# Copy workspace package files (for npm workspaces support)
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
 
-# Copy only package.json / lock to install dependencies (layer cache)
-COPY --chown=node:node package*.json ./
-# If yarn.lock exist, COPY yarn.lock
-# COPY --chown=node:node yarn.lock ./
-
-# Install dependencies (ci is deterministic)
+# Install all workspace dependencies (ci is deterministic)
 RUN npm ci
 
-# Copy the rest of the code
-COPY --chown=node:node . .
+# Copy frontend source code
+COPY frontend ./frontend
+
+# Set working directory to frontend
+WORKDIR /app/frontend
+
+# Fix permissions and switch to non-root user for better security
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 
