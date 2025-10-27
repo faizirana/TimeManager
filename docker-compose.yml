@@ -12,7 +12,11 @@ services:
       - q_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-mydb}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-mydb}",
+        ]
       interval: 5s
       retries: 5
       start_period: 5s
@@ -24,7 +28,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
       PGPASSFILE: /config/pgpass
       SCRIPT_NAME: /pgadmin
@@ -45,26 +49,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  
+
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+      context: . # Build context at workspace root for npm workspaces
+      dockerfile: ./frontend/Dockerfile.dev
     container_name: frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-    working_dir: /app
+      - ./frontend:/app/frontend # Mount only frontend source code
+      - frontend_node_modules:/app/node_modules # Workspace node_modules
+      - frontend_local_node_modules:/app/frontend/node_modules # Frontend local node_modules
+    working_dir: /app/frontend
     networks:
       - app-network
 
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile.dev
+    build:
+      context: . # Build context at workspace root for npm workspaces
+      dockerfile: ./backend/Dockerfile.dev
     container_name: backend
     restart: unless-stopped
     environment:
@@ -83,9 +88,10 @@ services:
       - app-network
       - q_net
     volumes:
-      - ./backend:/app
-      - ./backend/node_modules:/app/node_modules
-    working_dir: /app
+      - ./backend:/app/backend # Mount only backend source code
+      - backend_node_modules:/app/node_modules # Workspace node_modules
+      - backend_local_node_modules:/app/backend/node_modules # Backend local node_modules
+    working_dir: /app/backend
     command: >
       sh -c "
       npx sequelize-cli db:migrate:undo:all &&
@@ -93,7 +99,7 @@ services:
       npx sequelize-cli db:seed:all &&
       npm start
       "
-  
+
   nginx:
     image: nginx:latest
     ports:
@@ -102,7 +108,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      backend :
+      backend:
         condition: service_started
       frontend:
         condition: service_started
@@ -112,8 +118,10 @@ services:
       - app-network
 
 volumes:
-  backend_node_modules:
-  frontend_node_modules:
+  backend_node_modules: # Workspace root node_modules for backend
+  backend_local_node_modules: # Backend-specific node_modules
+  frontend_node_modules: # Workspace root node_modules for frontend
+  frontend_local_node_modules: # Frontend-specific node_modules
   pgdata:
 
 networks:

@@ -1,0 +1,43 @@
+name: Protect main branch
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types: [opened, reopened, synchronize, edited]
+        branches:
+            - main
+
+jobs:
+    protect-main:
+        runs-on: self-hosted
+
+        steps:
+            - name: Block direct push to main
+              if: github.event_name == 'push'
+              run: |
+                  echo "Direct pushes to main are not allowed."
+                  echo "Please use a Pull Request from dev instead."
+                  exit 1
+
+            - name: Close PRs not from dev
+              if: >
+                  github.event_name == 'pull_request' &&
+                  github.event.pull_request.base.ref == 'main' &&
+                  github.event.pull_request.head.ref != 'dev'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: 'Only pull requests from dev to main are allowed. Please rebase your branch on dev and open the PR again.'
+                      })
+                      github.rest.pulls.update({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: context.issue.number,
+                        state: 'closed'
+                      })
