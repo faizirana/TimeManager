@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 import usersRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import teamRoutes from "./routes/teamRoutes.js"
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -49,6 +50,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
+app.use("/teams",teamRoutes)
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });
