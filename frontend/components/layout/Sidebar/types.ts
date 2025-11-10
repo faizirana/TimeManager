@@ -1,11 +1,12 @@
 import { LucideIcon } from "lucide-react";
 
 export interface SidebarItemProps {
-  label: string;
+  label?: string;
   icon?: LucideIcon;
   href?: string;
   active?: boolean;
   onClick?: () => void;
+  className?: string;
 }
 
 export interface SidebarProps {
