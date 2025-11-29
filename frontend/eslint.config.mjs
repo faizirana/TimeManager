@@ -1,5 +1,6 @@
 import nextPlugin from "@next/eslint-plugin-next";
 import tseslint from "typescript-eslint";
+import globals from "globals";
 import base from "../eslint.config.mjs";
 
 export default [
@@ -110,6 +111,7 @@ export default [
                 tsconfigRootDir: import.meta.dirname,
             },
             globals: {
+                ...globals.browser, // Add DOM globals (document, window, etc.)
                 describe: "readonly",
                 it: "readonly",
                 test: "readonly",

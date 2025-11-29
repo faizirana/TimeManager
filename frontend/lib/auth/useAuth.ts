@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser, logoutUser } from "@/lib/auth/authService";
 import { AuthenticationError } from "@/lib/auth/types";
@@ -29,11 +29,7 @@ export function useAuth() {
    * @param email - Email of the user
    * @param password - Password of the user
    */
-  async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>,
-    email: string,
-    password: string,
-  ) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>, email: string, password: string) {
     e.preventDefault();
     setError("");
     setLoading(true);
