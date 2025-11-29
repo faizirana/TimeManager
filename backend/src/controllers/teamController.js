@@ -1,0 +1,187 @@
+import db from "../../models/index.cjs";
+
+const { Team, User, TeamMember } = db;
+
+// GET /teams
+export const getTeams = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const whereClause = {};
+
+    if (userId) {
+      const memberships = await TeamMember.findAll({ 
+        where: { userId },
+        attributes: ['userId', 'teamId']
+      });
+      const teamIds = memberships.map((m) => m.teamId);
+      whereClause.id = teamIds.length ? teamIds : [-1];
+    }
+
+    const teams = await Team.findAll({
+      where: whereClause,
+      include: [
+        { 
+          model: User, 
+          as: "manager", 
+          attributes: ["id", "name", "surname", "email"] 
+        },
+        {
+          model: User,
+          as: "members",
+          attributes: ["id", "name", "surname", "email", "role"],
+          through: { attributes: [] }, // No attributes from join table
+        },
+      ],
+      attributes: ['id', 'id_manager', 'id_timetable', 'name']
+    });
+
+    res.status(200).json(teams);
+  } catch (error) {
+    console.error("Error fetching teams:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// GET /teams/:id
+export const getTeamById = async (req, res) => {
+  try {
+    const team = await Team.findByPk(req.params.id, {
+      include: [
+        { model: User, as: "manager", attributes: ["id", "name", "surname", "email"] },
+        {
+          model: User,
+          as: "members",
+          attributes: ["id", "name", "surname", "email", "role"],
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    if (!team) return res.status(404).json({ message: "Team not found" });
+    res.status(200).json(team);
+  } catch (error) {
+    console.error("Error fetching team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST /teams
+export const createTeam = async (req, res) => {
+  const { name, id_manager } = req.body;
+  if (!name || !id_manager)
+    return res.status(400).json({ message: "name and id_manager are required" });
+
+  try {
+    const manager = await User.findByPk(id_manager);
+    if (!manager) return res.status(400).json({ message: "Manager does not exist" });
+
+    const newTeam = await Team.create({ name, id_manager });
+    res.status(201).json(newTeam);
+  } catch (error) {
+    console.error("Error creating team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// PUT /teams/:id
+export const updateTeam = async (req, res) => {
+  const { name, id_manager } = req.body;
+
+  try {
+    const team = await Team.findByPk(req.params.id);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    if (id_manager) {
+      const manager = await User.findByPk(id_manager);
+      if (!manager) return res.status(400).json({ message: "Manager does not exist" });
+    }
+
+    await team.update({ name: name ?? team.name, id_manager: id_manager ?? team.id_manager });
+    res.status(200).json(team);
+  } catch (error) {
+    console.error("Error updating team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE /teams/:id
+export const deleteTeam = async (req, res) => {
+  try {
+    const team = await Team.findByPk(req.params.id);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    await team.destroy();
+    res.status(200).json({ message: "Team deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST /teams/:id/users
+export const addUserToTeam = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) return res.status(400).json({ message: "userId is required" });
+
+  try {
+    const team = await Team.findByPk(id);
+    const user = await User.findByPk(userId);
+    if (!team || !user)
+      return res.status(404).json({ message: "Team or user not found" });
+
+    // Check if already in team
+    const exists = await TeamMember.findOne({ where: { teamId: id, userId } });
+    if (exists) return res.status(400).json({ message: "User already in this team" });
+
+    await TeamMember.create({ teamId: id, userId });
+    res.status(201).json({ message: "User added to team" });
+  } catch (error) {
+    console.error("Error adding user to team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE /teams/:id/users/:userId
+export const removeUserFromTeam = async (req, res) => {
+  const { id, userId } = req.params;
+
+  try {
+    const link = await TeamMember.findOne({ where: { teamId: id, userId } });
+    if (!link) return res.status(404).json({ message: "User not in this team" });
+
+    await link.destroy();
+    res.status(200).json({ message: "User removed from team" });
+  } catch (error) {
+    console.error("Error removing user from team:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST /teams/validate/conflicts
+export const validateTeamAssignments = async (req, res) => {
+  try {
+    const teams = await Team.findAll({ include: [{ model: User, as: "members" }] });
+
+    // Simple rule: a user cannot belong to 2 teams managed by the same manager
+    const userToManagers = {};
+
+    for (const team of teams) {
+      for (const user of team.members) {
+        if (!userToManagers[user.id]) userToManagers[user.id] = new Set();
+        if (userToManagers[user.id].has(team.id_manager)) {
+          return res.status(400).json({
+            message: `User ${user.id} is in conflicting teams managed by manager ${team.id_manager}`,
+          });
+        }
+        userToManagers[user.id].add(team.id_manager);
+      }
+    }
+
+    res.status(200).json({ message: "All team assignments are valid" });
+  } catch (error) {
+    console.error("Error validating team assignments:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
