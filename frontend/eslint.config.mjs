@@ -5,12 +5,32 @@ import base from "../eslint.config.mjs";
 export default [
     ...base,
 
-    // TypeScript ESLint recommended rules
-    ...tseslint.configs.recommended,
-
     // Files and folders to ignore (frontend specific)
     {
         ignores: ["**/.next/**", "**/out/**", "next-env.d.ts"],
+    },
+
+    // TypeScript configuration for ALL TypeScript files
+    {
+        files: ["**/*.{ts,tsx}"],
+        languageOptions: {
+            parser: tseslint.parser,
+            parserOptions: {
+                ecmaVersion: "latest",
+                sourceType: "module",
+                ecmaFeatures: {
+                    jsx: true,
+                },
+                project: "./tsconfig.json",
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+        plugins: {
+            "@typescript-eslint": tseslint.plugin,
+        },
+        rules: {
+            ...tseslint.configs.recommended.rules,
+        },
     },
 
     // Next.js specific configuration
@@ -69,6 +89,42 @@ export default [
             // Uncomment when plugin is installed:
             // "jsx-a11y/alt-text": "warn",
             // "jsx-a11y/anchor-is-valid": "warn",
+        },
+    },
+
+    // Configuration for Jest test files
+    {
+        files: [
+            "**/__tests__/**/*.{js,jsx,ts,tsx}",
+            "**/*.test.{js,jsx,ts,tsx}",
+            "**/*.spec.{js,jsx,ts,tsx}",
+            "**/jest.config.ts",
+            "**/jest.setup.ts",
+        ],
+        languageOptions: {
+            parser: tseslint.parser,
+            parserOptions: {
+                ecmaVersion: "latest",
+                sourceType: "module",
+                project: "./tsconfig.json",
+                tsconfigRootDir: import.meta.dirname,
+            },
+            globals: {
+                describe: "readonly",
+                it: "readonly",
+                test: "readonly",
+                expect: "readonly",
+                jest: "readonly",
+                beforeEach: "readonly",
+                afterEach: "readonly",
+                beforeAll: "readonly",
+                afterAll: "readonly",
+            },
+        },
+        rules: {
+            // Disable no-console for tests
+            "no-console": "off",
+            "@typescript-eslint/no-explicit-any": "off",
         },
     },
 ];

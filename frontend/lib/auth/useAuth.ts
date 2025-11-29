@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { loginUser, logoutUser } from "@/lib/auth/authService";
+import { AuthenticationError } from "@/lib/auth/types";
 
 /**
  * Authentication hook: login + logout
+ *
+ * This hook orchestrates authentication flows and manages UI state.
+ * The actual API calls are handled by authService for better testability.
  *
  * Provides:
  *  - handleSubmit: for logging in
@@ -13,60 +18,64 @@ import { useRouter } from "next/navigation";
  *  - error: error message, if any
  */
 export function useAuth() {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    /**
-     * Handles the form submission for user login.
-     *
-     * @param e - The form submission event.
-     * @param email - Email of the user
-     * @param password - Password of the user
-     */
-    async function handleSubmit(
-        e: React.FormEvent<HTMLFormElement>,
-        email: string,
-        password: string,
-    ) {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
+  /**
+   * Handles the form submission for user login.
+   *
+   * @param e - The form submission event.
+   * @param email - Email of the user
+   * @param password - Password of the user
+   */
+  async function handleSubmit(
+    e: React.FormEvent<HTMLFormElement>,
+    email: string,
+    password: string,
+  ) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-        try {
-            const res = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
+    try {
+      await loginUser({ email, password });
 
-            setLoading(false);
+      setLoading(false);
 
-            if (!res.ok) {
-                const data = await res.json();
-                setError(data.message || "Une erreur est survenue.");
-                return;
-            }
+      // Navigation to the dashboard after success
+      router.push("/dashboard");
+    } catch (err) {
+      setLoading(false);
 
-            router.push("/dashboard");
-        } catch {
-            setLoading(false);
-            setError("Erreur de connexion au serveur.");
-        }
+      // Typed error handling
+      if (err instanceof AuthenticationError) {
+        setError(err.message);
+      } else {
+        setError("Une erreur inattendue est survenue.");
+      }
     }
+  }
 
-    async function logout() {
-        try {
-            setLoading(true);
-            // Appel de l'API pour supprimer le cookie/token côté serveur
-            await fetch("/api/logout", { method: "POST" });
-            setLoading(false);
-            router.push("/login");
-        } catch {
-            setLoading(false);
-            setError("Erreur lors de la déconnexion.");
-        }
+  /**
+   * Logs out the current user and redirects to login page
+   */
+  async function logout() {
+    setLoading(true);
+    setError("");
+
+    try {
+      await logoutUser();
+
+      setLoading(false);
+      router.push("/login");
+    } catch (err) {
+      // Even if logout fails, redirect anyway
+      setLoading(false);
+      console.error("Logout error:", err);
+      router.push("/login");
     }
+  }
 
-    return { handleSubmit, logout, loading, error };
+  return { handleSubmit, logout, loading, error };
 }
