@@ -1,5 +1,5 @@
 /**
- * Tests for Input component
+ * @fileoverview Tests for Input component
  *
  * These tests verify that the Input component:
  * 1. Renders correctly with different props

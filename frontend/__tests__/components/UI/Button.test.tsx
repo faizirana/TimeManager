@@ -1,5 +1,5 @@
 /**
- * Tests for Button component
+ * @fileoverview Tests for Button component
  *
  * These tests verify that the Button component:
  * 1. Renders correctly with different props

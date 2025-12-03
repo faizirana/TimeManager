@@ -46,5 +46,11 @@ global.IntersectionObserver = class IntersectionObserver {
  * Removes warnings if fetch is not mocked in a test
  */
 if (typeof global.fetch === "undefined") {
-  global.fetch = jest.fn();
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: async () => ({}),
+      text: async () => "",
+    }),
+  ) as jest.Mock;
 }

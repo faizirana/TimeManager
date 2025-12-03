@@ -41,7 +41,10 @@ const config: Config = {
   // Test environment (jsdom simulates a browser)
   testEnvironment: "jsdom",
 
-  // Setup files to run before tests
+  // Polyfills to run before tests
+  setupFiles: ["<rootDir>/jest.polyfills.js"],
+
+  // Setup files to run after the test environment is ready
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // Module mapping (to handle imports of styles, images, etc.)
@@ -99,6 +102,7 @@ const config: Config = {
     "!**/coverage/**",
     "!**/jest.config.ts",
     "!**/jest.setup.ts",
+    "!**/jest.polyfills.js",
   ],
 };
 

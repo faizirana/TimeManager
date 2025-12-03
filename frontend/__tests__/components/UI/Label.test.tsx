@@ -1,5 +1,5 @@
 /**
- * Tests for Label component
+ * @fileoverview Tests for Label component
  *
  * These tests verify that the Label component:
  * 1. Renders correctly with different props
