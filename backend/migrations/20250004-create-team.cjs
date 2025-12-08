@@ -1,31 +1,35 @@
 // migrations/xxxx-create-team.js
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Team', {
+    await queryInterface.createTable("Team", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-    },
-      userId: {
+      },
+      id_manager: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'User',
-          key: 'id',
+          model: "User",
+          key: "id",
         },
       },
-      timetableId: {
+      id_timetable: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
-          model: 'Timetable',
-          key: 'id',
+          model: "Timetable",
+          key: "id",
         },
+      },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Team');
+    await queryInterface.dropTable("Team");
   },
 };
