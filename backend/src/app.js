@@ -5,12 +5,13 @@ import cookieParser from "cookie-parser";
 
 import usersRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import teamRoutes from "./routes/teamRoutes.js"
+import teamRoutes from "./routes/teamRoutes.js";
+import timetableRoutes from "./routes/timetableRoutes.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
 
-dotenv.config()
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -20,18 +21,18 @@ app.use(cookieParser());
 // Swagger setup
 const swaggerOptions = {
   swaggerDefinition: {
-    myapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Time manager API',
-      version: '1.0.0',
-      description: 'API documentation',
+      title: "Time manager API",
+      version: "1.0.0",
+      description: "API documentation",
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: "http://localhost:3001",
       },
     ],
-     components: {
+    components: {
       securitySchemes: {
         bearerAuth: {
           type: "http",
@@ -41,16 +42,22 @@ const swaggerOptions = {
         },
       },
     },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ['./src/routes/*.js'],
+  apis: ["./src/routes/*.js"],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
-app.use("/teams",teamRoutes)
+app.use("/teams", teamRoutes);
+app.use("/timetables", timetableRoutes);
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });
