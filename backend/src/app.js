@@ -29,7 +29,12 @@ const swaggerOptions = {
     },
     servers: [
       {
+        url: "http://localhost/api",
+        description: "Development server (via Nginx)",
+      },
+      {
         url: "http://localhost:3001",
+        description: "Direct backend server (use it if CORS is enabled in backend)",
       },
     ],
     components: {
