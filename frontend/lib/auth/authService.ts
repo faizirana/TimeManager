@@ -10,7 +10,7 @@ import { LoginCredentials, LoginResponse, AuthenticationError } from "@/lib/auth
  * Base URL for auth API endpoints
  * TODO : Could be moved to env config later
  */
-const AUTH_API_BASE = "/api";
+const AUTH_API_BASE = "/api/auth";
 
 /**
  * Login user with email and password
