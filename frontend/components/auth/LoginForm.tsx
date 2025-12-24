@@ -6,7 +6,7 @@ import { Input } from "@/components/UI/Input";
 import { Button } from "@/components/UI/Button";
 import { Label } from "@/components/UI/Label";
 
-import { useAuth } from "@/lib/auth/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LoginForm() {
   const { handleSubmit, loading, error } = useAuth();

@@ -7,8 +7,8 @@
  * 3. Handles errors correctly
  */
 
-import { loginUser, logoutUser } from "@/lib/auth/authService";
-import { AuthenticationError } from "@/lib/auth/types";
+import { loginUser, logoutUser } from "@/lib/services/auth/authService";
+import { AuthenticationError } from "@/lib/types/auth";
 
 // Global fetch mock
 // Declared before each test to start from a clean state

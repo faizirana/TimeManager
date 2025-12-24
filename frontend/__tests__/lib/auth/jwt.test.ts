@@ -8,7 +8,7 @@
  */
 
 import jwt from "jsonwebtoken";
-import { verifyToken } from "@/lib/auth/jwt";
+import { verifyToken } from "@/lib/services/auth/jwt";
 
 // Mock jsonwebtoken
 jest.mock("jsonwebtoken");

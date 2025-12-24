@@ -4,7 +4,7 @@
  * This service handles all authentication-related API calls.
  */
 
-import { LoginCredentials, LoginResponse, AuthenticationError } from "@/lib/auth/types";
+import { LoginCredentials, LoginResponse, AuthenticationError } from "@/lib/types/auth";
 
 /**
  * Base URL for auth API endpoints

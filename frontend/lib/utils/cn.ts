@@ -5,5 +5,5 @@
  * @returns A single string with all truthy class names joined by a space.
  */
 export function cn(...classes: (string | undefined | false)[]) {
-    return classes.filter(Boolean).join(" ");
+  return classes.filter(Boolean).join(" ");
 }
