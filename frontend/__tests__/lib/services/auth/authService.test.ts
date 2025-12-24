@@ -307,4 +307,184 @@ describe("authService", () => {
       consoleErrorSpy.mockRestore();
     });
   });
+
+  describe("checkToken", () => {
+    /**
+     * TEST 1: Valid token - returns true
+     *
+     * Scenario: User has a valid token and /auth/me responds 200
+     * Expected: checkToken returns true
+     */
+    it("should return true when token is valid", async () => {
+      // ARRANGE: Import the function
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      // Mock fetch to return successful response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+      });
+
+      // ACT: Call checkToken
+      const result = await checkToken();
+
+      // ASSERT: Verify result is true
+      expect(result).toBe(true);
+
+      // ASSERT: Verify fetch was called with correct parameters
+      expect(global.fetch).toHaveBeenCalledWith("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+      });
+    });
+
+    /**
+     * TEST 2: Invalid token - returns false
+     *
+     * Scenario: User has invalid/expired token, /auth/me responds 401
+     * Expected: checkToken returns false
+     */
+    it("should return false when token is invalid", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      // Mock fetch to return 401 Unauthorized
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+      });
+
+      // ACT
+      const result = await checkToken();
+
+      // ASSERT
+      expect(result).toBe(false);
+    });
+
+    /**
+     * TEST 3: No token - returns false
+     *
+     * Scenario: User has no token, /auth/me responds 401
+     * Expected: checkToken returns false
+     */
+    it("should return false when no token exists", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      // Mock fetch to return 401
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+      });
+
+      // ACT
+      const result = await checkToken();
+
+      // ASSERT
+      expect(result).toBe(false);
+    });
+
+    /**
+     * TEST 4: Network error - returns false
+     *
+     * Scenario: Network request fails
+     * Expected: checkToken returns false and logs error
+     */
+    it("should return false on network error", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+
+      // Mock fetch to throw network error
+      (global.fetch as jest.Mock).mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+      // ACT
+      const result = await checkToken();
+
+      // ASSERT
+      expect(result).toBe(false);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Token verification error:",
+        expect.any(TypeError),
+      );
+
+      // Cleanup
+      consoleErrorSpy.mockRestore();
+    });
+
+    /**
+     * TEST 5: Server error (500) - returns false
+     *
+     * Scenario: Server error during token verification
+     * Expected: checkToken returns false
+     */
+    it("should return false on server error", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      // Mock fetch to return 500
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+      // ACT
+      const result = await checkToken();
+
+      // ASSERT
+      expect(result).toBe(false);
+    });
+
+    /**
+     * TEST 6: Uses credentials: include
+     *
+     * Scenario: checkToken is called
+     * Expected: fetch is called with credentials: include to send cookies
+     */
+    it("should include credentials in the request", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+      });
+
+      // ACT
+      await checkToken();
+
+      // ASSERT: Verify credentials are included
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/auth/me",
+        expect.objectContaining({
+          credentials: "include",
+        }),
+      );
+    });
+
+    /**
+     * TEST 7: Calls correct endpoint
+     *
+     * Scenario: checkToken is called
+     * Expected: Calls /api/auth/me with GET method
+     */
+    it("should call /api/auth/me with GET method", async () => {
+      // ARRANGE
+      const { checkToken } = await import("@/lib/services/auth/authService");
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+      });
+
+      // ACT
+      await checkToken();
+
+      // ASSERT
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/auth/me",
+        expect.objectContaining({
+          method: "GET",
+        }),
+      );
+    });
+  });
 });
