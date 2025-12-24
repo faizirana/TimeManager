@@ -108,3 +108,34 @@ export async function logoutUser(): Promise<void> {
     console.error("Logout error:", error);
   }
 }
+
+/**
+ * Check if the user has a valid token by calling /auth/me
+ *
+ * The browser automatically sends httpOnly cookies with the request.
+ * No need to manually read or send the token.
+ *
+ * @returns true if user is authenticated, false otherwise
+ *
+ * @example
+ * ```ts
+ * const isAuthenticated = await checkToken();
+ * if (isAuthenticated) {
+ *   // User has valid session, auto-login
+ * }
+ * ```
+ */
+export async function checkToken(): Promise<boolean> {
+  try {
+    // Le navigateur envoie automatiquement le cookie accessToken (même httpOnly)
+    const response = await fetch(`${AUTH_API_BASE}/me`, {
+      method: "GET",
+      credentials: "include", // Envoie automatiquement TOUS les cookies
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return false;
+  }
+}

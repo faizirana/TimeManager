@@ -8,7 +8,7 @@ import { Label } from "@/components/UI/Label";
 
 import { useAuth } from "@/lib/hooks/useAuth";
 
-export default function LoginForm() {
+export default function LoginForm({ disabled = false }: { disabled?: boolean }) {
   const { handleSubmit, loading, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,8 +55,8 @@ export default function LoginForm() {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Connexion..." : "Se connecter"}
+      <Button type="submit" disabled={loading || disabled} className="w-full">
+        {loading ? "Connexion..." : disabled ? "Redirection..." : "Se connecter"}
       </Button>
     </form>
   );
