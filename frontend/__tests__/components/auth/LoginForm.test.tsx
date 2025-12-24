@@ -14,7 +14,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 // Mock the useAuth hook
-jest.mock("@/lib/auth/useAuth");
+jest.mock("@/lib/hooks/useAuth");
 
 // Cast pour TypeScript
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
@@ -326,6 +326,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Get elements
     const emailField = screen.getByLabelText(/Email/i);
     const passwordField = screen.getByLabelText(/Mot de passe/i);
+    const togglePasswordButton = screen.getByRole("button", { name: /Afficher/i });
     const submitButton = screen.getByRole("button", { name: /Se connecter/i });
 
     // ASSERT: Initial focus is not on any field
@@ -339,6 +340,10 @@ describe("LoginForm Component", () => {
     // ACT & ASSERT: Tab to password field
     await user.tab();
     expect(passwordField).toHaveFocus();
+
+    // ACT & ASSERT: Tab to password visibility toggle button
+    await user.tab();
+    expect(togglePasswordButton).toHaveFocus();
 
     // ACT & ASSERT: Tab to submit button
     await user.tab();

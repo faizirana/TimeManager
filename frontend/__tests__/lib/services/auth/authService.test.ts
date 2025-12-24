@@ -57,7 +57,7 @@ describe("authService", () => {
       // 1. Verify fetch was called with correct parameters
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        "/api/login",
+        "/api/auth/login",
         expect.objectContaining({
           method: "POST",
           headers: {
@@ -253,7 +253,7 @@ describe("authService", () => {
       // ASSERT
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        "/api/logout",
+        "/api/auth/logout",
         expect.objectContaining({
           method: "POST",
           credentials: "include",

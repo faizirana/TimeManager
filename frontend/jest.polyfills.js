@@ -63,3 +63,13 @@ if (Form) {
     },
   });
 }
+
+/**
+ * Polyfill TextEncoder and TextDecoder for jsdom
+ * These are needed for jose library which uses Web Crypto API
+ */
+if (typeof global.TextEncoder === "undefined") {
+  const { TextEncoder, TextDecoder } = require("util");
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}

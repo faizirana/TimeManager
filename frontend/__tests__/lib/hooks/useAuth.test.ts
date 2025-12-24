@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 
 // Define mocks
 jest.mock("next/navigation");
-jest.mock("@/lib/auth/authService");
+jest.mock("@/lib/services/auth/authService");
 
 import { renderHook } from "@testing-library/react";
 import { useAuth } from "@/lib/hooks/useAuth";
