@@ -2,8 +2,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #f9fafb;
+    --foreground: #171717;
   --color-primary: #3c6f48;
   --color-primary-soft: #558560;
   --color-secondary: #3c6f4830;
@@ -17,10 +17,10 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root:not(.light-mode) {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
 }
 
 body {

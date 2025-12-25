@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import React from "react";
 import { AuthProvider } from "@/lib/contexts/AuthContext";
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
