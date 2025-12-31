@@ -1,11 +1,11 @@
 "use strict";
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface, _Sequelize) => {
     // 1. Supprimer la contrainte unique sur id_user qui empêche le multi-équipes
     try {
       await queryInterface.removeConstraint("TeamMember", "unique_team_member_user");
-    } catch (error) {
+    } catch {
       console.log("⚠️  Constraint 'unique_team_member_user' not found, skipping...");
     }
 
@@ -55,11 +55,11 @@ module.exports = {
     });
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface, _Sequelize) => {
     // 1. Supprimer la contrainte composite
     try {
       await queryInterface.removeConstraint("TeamMember", "unique_user_team_membership");
-    } catch (error) {
+    } catch {
       console.log("⚠️  Constraint 'unique_user_team_membership' not found, skipping...");
     }
 

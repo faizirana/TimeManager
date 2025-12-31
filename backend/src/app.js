@@ -216,7 +216,7 @@ app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
 app.use("/teams", teamRoutes);
 app.use("/timetables", timetableRoutes);
-app.use("/timerecordings", timeRecordingRoutes);
+app.use("/time-recordings", timeRecordingRoutes);
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });

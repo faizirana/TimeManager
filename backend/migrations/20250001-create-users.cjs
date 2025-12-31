@@ -30,7 +30,7 @@ module.exports = {
         allowNull: false,
       },
       role: {
-        type: _Sequelize.ENUM("manager", "employee"),
+        type: _Sequelize.ENUM("manager", "employee", "admin"),
         allowNull: false,
       },
       id_manager: {
@@ -40,6 +40,8 @@ module.exports = {
           model: "User",
           key: "id",
         },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
       },
     });
   },

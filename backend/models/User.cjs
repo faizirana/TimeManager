@@ -81,7 +81,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       freezeTableName: true,
       tableName: "User",
-      timestamps: false,
+      timestamps: true,
       hooks: {
         beforeValidate: (user, _options) => {
           // Vérifier que tous les champs obligatoires sont présents

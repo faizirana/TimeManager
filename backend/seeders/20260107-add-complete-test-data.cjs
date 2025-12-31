@@ -3,7 +3,7 @@
 const bcrypt = require("bcryptjs");
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _Sequelize) {
     const salt = await bcrypt.genSalt(12);
 
     // Hash passwords for all users
