@@ -1,55 +1,72 @@
 import db from "../../models/index.cjs";
-import bcrypt from "bcryptjs";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../service/tokenService.js";
+import crypto from "crypto";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../service/tokenService.js";
+import { hashToken, compareTokenHash } from "../service/hashService.js";
 
 const { User } = db;
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  //console.log('Login attempt with:', { email, password });
-  if (!email || !password){
-    console.log('Missing email or password');
+
+  if (!email || !password) {
     return res.status(400).json({ message: "Email and password required" });
   }
 
-  try{
-  //console.log('Searching for user with email:', email);
-  const user = await User.findOne({ where: { email } });
-  //console.log('User found:', !!user);
-  if (!user){
-    console.log('User not found'); 
-    return res.status(401).json({ message: "Invalid credentials" });
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user || !(await user.verifyPassword(password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Token family (nouvelle session)
+    const tokenFamily = crypto.randomUUID();
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user, tokenFamily);
+
+    // Decode to get JTI
+    const payload = verifyRefreshToken(refreshToken);
+
+    user.refreshTokenHash = await hashToken(payload.jti); // Hash only the JTI
+    user.refreshTokenFamily = tokenFamily;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ accessToken });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (token) {
+      const payload = verifyRefreshToken(token);
+      const user = await User.findByPk(payload.id);
+
+      if (user) {
+        user.refreshTokenHash = null;
+        user.refreshTokenFamily = null;
+        await user.save();
+      }
+    }
+  } catch (err) {
+    console.log("Logout error:", err.message);
   }
 
-  //console.log('Checking password match');
-  const isMatch = await user.verifyPassword(password);//bcrypt.compare(password, user.password);
-  //console.log('Password match:', isMatch);
-  if (!isMatch) {
-    console.log('Password does not match');
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  //console.log('Generating tokens');
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
-  //console.log('Tokens generated:', !!accessToken, !!refreshToken);
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  //console.log('Sending response');
-  res.status(200).json({ accessToken });
-  } catch (error) {
-    console.error('Login error:', error); // Log détaillé de l'erreur
-    res.status(500).json({ message: "Internal server error", error: error.message }); // Retourner le message d'erreur
-  }
-}
-
-export const logoutUser = (req, res) => {
   res.clearCookie("refreshToken");
   res.status(200).json({ message: "Logout successful" });
 };
@@ -58,18 +75,56 @@ export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) return res.status(401).json({ message: "No token" });
 
-  let payload;
   try {
-    payload = verifyRefreshToken(token);
-  } catch {
-    return res.status(403).json({ message: "Invalid token" });
+    const payload = verifyRefreshToken(token);
+
+    // Always fetch fresh from database
+    const user = await User.findByPk(payload.id);
+
+    if (!user || !user.refreshTokenHash) {
+      return res.status(403).json({ message: "Token revoked" });
+    }
+
+    // Vérification famille
+    if (payload.family !== user.refreshTokenFamily) {
+      user.refreshTokenHash = null;
+      user.refreshTokenFamily = null;
+      await user.save();
+      return res.status(403).json({ message: "Token reuse detected" });
+    }
+
+    // Compare JTI with stored hash (not the full token)
+    const valid = await compareTokenHash(payload.jti, user.refreshTokenHash);
+
+    if (!valid) {
+      user.refreshTokenHash = null;
+      user.refreshTokenFamily = null;
+      await user.save();
+      return res.status(403).json({ message: "Token reuse detected" });
+    }
+
+    // Generate new token and hash
+    const newRefreshToken = generateRefreshToken(user, user.refreshTokenFamily);
+    const newPayload = verifyRefreshToken(newRefreshToken);
+    const newHash = await hashToken(newPayload.jti); // Hash only the new JTI
+
+    // Update the hash - invalidate the old token immediately
+    user.refreshTokenHash = newHash;
+    await user.save();
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const newAccessToken = generateAccessToken(user);
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (err) {
+    console.error("Refresh error:", err.message);
+    res.status(403).json({ message: "Invalid or expired token" });
   }
-
-  const user = await User.findByPk(payload.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  const newAccessToken = generateAccessToken(user);
-  res.status(200).json({ accessToken: newAccessToken });
 };
 
 export const getCurrentUser = async (req, res) => {

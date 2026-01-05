@@ -30,7 +30,7 @@ const router = express.Router();
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: userId
+ *         name: id_user
  *         schema:
  *           type: number
  *         description: Filter teams by user membership
@@ -171,9 +171,9 @@ router.delete("/:id", authenticate, deleteTeam);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [userId]
+ *             required: [id_user]
  *             properties:
- *               userId:
+ *               id_user:
  *                 type: number
  *                 example: 12
  *     responses:

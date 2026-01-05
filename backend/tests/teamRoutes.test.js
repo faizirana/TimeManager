@@ -12,6 +12,9 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  // Add delay to avoid rate limiting in tests
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
   await db.TeamMember.destroy({ where: {} });
   await db.Team.destroy({ where: {} });
   await db.User.destroy({ where: {} });
@@ -34,7 +37,7 @@ beforeEach(async () => {
 
   expect(loginRes.statusCode).toBe(200);
   accessToken = loginRes.body.accessToken;
-  cookie = loginRes.headers["set-cookie"]?.find(c => c.startsWith("refreshToken"));
+  cookie = loginRes.headers["set-cookie"]?.find((c) => c.startsWith("refreshToken"));
 });
 
 afterEach(async () => {
@@ -85,9 +88,7 @@ describe("Teams API", () => {
     it("lists all teams", async () => {
       await db.Team.create({ name: "Team Alpha", id_manager: managerId });
 
-      const res = await request(app)
-        .get("/teams")
-        .set("Authorization", `Bearer ${accessToken}`);
+      const res = await request(app).get("/teams").set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.length).toBe(1);
@@ -96,10 +97,10 @@ describe("Teams API", () => {
 
     it("filters teams by user", async () => {
       const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
-      await db.TeamMember.create({ teamId: team.id, userId: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: managerId });
 
       const res = await request(app)
-        .get(`/teams?userId=${managerId}`)
+        .get(`/teams?id_user=${managerId}`)
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
@@ -185,7 +186,7 @@ describe("Teams API", () => {
       const res = await request(app)
         .post(`/teams/${team.id}/users`)
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ userId: managerId });
+        .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(201);
       expect(res.body.message).toBe("User added to team");
@@ -193,12 +194,12 @@ describe("Teams API", () => {
 
     it("fails if user already in team", async () => {
       const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
-      await db.TeamMember.create({ teamId: team.id, userId: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: managerId });
 
       const res = await request(app)
         .post(`/teams/${team.id}/users`)
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ userId: managerId });
+        .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.message).toBe("User already in this team");
@@ -208,7 +209,7 @@ describe("Teams API", () => {
   describe("DELETE /teams/:id/users/:userId", () => {
     it("removes a user from a team", async () => {
       const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
-      await db.TeamMember.create({ teamId: team.id, userId: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: managerId });
 
       const res = await request(app)
         .delete(`/teams/${team.id}/users/${managerId}`)
@@ -233,7 +234,7 @@ describe("Teams API", () => {
   describe("POST /teams/validate/conflicts", () => {
     it("validates team assignments without conflict", async () => {
       const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
-      await db.TeamMember.create({ teamId: team.id, userId: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: managerId });
 
       const res = await request(app)
         .post("/teams/validate/conflicts")
@@ -246,8 +247,8 @@ describe("Teams API", () => {
     it("detects conflict if user in multiple teams with same manager", async () => {
       const team1 = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
       const team2 = await db.Team.create({ name: "Team Beta", id_manager: managerId });
-      await db.TeamMember.create({ teamId: team1.id, userId: managerId });
-      await db.TeamMember.create({ teamId: team2.id, userId: managerId });
+      await db.TeamMember.create({ id_team: team1.id, id_user: managerId });
+      await db.TeamMember.create({ id_team: team2.id, id_user: managerId });
 
       const res = await request(app)
         .post("/teams/validate/conflicts")

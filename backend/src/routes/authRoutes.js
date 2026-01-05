@@ -1,13 +1,32 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { authenticate } from "../middleware/authMiddleware.js";
 import {
   loginUser,
   logoutUser,
   getCurrentUser,
-  refreshToken
+  refreshToken,
 } from "../controllers/authController.js";
 
 const router = express.Router();
+
+// Rate limiter pour le login : 5 tentatives par 15 minutes (50 en test pour rapidité)
+const loginLimiter = rateLimit({
+  windowMs: process.env.NODE_ENV === "test" ? 10 * 1000 : 15 * 60 * 1000, // 10 seconds in test, 15 minutes in production
+  max: process.env.NODE_ENV === "test" ? 50 : 5,
+  message: "Too many login attempts, please try again after 15 minutes",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter pour le refresh : 10 tentatives par 15 minutes (50 en test pour rapidité)
+const refreshLimiter = rateLimit({
+  windowMs: process.env.NODE_ENV === "test" ? 10 * 1000 : 15 * 60 * 1000, // 10 seconds in test, 15 minutes in production
+  max: process.env.NODE_ENV === "test" ? 50 : 10,
+  message: "Too many refresh requests, please try again after 15 minutes",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * @swagger
@@ -34,10 +53,10 @@ const router = express.Router();
  *             properties:
  *               email:
  *                 type: string
- *                 example: "kevin@example.com"
+ *                 example: "alice.manager@example.com"
  *               password:
  *                 type: string
- *                 example: "password123"
+ *                 example: "Manager123!"
  *     responses:
  *       200:
  *         description: Login successful, returns access token (refresh token in HttpOnly cookie)
@@ -54,7 +73,7 @@ const router = express.Router();
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", loginUser);
+router.post("/login", loginLimiter, loginUser);
 
 /**
  * @swagger
@@ -92,7 +111,7 @@ router.post("/logout", logoutUser);
  *       404:
  *         description: User not found
  */
-router.post("/refresh", refreshToken);
+router.post("/refresh", refreshLimiter, refreshToken);
 
 /**
  * @swagger

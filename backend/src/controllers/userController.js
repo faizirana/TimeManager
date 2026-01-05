@@ -16,7 +16,6 @@ export const getUsers = async (req, res) => {
   }
 };
 
-
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
@@ -30,7 +29,6 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const createUser = async (req, res) => {
   const { name, surname, mobileNumber, email, password, role, id_manager } = req.body;
@@ -52,7 +50,6 @@ export const createUser = async (req, res) => {
       role,
       id_manager: id_manager || null,
     });
-
 
     const newUserObj = newUser.toJSON();
     delete newUserObj.password;
@@ -83,6 +80,9 @@ export const updateUser = async (req, res) => {
 
     if (password) {
       updatedData.password = await bcrypt.hash(password, SALT_ROUNDS);
+      // Invalider le refresh token lors du changement de mot de passe
+      updatedData.refreshTokenHash = null;
+      updatedData.refreshTokenFamily = null;
     }
 
     await user.update(updatedData);
@@ -96,7 +96,6 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
-
 
 export const deleteUser = async (req, res) => {
   try {

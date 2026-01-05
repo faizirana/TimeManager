@@ -26,28 +26,34 @@ module.exports = (sequelize, DataTypes) => {
       freezeTableName: true,
       timestamps: false,
       tableName: "Team",
-    }
+    },
   );
 
   Team.associate = (models) => {
     Team.belongsTo(models.User, {
       as: "manager",
-      foreignKey: "id_manager",
+      foreignKey: {
+        name: "id_manager",
+        allowNull: false,
+      },
     });
 
     Team.belongsToMany(models.User, {
       as: "members",
       through: {
         model: models.TeamMember,
-        attributes: []
+        attributes: [],
       },
-      foreignKey: "teamId",
-      otherKey: "userId",
+      foreignKey: "id_team",
+      otherKey: "id_user",
     });
 
     Team.belongsTo(models.Timetable, {
       as: "timetable",
-      foreignKey: "id_timetable",
+      foreignKey: {
+        name: "id_timetable",
+        allowNull: true,
+      },
     });
   };
 

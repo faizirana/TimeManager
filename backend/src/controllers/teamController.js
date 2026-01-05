@@ -5,25 +5,25 @@ const { Team, User, TeamMember } = db;
 // GET /teams
 export const getTeams = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { id_user } = req.query;
     const whereClause = {};
 
-    if (userId) {
-      const memberships = await TeamMember.findAll({ 
-        where: { userId },
-        attributes: ['userId', 'teamId']
+    if (id_user) {
+      const memberships = await TeamMember.findAll({
+        where: { id_user },
+        attributes: ["id_user", "id_team"],
       });
-      const teamIds = memberships.map((m) => m.teamId);
+      const teamIds = memberships.map((m) => m.id_team);
       whereClause.id = teamIds.length ? teamIds : [-1];
     }
 
     const teams = await Team.findAll({
       where: whereClause,
       include: [
-        { 
-          model: User, 
-          as: "manager", 
-          attributes: ["id", "name", "surname", "email"] 
+        {
+          model: User,
+          as: "manager",
+          attributes: ["id", "name", "surname", "email"],
         },
         {
           model: User,
@@ -32,7 +32,7 @@ export const getTeams = async (req, res) => {
           through: { attributes: [] }, // No attributes from join table
         },
       ],
-      attributes: ['id', 'id_manager', 'id_timetable', 'name']
+      attributes: ["id", "id_manager", "id_timetable", "name"],
     });
 
     res.status(200).json(teams);
@@ -121,21 +121,20 @@ export const deleteTeam = async (req, res) => {
 // POST /teams/:id/users
 export const addUserToTeam = async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.body;
+  const { id_user } = req.body;
 
-  if (!userId) return res.status(400).json({ message: "userId is required" });
+  if (!id_user) return res.status(400).json({ message: "id_user is required" });
 
   try {
     const team = await Team.findByPk(id);
-    const user = await User.findByPk(userId);
-    if (!team || !user)
-      return res.status(404).json({ message: "Team or user not found" });
+    const user = await User.findByPk(id_user);
+    if (!team || !user) return res.status(404).json({ message: "Team or user not found" });
 
     // Check if already in team
-    const exists = await TeamMember.findOne({ where: { teamId: id, userId } });
+    const exists = await TeamMember.findOne({ where: { id_team: id, id_user } });
     if (exists) return res.status(400).json({ message: "User already in this team" });
 
-    await TeamMember.create({ teamId: id, userId });
+    await TeamMember.create({ id_team: id, id_user });
     res.status(201).json({ message: "User added to team" });
   } catch (error) {
     console.error("Error adding user to team:", error);
@@ -145,10 +144,10 @@ export const addUserToTeam = async (req, res) => {
 
 // DELETE /teams/:id/users/:userId
 export const removeUserFromTeam = async (req, res) => {
-  const { id, userId } = req.params;
+  const { id, userId: id_user } = req.params;
 
   try {
-    const link = await TeamMember.findOne({ where: { teamId: id, userId } });
+    const link = await TeamMember.findOne({ where: { id_team: id, id_user } });
     if (!link) return res.status(404).json({ message: "User not in this team" });
 
     await link.destroy();

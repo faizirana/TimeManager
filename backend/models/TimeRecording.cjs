@@ -68,7 +68,10 @@ module.exports = (sequelize, DataTypes) => {
 
   TimeRecording.associate = (models) => {
     TimeRecording.belongsTo(models.User, {
-      foreignKey: "id_user",
+      foreignKey: {
+        name: "id_user",
+        allowNull: false,
+      },
       as: "user",
     });
   };
