@@ -37,13 +37,13 @@ interface Member {
   shift: string;
 }
 
-// Mapping des types de situation vers leurs labels
+// Mapping of situation types to their labels
 const situationLabels: Record<Member["situation"]["type"], string> = {
   onsite: "Sur Site",
   telework: "Télétravail",
 };
 
-// Mapping des types de situation vers leurs icônes
+// Mapping of situation types to their icons
 const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
   onsite: MapPin,
   telework: Computer,
@@ -113,13 +113,13 @@ export default function TeamMembersPage() {
   const router = useRouter();
   const { data: members, sortColumn, sortDirection, handleSort } = useTableSort(mockMembers);
 
-  // Récupérer le nom de l'équipe (temporaire, sera remplacé par l'API)
-  const teamName = "IT"; // Pour l'exemple
+  // Get team name (temporary, will be replaced by API)
+  const teamName = "IT"; // For example
 
-  // Fonction de comparaison personnalisée pour la colonne situation
+  // Custom comparison function for situation column
   const handleSituationSort = () => {
     handleSort("situation", (a, b) => {
-      // Trier par type (qui sera affiché via le label)
+      // Sort by type (which will be displayed via label)
       return a.situation.type.localeCompare(b.situation.type);
     });
   };

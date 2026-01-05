@@ -16,7 +16,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 // Mock the useAuth hook
 jest.mock("@/lib/hooks/useAuth");
 
-// Cast pour TypeScript
+// TypeScript cast
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 describe("LoginForm Component", () => {
