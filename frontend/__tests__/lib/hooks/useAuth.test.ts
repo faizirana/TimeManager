@@ -7,18 +7,18 @@
  * 3. Handles logout flow correctly
  */
 
-import { loginUser, logoutUser } from "@/lib/auth/authService";
+import { loginUser, logoutUser } from "@/lib/services/auth/authService";
 import { useRouter } from "next/navigation";
 
 // Define mocks
 jest.mock("next/navigation");
-jest.mock("@/lib/auth/authService");
+jest.mock("@/lib/services/auth/authService");
 
 import { renderHook } from "@testing-library/react";
-import { useAuth } from "@/lib/auth/useAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { act } from "@testing-library/react";
 import { FormEvent } from "react";
-import { AuthenticationError } from "@/lib/auth/types";
+import { AuthenticationError } from "@/lib/types/auth";
 
 // Mock typings for TypeScript
 const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;

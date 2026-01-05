@@ -71,6 +71,9 @@ const config: Config = {
   // Ignore certain folders
   testPathIgnorePatterns: ["/node_modules/", "/.next/"],
 
+  // Transform node_modules that are ESM only (like jose)
+  transformIgnorePatterns: ["/node_modules/(?!jose/)"],
+
   // File transformation (TypeScript, etc.)
   transform: {
     "^.+\\.(ts|tsx)$": [

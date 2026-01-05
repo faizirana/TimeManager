@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser, logoutUser } from "@/lib/auth/authService";
-import { AuthenticationError } from "@/lib/auth/types";
+import { loginUser, logoutUser } from "@/lib/services/auth/authService";
+import { AuthenticationError } from "@/lib/types/auth";
 
 /**
  * Authentication hook: login + logout
