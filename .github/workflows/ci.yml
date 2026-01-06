@@ -66,21 +66,28 @@ jobs:
 
       - name: Restore root cache
         uses: actions/cache@v4
+        id: cache-root-restore
         with:
           path: node_modules
           key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Restore frontend cache
         uses: actions/cache@v4
+        id: cache-frontend-restore
         with:
           path: frontend/node_modules
           key: frontend-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: Restore backend cache
         uses: actions/cache@v4
+        id: cache-backend-restore
         with:
           path: backend/node_modules
           key: backend-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        if: steps.cache-root-restore.outputs.cache-hit != 'true' || steps.cache-frontend-restore.outputs.cache-hit != 'true' || steps.cache-backend-restore.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Run ESLint
         run: npm run lint
@@ -102,9 +109,14 @@ jobs:
 
       - name: Restore root cache
         uses: actions/cache@v4
+        id: cache-root-restore
         with:
           path: node_modules
           key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        if: steps.cache-root-restore.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Check Prettier formatting
         run: npm run format:check
@@ -128,15 +140,21 @@ jobs:
 
       - name: Restore root cache
         uses: actions/cache@v4
+        id: cache-root-restore
         with:
           path: node_modules
           key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Restore frontend cache
         uses: actions/cache@v4
+        id: cache-frontend-restore
         with:
           path: frontend/node_modules
           key: frontend-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        if: steps.cache-root-restore.outputs.cache-hit != 'true' || steps.cache-frontend-restore.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Run frontend tests
         run: npm run test:frontend
@@ -164,15 +182,21 @@ jobs:
 
       - name: Restore root cache
         uses: actions/cache@v4
+        id: cache-root-restore
         with:
           path: node_modules
           key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Restore backend cache
         uses: actions/cache@v4
+        id: cache-backend-restore
         with:
           path: backend/node_modules
           key: backend-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        if: steps.cache-root-restore.outputs.cache-hit != 'true' || steps.cache-backend-restore.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Run backend tests
         run: npm run test:backend
@@ -292,7 +316,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Nginx Image
-        run: docker build -t nginx:latest -f nginx/Dockerfile nginx/ || docker-compose build nginx
+        run: docker compose build nginx
 
   # Job Final: Validation globale
   ci-success:
