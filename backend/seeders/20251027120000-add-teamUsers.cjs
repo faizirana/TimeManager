@@ -35,7 +35,6 @@ module.exports = {
 
     // --- TEAMS ---
     await queryInterface.bulkInsert("Team", [
-      // No quotes, singular
       {
         name: "Team Alpha",
         id_manager: 1,
@@ -57,7 +56,7 @@ module.exports = {
     console.log("✅ Teams and users seeded successfully.");
   },
 
-  async down(queryInterface, _Sequelize) {
+  async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete("TeamMember", null, {});
     await queryInterface.bulkDelete("Team", null, {});
     await queryInterface.bulkDelete("User", {

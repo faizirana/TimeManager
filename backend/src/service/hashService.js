@@ -7,8 +7,8 @@ const SALT_ROUNDS = 10;
  * @param {string} token - The token to hash
  * @returns {Promise<string>} The hashed token
  */
-export const hashToken = async (token) => {
-  return await bcrypt.hash(token, SALT_ROUNDS);
+export const hashToken = (token) => {
+  return bcrypt.hash(token, SALT_ROUNDS);
 };
 
 /**
@@ -17,6 +17,6 @@ export const hashToken = async (token) => {
  * @param {string} hashedToken - The hashed token from database
  * @returns {Promise<boolean>} True if tokens match
  */
-export const compareTokenHash = async (plainToken, hashedToken) => {
-  return await bcrypt.compare(plainToken, hashedToken);
+export const compareTokenHash = (plainToken, hashedToken) => {
+  return bcrypt.compare(plainToken, hashedToken);
 };

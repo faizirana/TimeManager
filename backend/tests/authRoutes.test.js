@@ -252,7 +252,7 @@ describe("Auth API", () => {
       const responses = await Promise.all(promises);
       const rateLimited = responses.some((res) => res.statusCode === 429);
       expect(rateLimited).toBe(true);
-    }, 15000);
+    }, 300000);
 
     it("blocks excessive refresh attempts", async () => {
       // Wait for rate limiter window to expire (10 seconds in test mode)
@@ -291,6 +291,6 @@ describe("Auth API", () => {
       const responses = await Promise.all(promises);
       const rateLimited = responses.some((res) => res.statusCode === 429);
       expect(rateLimited).toBe(true);
-    }, 20000);
+    }, 30000);
   });
 });

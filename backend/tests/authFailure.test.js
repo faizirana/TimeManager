@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import app from "../src/app.js";
 import db from "../models/index.cjs";
 
-let accessToken;
+let _accessToken;
 
 beforeAll(async () => {
   await db.sequelize.sync({ force: true });
@@ -23,7 +23,7 @@ beforeAll(async () => {
     .post("/auth/login")
     .send({ email: "admin@example.com", password: "Password123!" });
 
-  accessToken = res.body.accessToken;
+  _accessToken = res.body.accessToken;
 });
 
 afterAll(async () => {
@@ -31,7 +31,6 @@ afterAll(async () => {
 });
 
 describe("User API - Negative tests", () => {
-
   it("GET /users → should fail without token", async () => {
     const res = await request(app).get("/users");
 
@@ -50,14 +49,16 @@ describe("User API - Negative tests", () => {
   });
 
   it("POST /users → should fail without token", async () => {
-    const res = await request(app).post("/users").send({
-      name: "Claire",
-      surname: "Durand",
-      email: "claire.durand@example.com",
-      password: await bcrypt.hash("pAssword123@",12),
-      mobileNumber: "0604050607",
-      role: "employee",
-    });
+    const res = await request(app)
+      .post("/users")
+      .send({
+        name: "Claire",
+        surname: "Durand",
+        email: "claire.durand@example.com",
+        password: await bcrypt.hash("pAssword123@", 12),
+        mobileNumber: "0604050607",
+        role: "employee",
+      });
 
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe("Unauthorized");
@@ -65,9 +66,7 @@ describe("User API - Negative tests", () => {
 
   it("PUT /users/:id → should fail without token", async () => {
     const user = await db.User.findOne({ where: { email: "admin@example.com" } });
-    const res = await request(app)
-      .put(`/users/${user.id}`)
-      .send({ surname: "Dupont" });
+    const res = await request(app).put(`/users/${user.id}`).send({ surname: "Dupont" });
 
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe("Unauthorized");
@@ -82,5 +81,4 @@ describe("User API - Negative tests", () => {
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe("Invalid or expired token");
   });
-
 });

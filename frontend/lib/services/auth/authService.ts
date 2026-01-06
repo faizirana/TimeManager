@@ -49,7 +49,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<LoginRes
     let data;
     try {
       data = await response.json();
-    } catch (e) {
+    } catch (_e) {
       // If parsing fails, it's probably not JSON
       throw new AuthenticationError(
         "Le serveur a renvoyé une réponse invalide",

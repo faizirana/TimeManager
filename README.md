@@ -153,8 +153,8 @@ Le backend fournit une API RESTful pour toutes les opérations.
 ## 🚀 Commandes utiles
 
 ```bash
-docker-compose up --build
-docker-compose down
+docker compose up --build
+docker compose down
 ```
 
 ---
@@ -174,7 +174,7 @@ Swagger est intégré directement dans le backend :
 
 ## 🚀 Déploiement
 - Build frontend : ```npm run build```
-- Lancer en production : ```docker-compose -f docker-compose.prod.yml up -d```
+- Lancer en production : ```docker compose -f docker-compose.prod.yml up -d```
 - Variables d’environnement : ```.env```
 
 ---
@@ -197,7 +197,7 @@ Bootstrap TIME MANAGER offre une base solide pour toute application de gestion d
 ```bash
 npm run dev          # Lancer en dev
 npm run migrate      # Lancer les migrations
-docker-compose logs  # Voir les logs
+docker compose logs  # Voir les logs
 ````
 
 - 📚 Ressources recommandées :

@@ -8,8 +8,8 @@ let managerToken;
 let userToken;
 let timetableId;
 let managerId;
-let userId;
-let teamId;
+let _userId;
+let _teamId;
 
 beforeAll(async () => {
   await db.sequelize.sync({ force: true });
@@ -21,7 +21,7 @@ beforeAll(async () => {
   const hashedPassword = await bcrypt.hash("Password123!", 12);
 
   // Créer un admin
-  const admin = await db.User.create({
+  const _admin = await db.User.create({
     name: "Admin",
     surname: "User",
     email: "admin@example.com",
@@ -50,7 +50,7 @@ beforeAll(async () => {
     mobileNumber: "0601020306",
     role: "employee",
   });
-  userId = user.id;
+  _userId = user.id;
 
   // Obtenir les tokens
   const adminRes = await request(app)
@@ -208,7 +208,7 @@ describe("Timetable API", () => {
         id_manager: managerId,
         id_timetable: timetableId,
       });
-      teamId = team.id;
+      _teamId = team.id;
     });
 
     it("permet à un admin de mettre à jour n'importe quel timetable", async () => {

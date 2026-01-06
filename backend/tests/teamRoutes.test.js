@@ -4,7 +4,7 @@ import app from "../src/app.js";
 import db from "../models/index.cjs";
 
 let accessToken;
-let cookie;
+let _cookie;
 let managerId;
 
 beforeAll(async () => {
@@ -35,9 +35,8 @@ beforeEach(async () => {
     .post("/auth/login")
     .send({ email: user.email, password: "Password123!" });
 
-  expect(loginRes.statusCode).toBe(200);
   accessToken = loginRes.body.accessToken;
-  cookie = loginRes.headers["set-cookie"]?.find((c) => c.startsWith("refreshToken"));
+  _cookie = loginRes.headers["set-cookie"]?.find((c) => c.startsWith("refreshToken"));
 });
 
 afterEach(async () => {

@@ -11,9 +11,9 @@ beforeAll(async () => {
 
   await db.User.destroy({ where: {} });
 
-  const hashedPassword = await bcrypt.hash("Password123!",12);
+  const hashedPassword = await bcrypt.hash("Password123!", 12);
   //console.log("Hash du mot de passe avant création :",hashedPassword);
-  
+
   await db.User.create({
     name: "Admin",
     surname: "User",
@@ -36,9 +36,7 @@ afterAll(async () => {
 
 describe("User API", () => {
   it("GET /users → retourne la liste des utilisateurs", async () => {
-    const res = await request(app)
-      .get("/users")
-      .set("Authorization", `Bearer ${accessToken}`);
+    const res = await request(app).get("/users").set("Authorization", `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
@@ -63,7 +61,7 @@ describe("User API", () => {
         name: "Claire",
         surname: "Durand",
         email: "claire.durand@example.com",
-        password: await bcrypt.hash("P@ssword123!",12),
+        password: await bcrypt.hash("P@ssword123!", 12),
         mobileNumber: "0604050607",
         role: "employee",
       });

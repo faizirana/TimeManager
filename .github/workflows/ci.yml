@@ -1,22 +1,24 @@
 # Nom du workflow
 name: CI Pipeline
 
-# Déclencheurs
+# Déclencheurs : tous les push et toutes les PR sur toutes les branches
 on:
-  # Se déclenche lors d'un push sur la branche KAN-21
   push:
-    branches: [ "KAN-21" ]
-  
-  # Se déclenche aussi lors d'une pull request vers la branche KAN-21
+    branches: ["**"]
   pull_request:
-    branches: [ "KAN-21" ]
+    branches: ["**"]
 
 # Liste des jobs à exécuter
 jobs:
-  # Premier job : lint et tests du backend
-  lint-and-test-backend:
-    name: Lint & Test Backend
-    runs-on: ubuntu-latest
+  # Job 1 : Lint, format check et tests pour tout le repo
+  lint-format-test:
+    name: Lint, Format & Test
+    runs-on: self-hosted
+    timeout-minutes: 30
+    env:
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+      NODE_ENV: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,31 +26,73 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: package-lock.json
 
-      - name: Install backend dependencies
-        run: npm install --prefix backend
+      - name: Install all dependencies
+        run: npm ci
 
-      - name: Run linter
-        run: npm run lint --prefix backend
+      - name: Run lint on all workspaces
+        run: npm run lint
 
-      - name: Run tests
-        run: npm run test --prefix backend
+      - name: Check Prettier formatting
+        run: npm run format:check
 
-  # Second job : build des images Docker
+      - name: Debug - Vérifier les variables d'environnement
+        run: |
+          echo "=== Vérification secrets ==="
+          echo "ACCESS_TOKEN_SECRET défini: $([[ -n "$ACCESS_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#ACCESS_TOKEN_SECRET}' caractères)' || echo 'NON')"
+          echo "REFRESH_TOKEN_SECRET défini: $([[ -n "$REFRESH_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#REFRESH_TOKEN_SECRET}' caractères)' || echo 'NON')"
+          echo "POSTGRES_USER défini: $([[ -n "$POSTGRES_USER" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_PASSWORD défini: $([[ -n "$POSTGRES_PASSWORD" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_DB défini: $([[ -n "$POSTGRES_DB" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_HOST défini: $([[ -n "$POSTGRES_HOST" ]] && echo 'OUI' || echo 'NON')"
+          echo "NODE_ENV: $NODE_ENV"
+          echo "==================================="
+        env:
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          NODE_ENV: test
+
+      - name: Run all tests
+        run: npm run test
+        env:
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          NODE_ENV: test
+
+  # Job 2 : Build Docker (seulement si tous les autres jobs réussissent)
   build-docker-images:
     name: Build Docker Images
-    runs-on: ubuntu-latest
-    # Ce job ne démarrera que si 'lint-and-test-backend' a réussi
-    needs: lint-and-test-backend
+    runs-on: self-hosted
+    timeout-minutes: 30
+    needs: [lint-format-test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
+      - name: Pull base images if needed
+        run: |
+          if ! docker images node:18-alpine --format "{{.Repository}}:{{.Tag}}" | grep -q "node:18-alpine"; then
+            echo "Image node:18-alpine not found in cache, attempting to pull..."
+            docker pull node:18-alpine || echo "Pull failed, will use cache or skip if unavailable"
+          else
+            echo "Image node:18-alpine already in cache"
+          fi
+        continue-on-error: true
 
       - name: Build with Docker Compose
-        run: docker-compose build
+        run: DOCKER_BUILDKIT=0 docker-compose build
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 0
