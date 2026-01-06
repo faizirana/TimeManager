@@ -41,7 +41,7 @@ jobs:
 
       - name: Debug - Vérifier les variables d'environnement
         run: |
-          echo "=== Vérification des secrets ==="
+          echo "=== Vérification secrets ==="
           echo "ACCESS_TOKEN_SECRET défini: $([[ -n "$ACCESS_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#ACCESS_TOKEN_SECRET}' caractères)' || echo 'NON')"
           echo "REFRESH_TOKEN_SECRET défini: $([[ -n "$REFRESH_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#REFRESH_TOKEN_SECRET}' caractères)' || echo 'NON')"
           echo "POSTGRES_USER défini: $([[ -n "$POSTGRES_USER" ]] && echo 'OUI' || echo 'NON')"
