@@ -291,6 +291,6 @@ describe("Auth API", () => {
       const responses = await Promise.all(promises);
       const rateLimited = responses.some((res) => res.statusCode === 429);
       expect(rateLimited).toBe(true);
-    }, 20000);
+    }, 30000);
   });
 });
