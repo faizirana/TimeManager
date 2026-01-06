@@ -1,14 +1,13 @@
 import { verifyAccessToken } from "../service/tokenService.js";
 
 export const authenticate = (req, res, next) => {
-  
-  let token = req.headers.authorization?.startsWith("Bearer ")
-    ? req.headers.authorization.split(" ")[1]
-    : null;
+  const authHeader = req.headers.authorization;
 
-  if (!token) token = req.cookies?.accessToken;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  const token = authHeader.split(" ")[1];
 
   try {
     const payload = verifyAccessToken(token);
@@ -18,7 +17,7 @@ export const authenticate = (req, res, next) => {
       role: payload.role,
     };
     next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

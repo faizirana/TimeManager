@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const TeamMember = sequelize.define(
     "TeamMember",
     {
-      userId: {
+      id_user: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
-      teamId: {
+      id_team: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
@@ -30,12 +30,18 @@ module.exports = (sequelize, DataTypes) => {
   TeamMember.associate = (models) => {
     TeamMember.belongsTo(models.User, {
       as: "user",
-      foreignKey: "userId",
+      foreignKey: {
+        name: "id_user",
+        allowNull: false,
+      },
     });
 
     TeamMember.belongsTo(models.Team, {
       as: "team",
-      foreignKey: "teamId",
+      foreignKey: {
+        name: "id_team",
+        allowNull: false,
+      },
     });
   };
 

@@ -67,6 +67,16 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      refreshTokenHash: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: "Hashed refresh token for security",
+      },
+      refreshTokenFamily: {
+        type: DataTypes.STRING(36),
+        allowNull: true,
+        comment: "Token family UUID for reuse detection",
+      },
     },
     {
       freezeTableName: true,
@@ -184,23 +194,38 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = (models) => {
     User.belongsTo(models.User, {
       as: "manager",
-      foreignKey: "id_manager",
+      foreignKey: {
+        name: "id_manager",
+        allowNull: true,
+      },
     });
     User.hasMany(models.User, {
       as: "employees",
-      foreignKey: "id_manager",
+      foreignKey: {
+        name: "id_manager",
+        allowNull: true,
+      },
     });
     User.hasMany(models.TimeRecording, {
       as: "clockOns",
-      foreignKey: "userId",
+      foreignKey: {
+        name: "id_user",
+        allowNull: false,
+      },
     });
     User.hasMany(models.Team, {
       as: "managedTeams",
-      foreignKey: "managerId",
+      foreignKey: {
+        name: "id_manager",
+        allowNull: false,
+      },
     });
     User.hasOne(models.TeamMember, {
       as: "teamMembership",
-      foreignKey: "userId",
+      foreignKey: {
+        name: "id_user",
+        allowNull: false,
+      },
     });
   };
 
