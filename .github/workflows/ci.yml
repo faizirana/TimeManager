@@ -82,6 +82,16 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
+      - name: Pull base images if needed
+        run: |
+          if ! docker images node:18-alpine --format "{{.Repository}}:{{.Tag}}" | grep -q "node:18-alpine"; then
+            echo "Image node:18-alpine not found in cache, attempting to pull..."
+            docker pull node:18-alpine || echo "Pull failed, will use cache or skip if unavailable"
+          else
+            echo "Image node:18-alpine already in cache"
+          fi
+        continue-on-error: true
+
       - name: Build with Docker Compose
         run: DOCKER_BUILDKIT=0 docker-compose build
         env:
