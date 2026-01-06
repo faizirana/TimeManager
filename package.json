@@ -13,8 +13,8 @@
     "lint:fix": "npm run lint:fix --prefix backend && npm run lint:fix --prefix frontend",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:frontend": "cd frontend && npm run test:ci --if-present",
-    "test:backend": "cd backend && npm run test:ci --if-present",
+    "test:frontend": "npm run test:ci --workspace=frontend --if-present",
+    "test:backend": "npm run test:ci --workspace=backend --if-present",
     "test": "npm run test:frontend && npm run test:backend"
   },
   "devDependencies": {

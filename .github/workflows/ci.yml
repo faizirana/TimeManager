@@ -39,6 +39,26 @@ jobs:
       - name: Check Prettier formatting
         run: npm run format:check
 
+      - name: Debug - Vérifier les variables d'environnement
+        run: |
+          echo "=== Vérification des secrets ==="
+          echo "ACCESS_TOKEN_SECRET défini: $([[ -n "$ACCESS_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#ACCESS_TOKEN_SECRET}' caractères)' || echo 'NON')"
+          echo "REFRESH_TOKEN_SECRET défini: $([[ -n "$REFRESH_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#REFRESH_TOKEN_SECRET}' caractères)' || echo 'NON')"
+          echo "POSTGRES_USER défini: $([[ -n "$POSTGRES_USER" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_PASSWORD défini: $([[ -n "$POSTGRES_PASSWORD" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_DB défini: $([[ -n "$POSTGRES_DB" ]] && echo 'OUI' || echo 'NON')"
+          echo "POSTGRES_HOST défini: $([[ -n "$POSTGRES_HOST" ]] && echo 'OUI' || echo 'NON')"
+          echo "NODE_ENV: $NODE_ENV"
+          echo "==================================="
+        env:
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          NODE_ENV: test
+
       - name: Run all tests
         run: npm run test
         env:
