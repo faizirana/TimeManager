@@ -1,22 +1,20 @@
 # Nom du workflow
 name: CI Pipeline
 
-# Déclencheurs
+# Déclencheurs : tous les push et toutes les PR sur toutes les branches
 on:
-  # Se déclenche lors d'un push sur la branche KAN-21
   push:
-    branches: [ "KAN-21" ]
-  
-  # Se déclenche aussi lors d'une pull request vers la branche KAN-21
+    branches: ["**"]
   pull_request:
-    branches: [ "KAN-21" ]
+    branches: ["**"]
 
 # Liste des jobs à exécuter
 jobs:
-  # Premier job : lint et tests du backend
-  lint-and-test-backend:
-    name: Lint & Test Backend
-    runs-on: ubuntu-latest
+  # Job 1 : Lint et format check backend
+  lint-backend:
+    name: Lint & Format Backend
+    runs-on: self-hosted
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,25 +22,94 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install backend dependencies
         run: npm install --prefix backend
 
-      - name: Run linter
+      - name: Run ESLint
         run: npm run lint --prefix backend
+
+      - name: Check Prettier formatting
+        run: npm run format:check --prefix backend
+
+  # Job 2 : Tests backend
+  test-backend:
+    name: Test Backend
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
 
       - name: Run tests
         run: npm run test --prefix backend
 
-  # Second job : build des images Docker
+  # Job 3 : Lint et format check frontend
+  lint-frontend:
+    name: Lint & Format Frontend
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+
+      - name: Run ESLint
+        run: npm run lint --prefix frontend
+
+      - name: Check Prettier formatting
+        run: npm run format:check --prefix frontend
+
+  # Job 4 : Tests frontend
+  test-frontend:
+    name: Test Frontend
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+
+      - name: Run tests
+        run: npm run test:ci --prefix frontend
+
+  # Job 5 : Build Docker (seulement si tous les autres jobs réussissent)
   build-docker-images:
     name: Build Docker Images
-    runs-on: ubuntu-latest
-    # Ce job ne démarrera que si 'lint-and-test-backend' a réussi
-    needs: lint-and-test-backend
+    runs-on: self-hosted
+    timeout-minutes: 30
+    needs: [lint-backend, test-backend, lint-frontend, test-frontend]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

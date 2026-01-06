@@ -8,12 +8,13 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "lint:fix": "npm run lint:fix --prefix backend && npm run lint:fix --prefix frontend",
     "format": "prettier --write .",
-    "check-format": "prettier --check .",
-    "test:frontend": "cd frontend && npm test --if-present",
-    "test:backend": "cd backend && npm test --if-present"
+    "format:check": "prettier --check .",
+    "test:frontend": "cd frontend && npm run test:ci --if-present",
+    "test:backend": "cd backend && npm run test:ci --if-present",
+    "test": "npm run test:frontend && npm run test:backend"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

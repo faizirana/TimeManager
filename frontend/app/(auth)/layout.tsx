@@ -8,9 +8,9 @@
  * @returns A React component that wraps its children in a centered layout.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-    return (
-        <main className="auth-container flex min-h-screen items-center justify-center bg-gray-50">
-            {children}
-        </main>
-    );
+  return (
+    <main className="auth-container flex min-h-screen items-center justify-center bg-gray-50">
+      {children}
+    </main>
+  );
 }

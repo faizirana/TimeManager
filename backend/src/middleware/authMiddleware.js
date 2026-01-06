@@ -16,8 +16,8 @@ export const authenticate = (req, res, next) => {
       email: payload.email,
       role: payload.role,
     };
-    next();
-  } catch (err) {
+    return next();
+  } catch {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

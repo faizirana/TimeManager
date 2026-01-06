@@ -2,7 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _Sequelize) {
     // Rename userId to id_user
     await queryInterface.renameColumn("TeamMember", "userId", "id_user");
 
@@ -10,7 +10,7 @@ module.exports = {
     await queryInterface.renameColumn("TeamMember", "teamId", "id_team");
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _Sequelize) {
     // Revert id_user back to userId
     await queryInterface.renameColumn("TeamMember", "id_user", "userId");
 

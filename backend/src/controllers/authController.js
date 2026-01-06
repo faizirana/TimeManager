@@ -42,10 +42,10 @@ export const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ accessToken });
+    return res.status(200).json({ accessToken });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -120,10 +120,10 @@ export const refreshToken = async (req, res) => {
     });
 
     const newAccessToken = generateAccessToken(user);
-    res.status(200).json({ accessToken: newAccessToken });
+    return res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
     console.error("Refresh error:", err.message);
-    res.status(403).json({ message: "Invalid or expired token" });
+    return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
 
@@ -135,5 +135,5 @@ export const getCurrentUser = async (req, res) => {
   });
 
   if (!user) return res.status(404).json({ message: "User not found" });
-  res.status(200).json(user);
+  return res.status(200).json(user);
 };

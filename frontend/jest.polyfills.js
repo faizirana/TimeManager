@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * Polyfill requestSubmit for HTMLFormElement
  * This is necessary because jsdom (used by Jest) does not implement it natively
@@ -27,11 +28,12 @@ if (Form) {
           if (m.includes("Not implemented") && m.includes("requestSubmit")) return;
         }
       }
-    } catch (e) {
+    } catch (_e) {
       // If our filter throws, fall back to original console.error
-      return _origConsoleError(...args);
+      _origConsoleError(...args);
+      return;
     }
-    return _origConsoleError(...args);
+    _origConsoleError(...args);
   };
   // Keep a reference to any existing implementation
   const existing = Form.prototype.requestSubmit;
@@ -49,7 +51,7 @@ if (Form) {
       if (typeof existing === "function") {
         try {
           return existing.apply(this, args);
-        } catch (err) {
+        } catch (_err) {
           // If the existing impl throws (e.g. jsdom "Not implemented"), continue to fallback
         }
       }

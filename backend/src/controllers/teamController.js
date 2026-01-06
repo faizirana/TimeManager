@@ -58,10 +58,10 @@ export const getTeamById = async (req, res) => {
     });
 
     if (!team) return res.status(404).json({ message: "Team not found" });
-    res.status(200).json(team);
+    return res.status(200).json(team);
   } catch (error) {
     console.error("Error fetching team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -76,10 +76,10 @@ export const createTeam = async (req, res) => {
     if (!manager) return res.status(400).json({ message: "Manager does not exist" });
 
     const newTeam = await Team.create({ name, id_manager });
-    res.status(201).json(newTeam);
+    return res.status(201).json(newTeam);
   } catch (error) {
     console.error("Error creating team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -97,10 +97,10 @@ export const updateTeam = async (req, res) => {
     }
 
     await team.update({ name: name ?? team.name, id_manager: id_manager ?? team.id_manager });
-    res.status(200).json(team);
+    return res.status(200).json(team);
   } catch (error) {
     console.error("Error updating team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -111,10 +111,10 @@ export const deleteTeam = async (req, res) => {
     if (!team) return res.status(404).json({ message: "Team not found" });
 
     await team.destroy();
-    res.status(200).json({ message: "Team deleted successfully" });
+    return res.status(200).json({ message: "Team deleted successfully" });
   } catch (error) {
     console.error("Error deleting team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -135,10 +135,10 @@ export const addUserToTeam = async (req, res) => {
     if (exists) return res.status(400).json({ message: "User already in this team" });
 
     await TeamMember.create({ id_team: id, id_user });
-    res.status(201).json({ message: "User added to team" });
+    return res.status(201).json({ message: "User added to team" });
   } catch (error) {
     console.error("Error adding user to team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -151,10 +151,10 @@ export const removeUserFromTeam = async (req, res) => {
     if (!link) return res.status(404).json({ message: "User not in this team" });
 
     await link.destroy();
-    res.status(200).json({ message: "User removed from team" });
+    return res.status(200).json({ message: "User removed from team" });
   } catch (error) {
     console.error("Error removing user from team:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -178,9 +178,9 @@ export const validateTeamAssignments = async (req, res) => {
       }
     }
 
-    res.status(200).json({ message: "All team assignments are valid" });
+    return res.status(200).json({ message: "All team assignments are valid" });
   } catch (error) {
     console.error("Error validating team assignments:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
