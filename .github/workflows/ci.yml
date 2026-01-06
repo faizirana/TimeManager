@@ -1,5 +1,5 @@
 # Nom du workflow
-name: CI Pipeline
+name: CI Pipeline (Optimized)
 
 # Déclencheurs : tous les push et toutes les PR sur toutes les branches
 on:
@@ -10,11 +10,145 @@ on:
 
 # Liste des jobs à exécuter
 jobs:
-  # Job 1 : Lint, format check et tests pour tout le repo
-  lint-format-test:
-    name: Lint, Format & Test
+  # Job 0: Setup - Installe les dépendances une seule fois et les cache
+  setup:
+    name: Setup Dependencies
     runs-on: self-hosted
-    timeout-minutes: 30
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache root node_modules
+        uses: actions/cache@v4
+        id: cache-root
+        with:
+          path: node_modules
+          key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache frontend node_modules
+        uses: actions/cache@v4
+        id: cache-frontend
+        with:
+          path: frontend/node_modules
+          key: frontend-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Cache backend node_modules
+        uses: actions/cache@v4
+        id: cache-backend
+        with:
+          path: backend/node_modules
+          key: backend-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install all dependencies
+        if: steps.cache-root.outputs.cache-hit != 'true' || steps.cache-frontend.outputs.cache-hit != 'true' || steps.cache-backend.outputs.cache-hit != 'true'
+        run: npm ci
+
+  # Job 1: Lint (parallèle)
+  lint:
+    name: Lint Code
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: [setup]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Restore root cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Restore frontend cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Restore backend cache
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: backend-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job 2: Format Check (parallèle)
+  format-check:
+    name: Check Formatting
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: [setup]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Restore root cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+  # Job 3: Test Frontend (parallèle)
+  test-frontend:
+    name: Test Frontend
+    runs-on: self-hosted
+    timeout-minutes: 15
+    needs: [setup]
+    env:
+      NODE_ENV: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Restore root cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Restore frontend cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Run frontend tests
+        run: npm run test:frontend
+        env:
+          NODE_ENV: test
+
+  # Job 4: Test Backend (parallèle)
+  test-backend:
+    name: Test Backend
+    runs-on: self-hosted
+    timeout-minutes: 15
+    needs: [setup]
     env:
       ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
       REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
@@ -27,75 +161,166 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: package-lock.json
 
-      - name: Install all dependencies
-        run: npm ci
+      - name: Restore root cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: root-node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Run lint on all workspaces
-        run: npm run lint
+      - name: Restore backend cache
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: backend-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
 
-      - name: Check Prettier formatting
-        run: npm run format:check
-
-      - name: Debug - Vérifier les variables d'environnement
-        run: |
-          echo "=== Vérification secrets ==="
-          echo "ACCESS_TOKEN_SECRET défini: $([[ -n "$ACCESS_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#ACCESS_TOKEN_SECRET}' caractères)' || echo 'NON')"
-          echo "REFRESH_TOKEN_SECRET défini: $([[ -n "$REFRESH_TOKEN_SECRET" ]] && echo 'OUI (longueur: '${#REFRESH_TOKEN_SECRET}' caractères)' || echo 'NON')"
-          echo "POSTGRES_USER défini: $([[ -n "$POSTGRES_USER" ]] && echo 'OUI' || echo 'NON')"
-          echo "POSTGRES_PASSWORD défini: $([[ -n "$POSTGRES_PASSWORD" ]] && echo 'OUI' || echo 'NON')"
-          echo "POSTGRES_DB défini: $([[ -n "$POSTGRES_DB" ]] && echo 'OUI' || echo 'NON')"
-          echo "POSTGRES_HOST défini: $([[ -n "$POSTGRES_HOST" ]] && echo 'OUI' || echo 'NON')"
-          echo "NODE_ENV: $NODE_ENV"
-          echo "==================================="
-        env:
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          NODE_ENV: test
-
-      - name: Run all tests
-        run: npm run test
+      - name: Run backend tests
+        run: npm run test:backend
         env:
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
           NODE_ENV: test
 
-  # Job 2 : Build Docker (seulement si tous les autres jobs réussissent)
-  build-docker-images:
-    name: Build Docker Images
+  # Job 5: Build Frontend Docker Image (parallèle)
+  build-frontend-docker:
+    name: Build Frontend Docker Image
     runs-on: self-hosted
-    timeout-minutes: 30
-    needs: [lint-format-test]
+    timeout-minutes: 20
+    needs: [lint, format-check, test-frontend]
+    if: |
+      !contains(github.event.head_commit.message, '[skip-docker]') &&
+      (github.event_name == 'push' || github.event_name == 'pull_request')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Pull base images if needed
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend
+          key: ${{ runner.os }}-buildx-frontend-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-frontend-
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./frontend/Dockerfile.dev
+          push: false
+          tags: frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache-frontend
+          cache-to: type=local,dest=/tmp/.buildx-cache-frontend-new,mode=max
+          build-args: |
+            NODE_ENV=development
+
+      - name: Move cache
         run: |
-          if ! docker images node:18-alpine --format "{{.Repository}}:{{.Tag}}" | grep -q "node:18-alpine"; then
-            echo "Image node:18-alpine not found in cache, attempting to pull..."
-            docker pull node:18-alpine || echo "Pull failed, will use cache or skip if unavailable"
-          else
-            echo "Image node:18-alpine already in cache"
-          fi
-        continue-on-error: true
+          rm -rf /tmp/.buildx-cache-frontend
+          mv /tmp/.buildx-cache-frontend-new /tmp/.buildx-cache-frontend
 
-      - name: Build with Docker Compose
-        run: DOCKER_BUILDKIT=0 docker-compose build
-        env:
-          COMPOSE_DOCKER_CLI_BUILD: 0
+  # Job 6: Build Backend Docker Image (parallèle)
+  build-backend-docker:
+    name: Build Backend Docker Image
+    runs-on: self-hosted
+    timeout-minutes: 20
+    needs: [lint, format-check, test-backend]
+    if: |
+      !contains(github.event.head_commit.message, '[skip-docker]') &&
+      (github.event_name == 'push' || github.event_name == 'pull_request')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-backend
+          key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-backend-
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./backend/Dockerfile.dev
+          push: false
+          tags: backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache-backend
+          cache-to: type=local,dest=/tmp/.buildx-cache-backend-new,mode=max
+          build-args: |
+            NODE_ENV=development
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-backend
+          mv /tmp/.buildx-cache-backend-new /tmp/.buildx-cache-backend
+
+  # Job 7: Build Nginx Docker Image (parallèle)
+  build-nginx-docker:
+    name: Build Nginx Docker Image
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: [setup]
+    if: |
+      !contains(github.event.head_commit.message, '[skip-docker]') &&
+      (github.event_name == 'push' || github.event_name == 'pull_request')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Nginx Image
+        run: docker build -t nginx:latest -f nginx/Dockerfile nginx/ || docker-compose build nginx
+
+  # Job Final: Validation globale
+  ci-success:
+    name: CI Success ✅
+    runs-on: self-hosted
+    timeout-minutes: 5
+    needs:
+      [
+        lint,
+        format-check,
+        test-frontend,
+        test-backend,
+        build-frontend-docker,
+        build-backend-docker,
+        build-nginx-docker,
+      ]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.format-check.result }}" != "success" ]] || \
+             [[ "${{ needs.test-frontend.result }}" != "success" ]] || \
+             [[ "${{ needs.test-backend.result }}" != "success" ]] || \
+             [[ "${{ needs.build-frontend-docker.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-backend-docker.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-nginx-docker.result }}" == "failure" ]]; then
+            echo "❌ CI Pipeline Failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed successfully!"
