@@ -80,4 +80,4 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build with Docker Compose
-        run: docker-compose build
+        run: docker compose build
