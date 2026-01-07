@@ -148,6 +148,11 @@ module.exports = {
       { ignoreDuplicates: true },
     );
 
+    // Reset the User sequence to avoid duplicate key errors
+    await queryInterface.sequelize.query(
+      `SELECT setval(pg_get_serial_sequence('"User"', 'id'), (SELECT MAX(id) FROM "User"));`,
+    );
+
     // --- TIMETABLES ---
     await queryInterface.bulkInsert(
       "Timetable",
@@ -169,6 +174,11 @@ module.exports = {
         },
       ],
       { ignoreDuplicates: true },
+    );
+
+    // Reset the Timetable sequence to avoid duplicate key errors
+    await queryInterface.sequelize.query(
+      `SELECT setval(pg_get_serial_sequence('"Timetable"', 'id'), (SELECT MAX(id) FROM "Timetable"));`,
     );
 
     // --- CREATE TEAMS WITH TIMETABLES ---
@@ -196,6 +206,11 @@ module.exports = {
         },
       ],
       { ignoreDuplicates: true },
+    );
+
+    // Reset the Team sequence to avoid duplicate key errors
+    await queryInterface.sequelize.query(
+      `SELECT setval(pg_get_serial_sequence('"Team"', 'id'), (SELECT MAX(id) FROM "Team"));`,
     );
 
     // --- ADD MORE TEAM MEMBERS (Multi-team membership) ---
