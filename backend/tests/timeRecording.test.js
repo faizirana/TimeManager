@@ -7,7 +7,7 @@ process.env.NODE_ENV = "test";
 
 const { sequelize, TimeRecording, User, Team, TeamMember } = db;
 
-let accessToken, cookie;
+let accessToken, _cookie;
 let adminUser, managerUser, employeeUser, otherEmployeeUser;
 
 beforeAll(async () => {
@@ -80,7 +80,7 @@ beforeEach(async () => {
     .send({ email: adminUser.email, password: "Password123!" });
 
   accessToken = loginRes.body.accessToken;
-  cookie = loginRes.headers["set-cookie"]?.find((c) => c.startsWith("refreshToken"));
+  _cookie = loginRes.headers["set-cookie"]?.find((c) => c.startsWith("refreshToken"));
 });
 
 afterAll(async () => {

@@ -86,10 +86,10 @@ export const getTimeRecordings = async (req, res) => {
       order: [["timestamp", "DESC"]],
     });
 
-    res.status(200).json(recordings);
+    return res.status(200).json(recordings);
   } catch (error) {
     console.error("Error fetching time recordings:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

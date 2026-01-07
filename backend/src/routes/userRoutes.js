@@ -7,6 +7,7 @@ import {
   deleteUser,
 } from "../controllers/userController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { authorize } from "../middleware/rolesMiddleware.js";
 
 const router = express.Router();
 
@@ -114,7 +115,7 @@ router.get("/:id", authenticate, getUserById);
  *       400:
  *         description: Missing parameters
  */
-router.post("/", authenticate, createUser);
+router.post("/", authenticate, authorize("admin"), createUser);
 
 /**
  * @swagger
@@ -148,6 +149,8 @@ router.post("/", authenticate, createUser);
  *     responses:
  *       200:
  *         description: User updated successfully
+ *       403:
+ *         description: Forbidden - Not authorized to update this user
  *       404:
  *         description: User not found
  */
@@ -172,6 +175,6 @@ router.put("/:id", authenticate, updateUser);
  *       404:
  *         description: User not found
  */
-router.delete("/:id", authenticate, deleteUser);
+router.delete("/:id", authenticate, authorize("admin"), deleteUser);
 
 export default router;

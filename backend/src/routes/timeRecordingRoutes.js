@@ -94,7 +94,7 @@ const router = express.Router();
  *       403:
  *         description: Forbidden - Cannot access other users' time recordings
  */
-router.get("/", authenticate, getTimeRecordings);
+router.get("/", authenticate, authorize("admin", "manager", "employee"), getTimeRecordings);
 
 /**
  * @swagger
@@ -155,7 +155,7 @@ router.get("/", authenticate, getTimeRecordings);
  *       403:
  *         description: Forbidden - Cannot access other users' time recordings
  */
-router.get("/:id", authenticate, getTimeRecordingById);
+router.get("/:id", authenticate, authorize("admin", "manager", "employee"), getTimeRecordingById);
 
 /**
  * @swagger
@@ -251,7 +251,7 @@ router.get("/:id", authenticate, getTimeRecordingById);
  *       404:
  *         description: User not found - The associated user does not exist
  */
-router.post("/", authenticate, createTimeRecording);
+router.post("/", authenticate, authorize("admin", "manager", "employee"), createTimeRecording);
 
 /**
  * @swagger

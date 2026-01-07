@@ -157,30 +157,3 @@ export const removeUserFromTeam = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// POST /teams/validate/conflicts
-export const validateTeamAssignments = async (req, res) => {
-  try {
-    const teams = await Team.findAll({ include: [{ model: User, as: "members" }] });
-
-    // Simple rule: a user cannot belong to 2 teams managed by the same manager
-    const userToManagers = {};
-
-    for (const team of teams) {
-      for (const user of team.members) {
-        if (!userToManagers[user.id]) userToManagers[user.id] = new Set();
-        if (userToManagers[user.id].has(team.id_manager)) {
-          return res.status(400).json({
-            message: `User ${user.id} is in conflicting teams managed by manager ${team.id_manager}`,
-          });
-        }
-        userToManagers[user.id].add(team.id_manager);
-      }
-    }
-
-    return res.status(200).json({ message: "All team assignments are valid" });
-  } catch (error) {
-    console.error("Error validating team assignments:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};

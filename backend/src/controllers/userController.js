@@ -69,13 +69,22 @@ export const updateUser = async (req, res) => {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Check authorization: user can update themselves, or admin can update anyone
+    const isOwnProfile = req.user.id === user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwnProfile && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to update this user" });
+    }
+
+    // Non-admins can only update their own basic info and password, not role or manager
     const updatedData = {
       name: name ?? user.name,
       surname: surname ?? user.surname,
       mobileNumber: mobileNumber ?? user.mobileNumber,
       email: email ?? user.email,
-      role: role ?? user.role,
-      id_manager: id_manager ?? user.id_manager,
+      role: isAdmin ? (role ?? user.role) : user.role,
+      id_manager: isAdmin ? (id_manager ?? user.id_manager) : user.id_manager,
     };
 
     if (password) {
