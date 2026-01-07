@@ -4,7 +4,9 @@ name: CI Pipeline
 # Déclencheurs : tous les push et toutes les PR sur toutes les branches
 on:
   push:
-    branches: ["**"]
+    branches-ignore:
+      - main
+      - dev
 
 # Liste des jobs à exécuter
 jobs:
@@ -71,6 +73,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Install Docker Compose
         run: |
