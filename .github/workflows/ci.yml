@@ -4,7 +4,9 @@ name: CI Pipeline
 # Déclencheurs : tous les push et toutes les PR sur toutes les branches
 on:
   push:
-    branches: ["**"]
+    branches-ignore:
+      - main
+      - dev
 
 # Liste des jobs à exécuter
 jobs:

@@ -42,6 +42,9 @@ export default [
         project: "./tsconfig.json",
         tsconfigRootDir: import.meta.dirname,
       },
+      globals: {
+        ...globals.browser,
+      },
     },
     plugins: {
       "@typescript-eslint": tseslint.plugin,
