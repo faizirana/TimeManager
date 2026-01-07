@@ -23,11 +23,17 @@ jobs:
       - name: Block direct pushes to protected branches
         if: github.event_name == 'push'
         run: |
-          if [[ "${{ github.actor }}" != "web-flow" ]]; then
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+
+          # Check if this is a merge commit from a pull request
+          # PR merges typically have "Merge pull request" in the message
+          if echo "$COMMIT_MESSAGE" | grep -q "Merge pull request"; then
+            echo "✅ PR merge detected."
+          else
             echo "❌ Direct pushes are not allowed to ${GITHUB_REF##*/}"
+            echo "Commit message: $COMMIT_MESSAGE"
             exit 1
           fi
-          echo "✅ PR merge detected."
 
       - name: Close PRs to main not from dev
         if: >
