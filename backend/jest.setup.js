@@ -12,15 +12,12 @@ dotenv.config({ path: path.join(__dirname, ".env"), silent: true });
 // - Local : charge depuis .env
 // - CI : utilise les variables déjà dans process.env
 
-// Diagnostic : Vérifier que les secrets sont présents (surtout pour CI)
-if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
-  console.error("❌ ERREUR CRITIQUE: Les secrets JWT ne sont pas définis!");
-  console.error("ACCESS_TOKEN_SECRET défini:", !!process.env.ACCESS_TOKEN_SECRET);
-  console.error("REFRESH_TOKEN_SECRET défini:", !!process.env.REFRESH_TOKEN_SECRET);
-  console.error("NODE_ENV:", process.env.NODE_ENV);
-  console.error("\nVérifiez que les secrets GitHub sont correctement configurés dans:");
-  console.error("Repository → Settings → Secrets and variables → Actions");
-  throw new Error(
-    "Les secrets JWT (ACCESS_TOKEN_SECRET et REFRESH_TOKEN_SECRET) doivent être définis",
-  );
+// Pour les tests, utiliser des secrets par défaut si non définis
+// Cela permet de lancer les tests localement sans configuration
+if (!process.env.ACCESS_TOKEN_SECRET) {
+  process.env.ACCESS_TOKEN_SECRET = "test_access_token_secret_for_jest_testing_min_32_chars";
+}
+
+if (!process.env.REFRESH_TOKEN_SECRET) {
+  process.env.REFRESH_TOKEN_SECRET = "test_refresh_token_secret_for_jest_testing_min_32_chars";
 }

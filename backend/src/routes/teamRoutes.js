@@ -84,7 +84,7 @@ router.get("/:id", authenticate, getTeamById);
  *                 example: "Team Alpha"
  *               id_manager:
  *                 type: number
- *                 example: 3
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Team created successfully
@@ -119,7 +119,7 @@ router.post("/", authenticate, createTeam);
  *                 example: "Team Beta"
  *               id_manager:
  *                 type: number
- *                 example: 5
+ *                 example: 1
  *     responses:
  *       200:
  *         description: Team updated successfully
@@ -175,7 +175,7 @@ router.delete("/:id", authenticate, deleteTeam);
  *             properties:
  *               id_user:
  *                 type: number
- *                 example: 12
+ *                 example: 2
  *     responses:
  *       201:
  *         description: User added to team

@@ -134,10 +134,10 @@ router.post("/refresh", refreshLimiter, refreshToken);
  *                   example: "1"
  *                 email:
  *                   type: string
- *                   example: "kevin@example.com"
+ *                   example: "alice.manager@example.com"
  *                 role:
  *                   type: string
- *                   example: "user"
+ *                   example: "manager"
  *       401:
  *         description: Unauthorized or missing token
  */

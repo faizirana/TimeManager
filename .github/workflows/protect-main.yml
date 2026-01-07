@@ -19,32 +19,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Block direct push to main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Block direct pushes to protected branches
+        if: github.event_name == 'push'
         run: |
-          # Allow merge commits (from PR merges), block direct pushes
-          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
-          if [[ ! "$COMMIT_MESSAGE" =~ ^Merge\ pull\ request ]]; then
-            echo "Direct pushes to main are not allowed."
-            echo "Please create a Pull Request from dev branch instead."
+          if [[ "${{ github.actor }}" != "web-flow" ]]; then
+            echo "❌ Direct pushes are not allowed to ${GITHUB_REF##*/}"
             exit 1
           fi
-          echo "PR merge detected, allowing push to main."
-
-      - name: Block direct push to dev
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
-        run: |
-          # Allow merge commits (from PR merges), block direct pushes
-          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
-          if [[ ! "$COMMIT_MESSAGE" =~ ^Merge\ pull\ request ]]; then
-            echo "Direct pushes to dev are not allowed."
-            echo "Please create a Pull Request from your feature branch instead."
-            exit 1
-          fi
-          echo "PR merge detected, allowing push to dev."
+          echo "✅ PR merge detected."
 
       - name: Close PRs to main not from dev
         if: >
@@ -54,23 +37,22 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Only pull requests from `dev` to `main` are allowed.\n\nPlease merge your changes into `dev` first, then create a PR from `dev` to `main`.'
+              body: 'Only pull requests from `dev` to `main` are allowed.'
             })
-            github.rest.pulls.update({
+            await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
               state: 'closed'
             })
 
-      - name: Validate PR to main from dev
+      - name: Validate PR from dev to main
         if: >
           github.event_name == 'pull_request' &&
           github.event.pull_request.base.ref == 'main' &&
           github.event.pull_request.head.ref == 'dev'
-        run: |
-          echo "Valid PR from dev to main. All CI checks must pass before merge."
+        run: echo "Valid PR from dev to main."
