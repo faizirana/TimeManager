@@ -38,13 +38,13 @@ const router = express.Router();
  *                     example: "1"
  *                   firstName:
  *                     type: string
- *                     example: "Kevin"
+ *                     example: "Alice"
  *                   lastName:
  *                     type: string
- *                     example: "Durand"
+ *                     example: "Smith"
  *                   email:
  *                     type: string
- *                     example: "kevin@example.com"
+ *                     example: "alice.manager@example.com"
  */
 router.get("/", authenticate, getUsers);
 
@@ -101,13 +101,13 @@ router.get("/:id", authenticate, getUserById);
  *             properties:
  *               firstName:
  *                 type: string
- *                 example: "Kevin"
+ *                 example: "John"
  *               lastName:
  *                 type: string
- *                 example: "Durand"
+ *                 example: "Doe"
  *               email:
  *                 type: string
- *                 example: "kevin@example.com"
+ *                 example: "john.employee@example.com"
  *     responses:
  *       201:
  *         description: User created successfully
@@ -138,13 +138,13 @@ router.post("/", authenticate, createUser);
  *             properties:
  *               firstName:
  *                 type: string
- *                 example: "Kevin"
+ *                 example: "Alice"
  *               lastName:
  *                 type: string
- *                 example: "Martin"
+ *                 example: "Johnson"
  *               email:
  *                 type: string
- *                 example: "kevin.martin@example.com"
+ *                 example: "alice.johnson@example.com"
  *     responses:
  *       200:
  *         description: User updated successfully
