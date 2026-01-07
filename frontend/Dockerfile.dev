@@ -1,0 +1,25 @@
+FROM node:18-alpine
+
+# Set working directory to workspace root
+WORKDIR /app
+
+# Copy workspace package files (for npm workspaces support)
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+
+# Install all workspace dependencies (ci is deterministic)
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend ./frontend
+
+# Set working directory to frontend
+WORKDIR /app/frontend
+
+# Fix permissions and switch to non-root user for better security
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

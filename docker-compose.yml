@@ -1,0 +1,153 @@
+services:
+  db:
+    image: postgres:16
+    container_name: q_database
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mydb}
+      POSTGRES_USER: ${POSTGRES_USER:-myuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - q_net
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-mydb}",
+        ]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: q_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+      PGPASSFILE: /config/pgpass
+      SCRIPT_NAME: /pgadmin
+    configs:
+      - source: pgadmin-pgpass
+        target: /config/pgpass
+        uid: "5050"
+        gid: "5050"
+        mode: 0400
+      - source: pgadmin-servers
+        target: /pgadmin4/servers.json
+        mode: 0444
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+      - q_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: . # Build context at workspace root for npm workspaces
+      dockerfile: ./frontend/Dockerfile.dev
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend # Mount only frontend source code
+      - frontend_node_modules:/app/node_modules # Workspace node_modules
+      - frontend_local_node_modules:/app/frontend/node_modules # Frontend local node_modules
+    working_dir: /app/frontend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: . # Build context at workspace root for npm workspaces
+      dockerfile: ./backend/Dockerfile.dev
+    container_name: backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      POSTGRES_USER: ${POSTGRES_USER:-myuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypass}
+      POSTGRES_DB: ${POSTGRES_DB:-mydb}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-ceciestmonsecretetcestungrossecret}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-ceciestmonsecretetcestungrossecretrefresh}
+    ports:
+      - "3001:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+      - q_net
+    volumes:
+      - ./backend:/app/backend # Mount only backend source code
+      - backend_node_modules:/app/node_modules # Workspace node_modules
+      - backend_local_node_modules:/app/backend/node_modules # Backend local node_modules
+    working_dir: /app/backend
+    command: >
+      sh -c "
+      npx sequelize-cli db:migrate:undo:all &&
+      npx sequelize-cli db:migrate &&
+      npx sequelize-cli db:seed:all &&
+      npm start
+      "
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
+      pgadmin:
+        condition: service_started
+    networks:
+      - app-network
+
+volumes:
+  backend_node_modules: # Workspace root node_modules for backend
+  backend_local_node_modules: # Backend-specific node_modules
+  frontend_node_modules: # Workspace root node_modules for frontend
+  frontend_local_node_modules: # Frontend-specific node_modules
+  pgdata:
+
+networks:
+  q_net:
+  app-network:
+    driver: bridge
+
+configs:
+  pgadmin-servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "QuantumTrader DB",
+            "Group": "PostgreSQL",
+            "Host": "db",
+            "Port": 5432,
+            "MaintenanceDB": "mydb",
+            "Username": "myuser",
+            "SSLMode": "prefer",
+            "PassFile": "/config/pgpass"
+          }
+        }
+      }
+  pgadmin-pgpass:
+    content: |
+      db:5432:mydb:myuser:mypass

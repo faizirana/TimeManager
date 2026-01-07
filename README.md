@@ -8,19 +8,31 @@ Le projet est construit sur une architecture moderne et scalable comprenant un *
 
 ## 📚 Table des matières
 
-1. [Introduction](#-introduction)  
-2. [Architecture globale](#-architecture-globale)  
-3. [Choix techniques](#-choix-techniques)  
-4. [Structure du projet](#-structure-du-projet)  
-5. [Back-end – Express.js](#-back-end--expressjs)  
-6. [Base de données – PostgreSQL](#-base-de-données--postgresql)  
-7. [Front-end – Next.js](#-front-end--nextjs)  
-8. [Dockerisation](#-dockerisation)  
-9. [Documentation API – Swagger](#-documentation-api--swagger)  
-10. [Tests et Qualité](#-tests-et-qualité)  
-11. [Déploiement](#-déploiement)  
-12. [Conclusion & Perspectives](#-conclusion--perspectives)  
-13. [Annexes](#-annexes)
+- [🕒 Bootstrap TIME MANAGER](#-bootstrap-time-manager)
+  - [📚 Table des matières](#-table-des-matières)
+  - [📄 Introduction](#-introduction)
+  - [🏗️ Architecture globale](#️-architecture-globale)
+    - [🔄 Schéma général](#-schéma-général)
+  - [⚙️ Choix techniques](#️-choix-techniques)
+  - [| **Swagger** | Documentation interactive, communication facilitée |](#-swagger--documentation-interactive-communication-facilitée-)
+  - [📁 Structure du projet](#-structure-du-projet)
+  - [📡 Back-end – Express.js](#-back-end--expressjs)
+    - [🔌 Endpoints principaux](#-endpoints-principaux)
+    - [🛡️ Middleware recommandés](#️-middleware-recommandés)
+  - [🗃️ Base de données – PostgreSQL](#️-base-de-données--postgresql)
+    - [🧱 Modélisation / 🔗 Relations](#-modélisation---relations)
+  - [🖥️ Front-end – Next.js](#️-front-end--nextjs)
+    - [📑 Pages principales](#-pages-principales)
+    - [🧠 Gestion d’état](#-gestion-détat)
+    - [🔐 Authentification](#-authentification)
+  - [📦 Dockerisation](#-dockerisation)
+  - [🚀 Commandes utiles](#-commandes-utiles)
+  - [📜 Documentation API – Swagger](#-documentation-api--swagger)
+  - [🧪 Tests et Qualité](#-tests-et-qualité)
+  - [🚀 Déploiement](#-déploiement)
+  - [📊 Conclusion \& Perspectives](#-conclusion--perspectives)
+    - [🔮 Améliorations possibles :](#-améliorations-possibles-)
+  - [📎 Annexes](#-annexes)
 
 ---
 
@@ -112,15 +124,9 @@ Le backend fournit une API RESTful pour toutes les opérations.
 
 ## 🗃️ Base de données – PostgreSQL
 
-### 🧱 Modélisation
+### 🧱 Modélisation / 🔗 Relations
 
-| Table       | Colonnes principales                     |
-|-------------|----------------------------------------|
-| **users**   | id, email, password, role, created_at        |
-| **time_logs** | id, user_id, start_time, end_time     |
-
-### 🔗 Relations
-- `users` 1 - N `time_logs`
+![Diagramme-DB](./Documentation/Resources/Diagramme_DB.png)
 
 ---
 
@@ -147,8 +153,8 @@ Le backend fournit une API RESTful pour toutes les opérations.
 ## 🚀 Commandes utiles
 
 ```bash
-docker-compose up --build
-docker-compose down
+docker compose up --build
+docker compose down
 ```
 
 ---
@@ -168,7 +174,7 @@ Swagger est intégré directement dans le backend :
 
 ## 🚀 Déploiement
 - Build frontend : ```npm run build```
-- Lancer en production : ```docker-compose -f docker-compose.prod.yml up -d```
+- Lancer en production : ```docker compose -f docker-compose.prod.yml up -d```
 - Variables d’environnement : ```.env```
 
 ---
@@ -191,7 +197,7 @@ Bootstrap TIME MANAGER offre une base solide pour toute application de gestion d
 ```bash
 npm run dev          # Lancer en dev
 npm run migrate      # Lancer les migrations
-docker-compose logs  # Voir les logs
+docker compose logs  # Voir les logs
 ````
 
 - 📚 Ressources recommandées :
