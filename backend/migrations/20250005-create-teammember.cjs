@@ -2,7 +2,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("TeamMember", {
-      userId: {
+      id_user: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -10,7 +10,7 @@ module.exports = {
           key: "id",
         },
       },
-      teamId: {
+      id_team: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -20,10 +20,10 @@ module.exports = {
       },
     });
 
-    // Add an unique constraint for the field userID.
+    // Add an unique constraint for the field id_user.
     // Make the unicity of the apprtenance to a unique team for a user in Teammember.
     await queryInterface.addConstraint("TeamMember", {
-      fields: ["userId"],
+      fields: ["id_user"],
       type: "unique",
       name: "unique_team_member_user",
     });
