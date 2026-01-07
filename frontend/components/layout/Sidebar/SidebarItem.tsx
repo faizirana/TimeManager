@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { SidebarItemProps } from "@/lib/types/sidebar";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -16,7 +17,7 @@ const sidebarItemVariants = cva(
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-black dark:text-white",
       },
       active: { true: "text-black dark:text-white bg-secondary pointer-events-none", false: "" },
-      size: { full: "w-full px-4 py-2", icon: "px-3 py-3" },
+      size: { full: "w-full px-4 py-2", icon: "w-fit px-3 py-3", profile: "w-full px-2 py-2" },
     },
     compoundVariants: [
       { variant: "default", active: false, class: "hover:bg-zinc-100 dark:hover:bg-zinc-900" },
@@ -32,6 +33,7 @@ type SidebarItemVariantProps = VariantProps<typeof sidebarItemVariants>;
 export default function SidebarItem({
   label,
   icon: Icon,
+  image,
   href,
   onClick,
   className,
@@ -39,7 +41,7 @@ export default function SidebarItem({
   size,
   active,
 }: SidebarItemProps & SidebarItemVariantProps) {
-  const Wrapper = href ? Link : "button";
+  const Wrapper = href ? Link : onClick ? "button" : "div";
   return (
     <Wrapper
       href={variant === "disabled" ? "#" : (href as string)}
@@ -48,14 +50,25 @@ export default function SidebarItem({
       aria-disabled={variant === "disabled"}
       tabIndex={variant === "disabled" ? -1 : undefined}
     >
-      {" "}
-      {Icon && (
-        <Icon
-          size={18}
-          color={variant === "important" && active === false ? "white" : "var(--color-primary)"}
+      {/* Render image if provided, otherwise render icon */}
+      {image ? (
+        <Image
+          src={image}
+          alt=""
+          width={size === "profile" ? 40 : 24}
+          height={size === "profile" ? 40 : 24}
+          className="object-cover rounded-lg" // Ensures the image is square and cropped
+          unoptimized
         />
-      )}{" "}
-      {label && <span>{label}</span>}{" "}
+      ) : (
+        Icon && (
+          <Icon
+            size={18}
+            color={variant === "important" && active === false ? "white" : "var(--color-primary)"}
+          />
+        )
+      )}
+      {label && <span>{label}</span>}
     </Wrapper>
   );
 }
