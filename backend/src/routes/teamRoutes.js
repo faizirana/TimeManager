@@ -7,9 +7,10 @@ import {
   deleteTeam,
   addUserToTeam,
   removeUserFromTeam,
-  validateTeamAssignments,
 } from "../controllers/teamController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { authorize } from "../middleware/rolesMiddleware.js";
+import { canViewTeam, canManageTeam, canManageTeamMembers } from "../middleware/teamMiddleware.js";
 
 const router = express.Router();
 
@@ -61,7 +62,7 @@ router.get("/", authenticate, getTeams);
  *       404:
  *         description: Team not found
  */
-router.get("/:id", authenticate, getTeamById);
+router.get("/:id", authenticate, canViewTeam, getTeamById);
 
 /**
  * @swagger
@@ -91,7 +92,7 @@ router.get("/:id", authenticate, getTeamById);
  *       400:
  *         description: Missing parameters or invalid data
  */
-router.post("/", authenticate, createTeam);
+router.post("/", authenticate, authorize("admin", "manager"), createTeam);
 
 /**
  * @swagger
@@ -126,7 +127,7 @@ router.post("/", authenticate, createTeam);
  *       404:
  *         description: Team not found
  */
-router.put("/:id", authenticate, updateTeam);
+router.put("/:id", authenticate, canManageTeam, updateTeam);
 
 /**
  * @swagger
@@ -148,7 +149,7 @@ router.put("/:id", authenticate, updateTeam);
  *       404:
  *         description: Team not found
  */
-router.delete("/:id", authenticate, deleteTeam);
+router.delete("/:id", authenticate, canManageTeam, deleteTeam);
 
 /**
  * @swagger
@@ -182,7 +183,7 @@ router.delete("/:id", authenticate, deleteTeam);
  *       400:
  *         description: Invalid data or conflict detected
  */
-router.post("/:id/users", authenticate, addUserToTeam);
+router.post("/:id/users", authenticate, canManageTeamMembers, addUserToTeam);
 
 /**
  * @swagger
@@ -209,22 +210,6 @@ router.post("/:id/users", authenticate, addUserToTeam);
  *       404:
  *         description: Team or user not found
  */
-router.delete("/:id/users/:userId", authenticate, removeUserFromTeam);
-
-/**
- * @swagger
- * /teams/validate/conflicts:
- *   post:
- *     summary: Validate user team assignments (no conflicts, manager exists)
- *     tags: [Teams]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Validation OK
- *       400:
- *         description: Conflict or invalid configuration
- */
-router.post("/validate/conflicts", authenticate, validateTeamAssignments);
+router.delete("/:id/users/:userId", authenticate, canManageTeamMembers, removeUserFromTeam);
 
 export default router;
