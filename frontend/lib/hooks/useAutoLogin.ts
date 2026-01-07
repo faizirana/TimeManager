@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { checkToken } from "@/lib/services/auth/authService";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export interface UseAutoLoginReturn {
   isCheckingToken: boolean;
@@ -12,7 +12,8 @@ export interface UseAutoLoginReturn {
 /**
  * Hook for auto-login functionality
  *
- * Checks if a valid token exists on mount and redirects to dashboard if authenticated.
+ * Checks if user is already authenticated on initial page load and redirects to dashboard.
+ * Only triggers redirect on initial mount, not when user logs in via form.
  * Provides loading state and message flag for UI feedback.
  *
  * @returns Object with loading state and message flag
@@ -28,34 +29,33 @@ export interface UseAutoLoginReturn {
  */
 export function useAutoLogin(): UseAutoLoginReturn {
   const router = useRouter();
-  const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const { user, loading } = useAuth();
   const [shouldShowAutoLoginMessage, setShouldShowAutoLoginMessage] = useState(false);
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
-    async function verifyExistingToken() {
-      try {
-        const hasValidToken = await checkToken();
-
-        if (hasValidToken) {
-          setShouldShowAutoLoginMessage(true);
-          // Wait a moment to show the message before redirecting
-          setTimeout(() => {
-            router.push("/dashboard");
-          }, 2500);
-        } else {
-          setIsCheckingToken(false);
-        }
-      } catch (error) {
-        console.error("Auto-login check failed:", error);
-        setIsCheckingToken(false);
-      }
+    // Only check once on initial mount
+    if (hasCheckedRef.current) {
+      return;
     }
 
-    verifyExistingToken();
-  }, [router]);
+    // Once loading completes, check if user is authenticated
+    if (!loading) {
+      hasCheckedRef.current = true;
+
+      if (user) {
+        // User is already logged in (from sessionStorage), show message and redirect
+        setShouldShowAutoLoginMessage(true);
+        // Wait a moment to show the message before redirecting
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2500);
+      }
+    }
+  }, [user, loading, router]);
 
   return {
-    isCheckingToken,
+    isCheckingToken: loading && !hasCheckedRef.current,
     shouldShowAutoLoginMessage,
   };
 }

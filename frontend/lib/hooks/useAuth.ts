@@ -1,24 +1,32 @@
 "use client";
 
+/**
+ * UI Authentication Hook
+ *
+ * This hook provides authentication actions for UI components.
+ * It wraps the AuthContext and adds navigation logic for login/logout flows.
+ *
+ * Use this hook in forms and UI components that need to trigger authentication actions.
+ * For accessing auth state only (user, loading), use the useAuth from AuthContext directly.
+ */
+
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser, logoutUser } from "@/lib/services/auth/authService";
-import { AuthenticationError } from "@/lib/types/auth";
+import { useAuth as useAuthContext } from "@/lib/contexts/AuthContext";
 
 /**
- * Authentication hook: login + logout
- *
- * This hook orchestrates authentication flows and manages UI state.
- * The actual API calls are handled by authService for better testability.
+ * Authentication hook for UI components
  *
  * Provides:
- *  - handleSubmit: for logging in
- *  - logout: for logging out
+ *  - handleSubmit: for logging in with form handling
+ *  - logout: for logging out with navigation
  *  - loading: loading status
  *  - error: error message, if any
+ *  - user: current authenticated user (from context)
  */
 export function useAuth() {
   const router = useRouter();
+  const { login: contextLogin, logout: contextLogout, user } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +43,7 @@ export function useAuth() {
     setLoading(true);
 
     try {
-      await loginUser({ email, password });
+      await contextLogin(email, password);
 
       setLoading(false);
 
@@ -44,8 +52,8 @@ export function useAuth() {
     } catch (err) {
       setLoading(false);
 
-      // Typed error handling
-      if (err instanceof AuthenticationError) {
+      // Error handling
+      if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("Une erreur inattendue est survenue.");
@@ -61,7 +69,7 @@ export function useAuth() {
     setError("");
 
     try {
-      await logoutUser();
+      await contextLogout();
 
       setLoading(false);
       router.push("/login");
@@ -73,5 +81,5 @@ export function useAuth() {
     }
   }
 
-  return { handleSubmit, logout, loading, error };
+  return { handleSubmit, logout, loading, error, user };
 }
