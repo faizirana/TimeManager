@@ -128,6 +128,13 @@ const swaggerOptions = {
               example: "17:00",
               description: "Shift end time in HH:MM format",
             },
+            Associate: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Team",
+              },
+              description: "List of teams using this timetable",
+            },
           },
         },
         TimeRecording: {
@@ -182,21 +189,51 @@ const swaggerOptions = {
         },
         ErrorResponse: {
           type: "object",
+          required: ["message"],
           properties: {
-            error: {
-              type: "string",
-              example: "Invalid credentials",
-            },
             message: {
               type: "string",
-              example: "The provided email or password is incorrect",
+              example: "Invalid credentials",
+              description: "Error message describing what went wrong",
+            },
+            error: {
+              type: "string",
+              example: "Validation error",
+              description:
+                "Optional error category (only present for validation/constraint errors)",
             },
             details: {
               type: "object",
               additionalProperties: true,
-              description: "Additional error details (validation errors, field names, etc.)",
+              example: {
+                field: "email",
+                message: "Email must be valid",
+                value: "invalid-email",
+              },
+              description:
+                "Optional additional error context (only present for validation/database constraint errors)",
             },
           },
+        },
+        UserProfile: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 2,
+            },
+            email: {
+              type: "string",
+              format: "email",
+              example: "john.employee@example.com",
+            },
+            role: {
+              type: "string",
+              enum: ["admin", "manager", "employee"],
+              example: "employee",
+            },
+          },
+          description: "Minimal user profile returned by /auth/me endpoint",
         },
       },
     },

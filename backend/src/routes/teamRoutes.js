@@ -175,7 +175,6 @@ router.get("/", authenticate, getTeams);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You do not have permission to view this team"
  *       404:
  *         description: Team not found
@@ -184,7 +183,6 @@ router.get("/", authenticate, getTeams);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Team with ID 1 not found"
  */
 router.get("/:id", authenticate, canViewTeam, getTeamById);
@@ -271,7 +269,6 @@ router.get("/:id", authenticate, canViewTeam, getTeamById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only administrators and managers can create teams"
  */
 router.post("/", authenticate, authorize("admin", "manager"), createTeam);
@@ -285,6 +282,8 @@ router.post("/", authenticate, authorize("admin", "manager"), createTeam);
  *       Update team information. Only the team manager or admins can update a team.
  *
  *       **Authorization:** Only team manager or admin
+ *
+ *       **Note:** The response returns only basic Team fields (id, name, id_manager, id_timetable) without included associations like Timetable or Members.
  *     tags: [Teams]
  *     security:
  *       - bearerAuth: []
@@ -344,7 +343,6 @@ router.post("/", authenticate, authorize("admin", "manager"), createTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You are not authorized to manage this team"
  *       404:
  *         description: Team not found
@@ -353,7 +351,6 @@ router.post("/", authenticate, authorize("admin", "manager"), createTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Team with ID 1 not found"
  */
 router.put("/:id", authenticate, canManageTeam, updateTeam);
@@ -395,7 +392,6 @@ router.put("/:id", authenticate, canManageTeam, updateTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You are not authorized to delete this team"
  *       404:
  *         description: Team not found
@@ -404,7 +400,6 @@ router.put("/:id", authenticate, canManageTeam, updateTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Team with ID 3 not found"
  */
 router.delete("/:id", authenticate, canManageTeam, deleteTeam);
@@ -497,7 +492,6 @@ router.delete("/:id", authenticate, canManageTeam, deleteTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Team or user not found"
  */
 router.post("/:id/users", authenticate, canManageTeamMembers, addUserToTeam);
@@ -548,7 +542,6 @@ router.post("/:id/users", authenticate, canManageTeamMembers, addUserToTeam);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You are not authorized to manage this team's members"
  *       404:
  *         description: Team, user, or membership not found
@@ -560,12 +553,10 @@ router.post("/:id/users", authenticate, canManageTeamMembers, addUserToTeam);
  *               teamNotFound:
  *                 summary: Team doesn't exist
  *                 value:
- *                   error: "Not found"
  *                   message: "Team with ID 1 not found"
  *               notAMember:
  *                 summary: User is not in this team
  *                 value:
- *                   error: "Not found"
  *                   message: "User is not a member of this team"
  */
 router.delete("/:id/users/:userId", authenticate, canManageTeamMembers, removeUserFromTeam);
