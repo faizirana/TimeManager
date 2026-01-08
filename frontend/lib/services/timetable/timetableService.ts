@@ -28,3 +28,51 @@ import { Timetable } from "@/lib/types/timetable";
 export async function getTimetableById(timetableId: number): Promise<Timetable> {
   return apiClient.get<Timetable>(`/timetables/${timetableId}`);
 }
+
+/**
+ * Fetch all timetables
+ *
+ * @returns {Promise<Timetable[]>} Array of all timetables
+ * @throws {Error} If the request fails
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const timetables = await getTimetables();
+ *   console.log(`Found ${timetables.length} timetables`);
+ * } catch (error) {
+ *   console.error("Failed to fetch timetables:", error);
+ * }
+ * ```
+ */
+export async function getTimetables(): Promise<Timetable[]> {
+  return apiClient.get<Timetable[]>("/timetables");
+}
+
+/**
+ * Create a new timetable
+ *
+ * @param {Object} timetableData - Timetable data
+ * @param {string} timetableData.Shift_start - Start time (HH:mm format)
+ * @param {string} timetableData.Shift_end - End time (HH:mm format)
+ * @returns {Promise<Timetable>} Created timetable
+ * @throws {Error} If creation fails
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const newTimetable = await createTimetable({
+ *     Shift_start: "09:00",
+ *     Shift_end: "17:00"
+ *   });
+ * } catch (error) {
+ *   console.error("Failed to create timetable:", error);
+ * }
+ * ```
+ */
+export async function createTimetable(timetableData: {
+  Shift_start: string;
+  Shift_end: string;
+}): Promise<Timetable> {
+  return apiClient.post<Timetable>("/timetables", timetableData);
+}

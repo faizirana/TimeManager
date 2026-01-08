@@ -4,9 +4,10 @@
 :root {
   --background: #e4e4e4;
   --foreground: #292828;
-  --color-primary: #3c6f48;
-  --color-primary-soft: #558560;
-  --color-secondary: #3c6f4830;
+  --color-primary: #15803d;
+  --color-primary-soft: #16a34a;
+  --color-secondary: #0051ff;
+  --color-secondary-soft: #3b82f6;
 
   /* Dégradé de couleurs pour les éléments UI */
   --background-2: #ffffff;

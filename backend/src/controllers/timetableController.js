@@ -15,12 +15,7 @@ const _checkTimeOverlap = (start1, end1, start2, end2) => {
 export const getTimetables = async (req, res) => {
   try {
     const timetables = await Timetable.findAll({
-      include: [
-        {
-          model: Team,
-          as: "Associate",
-        },
-      ],
+      attributes: ["id", "Shift_start", "Shift_end"],
     });
     return res.status(200).json(timetables);
   } catch (error) {

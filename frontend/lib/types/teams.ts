@@ -79,5 +79,41 @@ export interface Team {
   members: User[];
 }
 
+/**
+ * Extended Member type for UI display with additional metadata
+ *
+ * @interface Member
+ * @extends User
+ * @property {boolean} isManager - Whether this member is the team manager
+ * @property {object} situation - Work location information
+ * @property {"onsite" | "telework"} situation.type - Type of work location
+ * @property {"inProgress" | "onPause" | "late" | "planned"} status - Current work status
+ * @property {string} shift - Formatted shift time (e.g., "09:00 - 17:00")
+ */
+export interface Member extends User {
+  isManager: boolean;
+  situation: {
+    type: "onsite" | "telework";
+  };
+  status: "inProgress" | "onPause" | "late" | "planned";
+  shift: string;
+}
+
+/**
+ * Team display format for list views
+ *
+ * @interface TeamDisplay
+ * @property {number} id - Unique team identifier
+ * @property {string} name - Team name
+ * @property {string} shift - Formatted shift time
+ * @property {number} members - Number of team members
+ */
+export interface TeamDisplay {
+  id: number;
+  name: string;
+  shift: string;
+  members: number;
+}
+
 // Re-export ApiError for convenience
 export type { ApiError };

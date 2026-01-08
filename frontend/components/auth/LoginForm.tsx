@@ -21,6 +21,7 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
     >
       <div className="relative z-0 w-full mb-8 group">
         <Input
+          variant="secondary"
           type="email"
           name="floating_email"
           id="floating_email"
@@ -29,11 +30,14 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <Label htmlFor="floating_email">Email</Label>
+        <Label variant="secondary" htmlFor="floating_email">
+          Email
+        </Label>
       </div>
 
       <div className="relative z-0 w-full mb-8 group">
         <Input
+          variant="secondary"
           type={showPassword ? "text" : "password"}
           name="floating_password"
           id="floating_password"
@@ -42,7 +46,9 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Label htmlFor="floating_password">Mot de passe</Label>
+        <Label variant="secondary" htmlFor="floating_password">
+          Mot de passe
+        </Label>
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
@@ -55,7 +61,7 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <Button type="submit" disabled={loading || disabled} className="w-full">
+      <Button variant="secondary" type="submit" disabled={loading || disabled} className="w-full">
         {loading ? "Connexion..." : disabled ? "Redirection..." : "Se connecter"}
       </Button>
     </form>

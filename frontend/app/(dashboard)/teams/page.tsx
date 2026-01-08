@@ -11,8 +11,10 @@ import {
   ClockArrowUp,
   ArrowDown01,
   ArrowUp10,
+  Pencil,
 } from "lucide-react";
 import { useTableSort } from "@/lib/hooks/useTableSort";
+import { useTeams } from "@/lib/hooks/useTeams";
 import { compareShifts } from "@/lib/utils/sortHelpers";
 import {
   Table,
@@ -22,85 +24,86 @@ import {
   TableHead,
   TableCell,
 } from "@/components/UI/Table";
-import { getTeams } from "@/lib/services/teams/teamsService";
-import { getTimetableById } from "@/lib/services/timetable/timetableService";
+import { getTeamById } from "@/lib/services/teams/teamsService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { TableSkeleton } from "@/components/UI/TableSkeleton";
 import Toast from "@/components/UI/Toast";
-
-interface TeamDisplay {
-  id: number;
-  name: string;
-  shift: string;
-  members: number;
-}
+import { AddTeamModal } from "@/components/teams/AddTeamModal";
+import { EditTeamModal } from "@/components/teams/EditTeamModal";
+import { Team } from "@/lib/types/teams";
 
 export default function TeamsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [teams, setTeams] = useState<TeamDisplay[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    teams,
+    loading,
+    error: teamsError,
+    createNewTeam,
+    updateExistingTeam,
+  } = useTeams(user?.id);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null);
 
   const { data: sortedTeams, sortColumn, sortDirection, handleSort } = useTableSort(teams);
 
-  // Fetch teams on component mount
+  // Redirect if not authenticated
   useEffect(() => {
-    // Wait for auth to load before fetching teams
-    if (authLoading) return;
-
-    // Redirect if not authenticated
-    if (!user) {
+    if (!authLoading && !user) {
       router.push("/login");
-      return;
     }
-
-    async function fetchTeams() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        if (!user) return;
-
-        const teamsData = await getTeams(user.id);
-
-        // Transform API data to display format
-        const displayTeams: TeamDisplay[] = await Promise.all(
-          teamsData.map(async (team) => {
-            let shift = "No shift assigned";
-
-            // Fetch timetable if team has one
-            if (team.id_timetable) {
-              try {
-                const timetable = await getTimetableById(team.id_timetable);
-                shift = `${timetable.Shift_start} - ${timetable.Shift_end}`;
-              } catch (_e) {
-                shift = "Shift unavailable";
-              }
-            }
-
-            return {
-              id: team.id,
-              name: team.name,
-              shift,
-              members: team.members.length,
-            };
-          }),
-        );
-
-        setTeams(displayTeams);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load teams");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTeams();
   }, [authLoading, user, router]);
+
+  // Sync errors from hook
+  useEffect(() => {
+    if (teamsError) setError(teamsError);
+  }, [teamsError]);
 
   const handleTeamClick = (teamId: number) => {
     router.push(`/teams/${teamId}`);
+  };
+
+  const handleCreateTeam = async (teamData: {
+    name: string;
+    id_manager: number;
+    id_timetable: number;
+    memberIds?: number[];
+  }) => {
+    try {
+      await createNewTeam({
+        ...teamData,
+        memberIds: teamData.memberIds ?? [],
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create team");
+      throw err;
+    }
+  };
+
+  const handleEditTeam = async (teamId: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    try {
+      const team = await getTeamById(teamId);
+      setTeamToEdit(team);
+      setIsEditModalOpen(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load team details");
+    }
+  };
+
+  const handleUpdateTeam = async (teamData: { name: string; id_timetable: number }) => {
+    if (!teamToEdit) return;
+
+    try {
+      await updateExistingTeam(teamToEdit.id, teamData);
+      setIsEditModalOpen(false);
+      setTeamToEdit(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update team");
+      throw err;
+    }
   };
 
   return (
@@ -109,13 +112,35 @@ export default function TeamsPage() {
       <div className="flex items-center gap-4 mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Teams</h1>
         <div className="flex-1"></div>
-        <Button className="w-auto bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap">
-          Add new <Plus size={18} strokeWidth={3} />
+        <Button
+          variant="primary"
+          icon={<Plus size={18} strokeWidth={3} />}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Nouvelle équipe
         </Button>
       </div>
 
       {/* Error Toast */}
       {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
+
+      {/* Add Team Modal */}
+      <AddTeamModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateTeam}
+      />
+
+      {/* Edit Team Modal */}
+      <EditTeamModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setTeamToEdit(null);
+        }}
+        team={teamToEdit}
+        onSubmit={handleUpdateTeam}
+      />
 
       {/* Table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">
@@ -161,6 +186,7 @@ export default function TeamsPage() {
                 >
                   Members
                 </TableHead>
+                <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,6 +199,15 @@ export default function TeamsPage() {
                   </TableCell>
                   <TableCell className="dark:text-gray-300">{team.shift}</TableCell>
                   <TableCell className="dark:text-gray-300">{team.members}</TableCell>
+                  <TableCell>
+                    <button
+                      onClick={(e) => handleEditTeam(team.id, e)}
+                      className="p-2 rounded-md text-[var(--color-primary)] hover:text-[var(--color-primary-soft)] hover:bg-[var(--color-primary)]/10 dark:hover:bg-[var(--color-primary)]/20 transition-colors"
+                      aria-label="Modifier l'équipe"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

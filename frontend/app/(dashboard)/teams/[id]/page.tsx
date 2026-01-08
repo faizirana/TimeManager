@@ -12,8 +12,11 @@ import {
   ClockArrowUp,
   MapPin,
   Computer,
+  Trash2,
 } from "lucide-react";
 import { useTableSort } from "@/lib/hooks/useTableSort";
+import { useTeamDetails } from "@/lib/hooks/useTeamDetails";
+import { useTeamMembers } from "@/lib/hooks/useTeamMembers";
 import { Button } from "@/components/UI/Button";
 import { StatusBadge } from "@/components/UI/StatusBadge";
 import { RoleBadge } from "@/components/UI/RoleBadge";
@@ -27,25 +30,13 @@ import {
   TableCell,
 } from "@/components/UI/Table";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { getTeamById } from "@/lib/services/teams/teamsService";
-import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { Avatar } from "@/components/UI/Avatar";
 import { TableSkeleton } from "@/components/UI/TableSkeleton";
 import Toast from "@/components/UI/Toast";
-
-interface Member {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  role: string;
-  isManager: boolean;
-  situation: {
-    type: "onsite" | "telework";
-  };
-  status: "inProgress" | "onPause" | "late" | "planned";
-  shift: string;
-}
+import { DeleteMemberModal } from "@/components/teams/DeleteMemberModal";
+import { AddMembersModal } from "@/components/teams/AddMembersModal";
+import { Member } from "@/lib/types/teams";
+import { canRemoveMember, getMemberFullName } from "@/lib/utils/teamTransformers";
 
 // Mapping of situation types to their icons
 const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
@@ -64,77 +55,88 @@ export default function TeamMembersPage() {
   const params = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [teamName, setTeamName] = useState<string>("");
-  const [teamShift, setTeamShift] = useState<string>("No shift assigned");
-  const [managerId, setManagerId] = useState<number | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+  const teamId = parseInt(params.id as string);
+
+  // Custom hooks for data management
+  const {
+    teamName,
+    teamShift,
+    managerId,
+    loading: detailsLoading,
+    error: detailsError,
+  } = useTeamDetails(teamId);
+  const {
+    members,
+    loading: membersLoading,
+    error: membersError,
+    addMembers,
+    removeMember,
+  } = useTeamMembers(teamId, managerId, teamShift);
+
+  // UI state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { data: sortedMembers, sortColumn, sortDirection, handleSort } = useTableSort(members);
 
-  // Fetch team data on component mount
+  // Redirect if not authenticated
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
+    if (!authLoading && !user) {
       router.push("/login");
-      return;
     }
+  }, [authLoading, user, router]);
 
-    async function fetchTeamData() {
-      try {
-        setLoading(true);
-        setError(null);
+  // Sync errors from hooks
+  useEffect(() => {
+    if (detailsError) setError(detailsError);
+    if (membersError) setError(membersError);
+  }, [detailsError, membersError]);
 
-        const teamId = parseInt(params.id as string);
-        const teamData = await getTeamById(teamId);
-
-        setTeamName(teamData.name);
-        setManagerId(teamData.id_manager);
-
-        // Fetch timetable for team shift
-        let shift = "No shift assigned";
-        if (teamData.id_timetable) {
-          try {
-            const timetable = await getTimetableById(teamData.id_timetable);
-            shift = `${timetable.Shift_start} - ${timetable.Shift_end}`;
-          } catch (_e) {
-            shift = "Shift unavailable";
-          }
-        }
-        setTeamShift(shift);
-
-        // Transform members data (status and situation will be placeholders for now)
-        const transformedMembers: Member[] = teamData.members.map((member: any) => ({
-          id: member.id,
-          name: member.name,
-          surname: member.surname,
-          email: member.email,
-          role: member.role,
-          isManager: member.id === teamData.id_manager,
-          situation: { type: "onsite" as const }, // Placeholder - will be from timerecording
-          status: "planned" as const, // Placeholder - will be from timerecording
-          shift,
-        }));
-
-        setMembers(transformedMembers);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load team data");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTeamData();
-  }, [authLoading, user, router, params.id]);
+  const loading = detailsLoading || membersLoading;
 
   // Custom comparison function for situation column
   const handleSituationSort = () => {
     handleSort("situation", (a, b) => {
-      // Sort by type (which will be displayed via label)
       return a.situation.type.localeCompare(b.situation.type);
     });
+  };
+
+  const handleRemoveMember = (memberId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const member = members.find((m) => m.id === memberId);
+    if (!member) return;
+
+    // Don't allow removing the manager
+    if (!canRemoveMember(member)) {
+      setError("Impossible de supprimer le manager de l'équipe");
+      return;
+    }
+
+    setMemberToDelete(member);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmRemoveMember = async () => {
+    if (!memberToDelete) return;
+
+    try {
+      await removeMember(memberToDelete.id);
+      setMemberToDelete(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Échec de la suppression du membre");
+    }
+  };
+
+  const handleAddMembers = async (memberIds: number[]) => {
+    try {
+      await addMembers(memberIds);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Échec de l'ajout des membres");
+      throw err;
+    }
   };
 
   return (
@@ -152,8 +154,12 @@ export default function TeamMembersPage() {
           {teamName || "Loading..."}
         </h1>
         <div className="flex-1"></div>
-        <Button className="w-auto bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap">
-          Add new <Plus size={18} strokeWidth={3} />
+        <Button
+          variant="primary"
+          icon={<Plus size={18} strokeWidth={3} />}
+          onClick={() => setIsAddMembersModalOpen(true)}
+        >
+          Ajouter des membres
         </Button>
       </div>
 
@@ -214,6 +220,7 @@ export default function TeamMembersPage() {
                 >
                   Shift
                 </TableHead>
+                <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -243,12 +250,46 @@ export default function TeamMembersPage() {
                     <StatusBadge variant={member.status}>{statusLabels[member.status]}</StatusBadge>
                   </TableCell>
                   <TableCell className="dark:text-gray-300">{teamShift}</TableCell>
+                  <TableCell>
+                    <button
+                      onClick={(e) => handleRemoveMember(member.id, e)}
+                      disabled={member.isManager}
+                      className="p-2 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      aria-label="Retirer le membre"
+                      title={
+                        member.isManager
+                          ? "Impossible de supprimer le manager"
+                          : "Retirer de l'équipe"
+                      }
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </div>
+
+      {/* Delete Member Modal */}
+      <DeleteMemberModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setMemberToDelete(null);
+        }}
+        onConfirm={confirmRemoveMember}
+        memberName={memberToDelete ? getMemberFullName(memberToDelete) : ""}
+      />
+
+      {/* Add Members Modal */}
+      <AddMembersModal
+        isOpen={isAddMembersModalOpen}
+        onClose={() => setIsAddMembersModalOpen(false)}
+        onSubmit={handleAddMembers}
+        currentMemberIds={members.map((m) => m.id)}
+      />
     </div>
   );
 }
