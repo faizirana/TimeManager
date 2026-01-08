@@ -412,6 +412,11 @@ module.exports = {
       ignoreDuplicates: true,
     });
 
+    // Reset the TimeRecording sequence to avoid duplicate key errors
+    await queryInterface.sequelize.query(
+      `SELECT setval(pg_get_serial_sequence('"TimeRecording"', 'id'), (SELECT MAX(id) FROM "TimeRecording"));`,
+    );
+
     console.log("✅ Complete test data seeded successfully!");
     console.log("   - Added 8 additional users (1 admin, 1 manager, 6 employees)");
     console.log("   - Created 3 timetables (9-5, 2-10, 8-4 shifts)");

@@ -209,6 +209,15 @@ export const createTimeRecording = async (req, res) => {
       });
     }
 
+    // Verify user exists
+    const targetUser = await User.findByPk(parseInt(id_user));
+    if (!targetUser) {
+      return res.status(404).json({
+        error: "Not found",
+        message: `User with ID ${id_user} not found`,
+      });
+    }
+
     // Create the time recording
     const newRecording = await TimeRecording.create({
       timestamp: new Date(timestamp),
@@ -219,7 +228,46 @@ export const createTimeRecording = async (req, res) => {
     return res.status(201).json(newRecording);
   } catch (error) {
     console.error("Error creating time recording:", error);
-    return res.status(500).json({ message: error.message || "Internal server error" });
+
+    // Handle Sequelize validation errors
+    if (error.name === "SequelizeValidationError") {
+      return res.status(400).json({
+        error: "Validation error",
+        message: error.errors.map((e) => e.message).join(", "),
+        details: error.errors.map((e) => ({
+          field: e.path,
+          message: e.message,
+          value: e.value,
+        })),
+      });
+    }
+
+    // Handle Sequelize foreign key constraint errors
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(400).json({
+        error: "Foreign key constraint error",
+        message: "The referenced user does not exist",
+        details: { id_user: parseInt(id_user) },
+      });
+    }
+
+    // Handle Sequelize unique constraint errors (duplicate key)
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({
+        error: "Duplicate entry",
+        message:
+          "A time recording with this ID already exists. This is likely a database sequence issue. Please contact the administrator.",
+        details: {
+          constraint: error.parent?.constraint,
+          fields: error.fields,
+        },
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal server error",
+      message: error.message || "An unexpected error occurred",
+    });
   }
 };
 
