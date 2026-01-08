@@ -31,6 +31,7 @@ import { apiClient } from "@/lib/utils/apiClient";
  * User information structure
  */
 interface User {
+  id: number;
   email: string;
   name: string;
   surname: string;
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = await userResponse.json();
 
       const data = {
+        id: userData.id,
         email: userData.email,
         name: userData.name,
         surname: userData.surname,
@@ -175,7 +177,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   useEffect(() => {
     if (accessToken && user) {
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ token: accessToken, user }));
+      const userStorage = { email: user.email, name: user.name, surname: user.surname };
+      sessionStorage.setItem(
+        SESSION_STORAGE_KEY,
+        JSON.stringify({ token: accessToken, userStorage }),
+      );
     } else {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
     }

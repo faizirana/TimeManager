@@ -46,7 +46,7 @@ export interface User {
  * @property {number} id - Unique team identifier
  * @property {string} name - Team name (e.g., "IT", "Sales", "HR")
  * @property {number} id_manager - Manager's user ID (references User.id)
- * @property {number} id_timetable - Associated timetable ID
+ * @property {number | null} id_timetable - Associated timetable ID (null if not assigned)
  * @property {User} manager - Full manager user object
  * @property {User[]} members - Array of team members (including manager)
  *
@@ -74,7 +74,7 @@ export interface Team {
   id: number;
   name: string;
   id_manager: number;
-  id_timetable: number;
+  id_timetable: number | null;
   manager: User;
   members: User[];
 }

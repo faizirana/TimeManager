@@ -2,13 +2,16 @@
 
 import React from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
-import { LayoutDashboard, Clock, User, Users, ChartNoAxesCombined } from "lucide-react";
+import { LayoutDashboard, Clock, Users, ChartNoAxesCombined } from "lucide-react";
 import { usePathname } from "next/navigation";
 import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+
   const pathname = usePathname() ?? "/";
 
   const normalize = (p: string) => (p === "/" ? "/" : p.replace(/\/$/, ""));
@@ -17,7 +20,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: "Clock in", icon: Clock, href: "/clock-in", variant: "important" },
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", variant: undefined },
     { label: "Teams", icon: Users, href: "/teams", variant: undefined },
-    { label: "Employees", icon: User, href: "/employees", variant: "disabled" },
     { label: "Statistics", icon: ChartNoAxesCombined, href: "/stats", variant: "disabled" },
   ].map((item) => {
     const itemPath = normalize(item.href);
@@ -44,9 +46,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           menuItems={userMenuItems}
           buttonContent={
             <SidebarItem
-              label="Test"
-              image="https://picsum.photos/200"
+              label={`${user?.name} ${user?.surname}`}
               size={"profile"}
+              hasAvatar={true}
             ></SidebarItem>
           }
         />

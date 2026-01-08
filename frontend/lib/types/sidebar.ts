@@ -3,7 +3,7 @@ import { LucideIcon } from "lucide-react";
 export interface SidebarItemProps {
   label?: string;
   icon?: LucideIcon;
-  image?: string;
+  hasAvatar?: boolean;
   href?: string;
   active?: boolean;
   onClick?: () => void;

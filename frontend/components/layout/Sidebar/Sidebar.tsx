@@ -8,7 +8,7 @@ export default function Sidebar({ items, collapsed, className, children }: Sideb
   return (
     <aside
       className={cn(
-        "flex flex-col bg-white dark:bg-zinc-950 shadow-md p-5 h-full rounded-r-lg",
+        "flex flex-col bg-[var(--background-2)] shadow-md p-5 h-full rounded-r-lg",
         collapsed ? "w-16" : "w-56",
         className,
       )}

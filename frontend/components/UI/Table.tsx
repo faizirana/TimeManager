@@ -112,7 +112,7 @@ interface TableCellProps {
  */
 export function Table({ children, className = "" }: TableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg">
       <table className={`w-full ${className}`}>{children}</table>
     </div>
   );
@@ -125,7 +125,11 @@ export function Table({ children, className = "" }: TableProps) {
  * @returns {JSX.Element} Styled thead element
  */
 export function TableHeader({ children, className = "" }: TableHeaderProps) {
-  return <thead className={`bg-gray-50 border-b border-gray-200 ${className}`}>{children}</thead>;
+  return (
+    <thead className={`bg-[var(--surface)] border-b border-[var(--border)] ${className}`}>
+      {children}
+    </thead>
+  );
 }
 
 /**
@@ -152,7 +156,7 @@ export function TableRow({ children, onClick, className = "" }: TableRowProps) {
   return (
     <tr
       onClick={onClick}
-      className={`border-b border-gray-200 ${onClick ? "hover:bg-gray-50 cursor-pointer" : ""} ${className}`}
+      className={`border-b border-[var(--border)] ${onClick ? "hover:bg-[var(--surface-hover)] cursor-pointer" : ""} ${className}`}
     >
       {children}
     </tr>
@@ -209,12 +213,12 @@ export function TableHead({
 
   return (
     <th
-      className={`px-6 py-3 text-left text-sm font-medium text-gray-600 ${sortable ? "cursor-pointer hover:bg-gray-100 select-none" : ""} ${className}`}
+      className={`px-6 py-4 text-left text-sm font-medium text-[var(--muted-foreground)] ${sortable ? "cursor-pointer hover:bg-[var(--surface-hover)] select-none" : ""} ${className}`}
       onClick={sortable ? onSort : undefined}
     >
       <div className="flex items-center gap-2">
         {children}
-        {sortable && <IconComponent size={16} className="text-gray-400" />}
+        {sortable && <IconComponent size={16} className="text-[var(--muted)]" />}
       </div>
     </th>
   );
@@ -227,5 +231,5 @@ export function TableHead({
  * @returns {JSX.Element} Styled table cell
  */
 export function TableCell({ children, className = "" }: TableCellProps) {
-  return <td className={`px-6 py-4 text-gray-700 ${className}`}>{children}</td>;
+  return <td className={`px-6 py-5 text-[var(--foreground)] ${className}`}>{children}</td>;
 }

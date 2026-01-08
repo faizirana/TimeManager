@@ -8,7 +8,7 @@
  * - Tracking of current sort state (column and direction)
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook for managing table sorting logic
@@ -36,6 +36,11 @@ export function useTableSort<T>(initialData: T[]) {
   const [data, setData] = useState<T[]>(initialData);
   const [sortColumn, setSortColumn] = useState<keyof T | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  // Update data when initialData changes
+  useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
 
   /**
    * Handles sorting of table data by a specific column
