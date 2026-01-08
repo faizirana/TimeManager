@@ -157,7 +157,6 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Employees can only view their own time recordings"
  */
 router.get("/", authenticate, authorize("admin", "manager", "employee"), getTimeRecordings);
@@ -247,7 +246,6 @@ router.get("/", authenticate, authorize("admin", "manager", "employee"), getTime
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You cannot access time recordings of other employees"
  */
 router.get("/:id", authenticate, authorize("admin", "manager", "employee"), getTimeRecordingById);
@@ -388,12 +386,10 @@ router.get("/:id", authenticate, authorize("admin", "manager", "employee"), getT
  *               employeeRestriction:
  *                 summary: Employee trying to clock in for someone else
  *                 value:
- *                   error: "Forbidden"
  *                   message: "Employees can only create their own time recordings"
  *               managerRestriction:
  *                 summary: Manager trying to clock in for non-team member
  *                 value:
- *                   error: "Forbidden"
  *                   message: "Managers can only create time recordings for their team members"
  *       404:
  *         description: User not found - The associated user does not exist
@@ -402,7 +398,6 @@ router.get("/:id", authenticate, authorize("admin", "manager", "employee"), getT
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "User with ID 2 not found"
  */
 router.post("/", authenticate, authorize("admin", "manager", "employee"), createTimeRecording);
@@ -504,7 +499,6 @@ router.post("/", authenticate, authorize("admin", "manager", "employee"), create
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Time recording with ID 1 not found"
  *       401:
  *         description: Unauthorized - Missing or invalid token
@@ -519,7 +513,6 @@ router.post("/", authenticate, authorize("admin", "manager", "employee"), create
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only managers and administrators can modify time recordings"
  */
 router.put("/:id", authenticate, authorize("manager", "admin"), updateTimeRecording);
@@ -567,7 +560,6 @@ router.put("/:id", authenticate, authorize("manager", "admin"), updateTimeRecord
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Time recording with ID 50 not found"
  *       401:
  *         description: Unauthorized - Missing or invalid token
@@ -582,7 +574,6 @@ router.put("/:id", authenticate, authorize("manager", "admin"), updateTimeRecord
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only managers and administrators can delete time recordings"
  */
 router.delete("/:id", authenticate, authorize("manager", "admin"), deleteTimeRecording);

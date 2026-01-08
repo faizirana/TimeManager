@@ -81,7 +81,6 @@ const refreshLimiter = rateLimit({
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Validation error"
  *               message: "Email and password are required"
  *       401:
  *         description: Invalid credentials
@@ -90,7 +89,6 @@ const refreshLimiter = rateLimit({
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Invalid credentials"
  *               message: "The provided email or password is incorrect"
  *       429:
  *         description: Too many login attempts
@@ -99,7 +97,6 @@ const refreshLimiter = rateLimit({
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Too many requests"
  *               message: "Too many login attempts, please try again after 15 minutes"
  */
 router.post("/login", loginLimiter, loginUser);
@@ -147,7 +144,7 @@ router.post("/refresh", refreshLimiter, refreshToken);
  * /auth/me:
  *   get:
  *     summary: Get the currently authenticated user
- *     description: Returns the full user profile of the currently authenticated user based on the JWT token.
+ *     description: Returns the minimal user profile of the currently authenticated user (id, email, role only).
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -157,40 +154,20 @@ router.post("/refresh", refreshLimiter, refreshToken);
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/User'
- *                 - type: object
- *                   properties:
- *                     manager:
- *                       $ref: '#/components/schemas/User'
- *                       description: Manager details (if id_manager is set)
+ *               $ref: '#/components/schemas/UserProfile'
  *             examples:
  *               manager:
  *                 summary: Manager user (Alice)
  *                 value:
  *                   id: 1
- *                   name: "Alice"
- *                   surname: "Smith"
- *                   mobileNumber: "0987654321"
  *                   email: "alice.manager@example.com"
  *                   role: "manager"
- *                   id_manager: null
  *               employee:
  *                 summary: Employee user (John)
  *                 value:
  *                   id: 2
- *                   name: "John"
- *                   surname: "Doe"
- *                   mobileNumber: "0123456789"
  *                   email: "john.employee@example.com"
  *                   role: "employee"
- *                   id_manager: 1
- *                   manager:
- *                     id: 1
- *                     name: "Alice"
- *                     surname: "Smith"
- *                     email: "alice.manager@example.com"
- *                     role: "manager"
  *       401:
  *         description: Unauthorized - Missing or invalid token
  *         content:
@@ -198,7 +175,6 @@ router.post("/refresh", refreshLimiter, refreshToken);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Unauthorized"
  *               message: "No token provided or token is invalid"
  */
 router.get("/me", authenticate, getCurrentUser);

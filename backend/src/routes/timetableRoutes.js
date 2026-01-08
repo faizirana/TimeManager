@@ -220,7 +220,6 @@ router.get("/:id", authenticate, getTimetableById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only managers and administrators can create timetables"
  */
 router.post("/", authenticate, canCreateTimetable, createTimetable);
@@ -292,7 +291,6 @@ router.post("/", authenticate, canCreateTimetable, createTimetable);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Validation error"
  *               message: "Time must be in HH:MM format"
  *       404:
  *         description: Timetable not found
@@ -301,7 +299,6 @@ router.post("/", authenticate, canCreateTimetable, createTimetable);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Timetable with ID 1 not found"
  *       401:
  *         description: Unauthorized
@@ -316,7 +313,6 @@ router.post("/", authenticate, canCreateTimetable, createTimetable);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only the team manager or administrator can modify this timetable"
  */
 router.put("/:id", authenticate, canModifyTimetable, updateTimetable);
@@ -359,7 +355,6 @@ router.put("/:id", authenticate, canModifyTimetable, updateTimetable);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "Timetable with ID 3 not found"
  *       401:
  *         description: Unauthorized
@@ -374,7 +369,6 @@ router.put("/:id", authenticate, canModifyTimetable, updateTimetable);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only the team manager or administrator can delete this timetable"
  */
 router.delete("/:id", authenticate, canModifyTimetable, deleteTimetable);

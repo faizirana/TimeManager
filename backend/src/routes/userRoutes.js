@@ -113,7 +113,6 @@ router.get("/", authenticate, getUsers);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "User with ID 2 not found"
  *       401:
  *         description: Unauthorized
@@ -247,7 +246,6 @@ router.get("/:id", authenticate, getUserById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only administrators can create users"
  *       409:
  *         description: Conflict - Email already exists
@@ -256,7 +254,6 @@ router.get("/:id", authenticate, getUserById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Conflict"
  *               message: "A user with this email already exists"
  */
 router.post("/", authenticate, authorize("admin"), createUser);
@@ -348,7 +345,6 @@ router.post("/", authenticate, authorize("admin"), createUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "You are not authorized to update this user"
  *       404:
  *         description: User not found
@@ -357,7 +353,6 @@ router.post("/", authenticate, authorize("admin"), createUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "User with ID 2 not found"
  */
 router.put("/:id", authenticate, updateUser);
@@ -400,7 +395,6 @@ router.put("/:id", authenticate, updateUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Forbidden"
  *               message: "Only administrators can delete users"
  *       404:
  *         description: User not found
@@ -409,7 +403,6 @@ router.put("/:id", authenticate, updateUser);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               error: "Not found"
  *               message: "User with ID 10 not found"
  */
 router.delete("/:id", authenticate, authorize("admin"), deleteUser);
