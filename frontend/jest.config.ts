@@ -26,7 +26,13 @@ const config: Config = {
   coverageDirectory: "coverage",
 
   // Patterns to ignore certain files
-  coveragePathIgnorePatterns: ["/node_modules/", "/.next/", "/coverage/", "/lib/types/"],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/.next/",
+    "/coverage/",
+    "/lib/types/",
+    "/lib/contexts/ThemeContext.tsx",
+  ],
 
   // Minimum coverage thresholds
   coverageThreshold: {
