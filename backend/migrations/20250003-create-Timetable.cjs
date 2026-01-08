@@ -1,18 +1,18 @@
 // migrations/xxxx-create-TimeRecording.js
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface, _Sequelize) => {
     await queryInterface.createTable("Timetable", {
       id: {
-        type: Sequelize.INTEGER,
+        type: _Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
       Shift_start: {
-        type: Sequelize.STRING,
+        type: _Sequelize.STRING,
         allowNull: false,
       },
       Shift_end: {
-        type: Sequelize.STRING,
+        type: _Sequelize.STRING,
         allowNull: false,
       },
       // Add other fields here

@@ -9,6 +9,8 @@ module.exports = {
           model: "User",
           key: "id",
         },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       id_team: {
         type: Sequelize.INTEGER,
@@ -17,6 +19,8 @@ module.exports = {
           model: "Team",
           key: "id",
         },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
     });
 
