@@ -35,6 +35,7 @@ describe("Sidebar Component", () => {
     render(<Sidebar items={mockItems} collapsed={false} />);
 
     const items = screen.getAllByTestId("sidebar-item");
+
     expect(items).toHaveLength(2);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Users")).toBeInTheDocument();
@@ -79,16 +80,7 @@ describe("Sidebar Component", () => {
   });
 
   /**
-   * TEST 6: Always renders DarkModeSwitcher
-   */
-  it("should always render DarkModeSwitcher", () => {
-    render(<Sidebar items={mockItems} collapsed={false} />);
-
-    expect(screen.getByTestId("dark-mode-switcher")).toBeInTheDocument();
-  });
-
-  /**
-   * TEST 7: Applies custom className
+   * TEST 6: Applies custom className
    */
   it("should apply custom className", () => {
     const { container } = render(

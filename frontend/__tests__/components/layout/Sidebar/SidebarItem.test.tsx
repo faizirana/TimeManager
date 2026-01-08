@@ -16,6 +16,14 @@ jest.mock("next/link", () => {
   );
 });
 
+// Mock Next.js Image
+jest.mock("next/image", () => {
+  return ({ src, alt, width, height, ...props }: any) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} width={width} height={height} {...props} />
+  );
+});
+
 describe("SidebarItem Component", () => {
   const defaultProps = {
     label: "Dashboard",
@@ -23,19 +31,17 @@ describe("SidebarItem Component", () => {
   };
 
   /**
-   * Basic rendering
+   * TEST 1: Basic rendering
    */
   it("should render with label and icon", () => {
     render(<SidebarItem {...defaultProps} />);
 
     expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
-    // Use data-testid or role lookup for the icon if needed,
-    // here we check for the presence of the SVG.
     expect(document.querySelector("svg")).toBeInTheDocument();
   });
 
   /**
-   * Wrapper logic (Link vs Button)
+   * TEST 2: Wrapper logic (Link vs Button vs Div)
    */
   it("should render as a link when href is provided", () => {
     render(<SidebarItem {...defaultProps} href="/dashboard" />);
@@ -43,41 +49,76 @@ describe("SidebarItem Component", () => {
     expect(link).toHaveAttribute("href", "/dashboard");
   });
 
-  it("should render as a button when href is absent", () => {
-    render(<SidebarItem {...defaultProps} />);
+  it("should render as a button when onClick is provided without href", () => {
+    render(<SidebarItem {...defaultProps} onClick={() => {}} />);
     expect(screen.getByRole("button", { name: /dashboard/i })).toBeInTheDocument();
   });
 
+  it("should render as a div when neither href nor onClick is provided", () => {
+    const { container } = render(<SidebarItem {...defaultProps} />);
+    // On vérifie que le premier élément HTML est bien un DIV
+    expect(container.firstChild?.nodeName).toBe("DIV");
+  });
+
   /**
-   * Variant tests (CVA)
+   * TEST 3: Image vs Icon logic
+   */
+  it("should render an image and ignore icon if image prop is provided", () => {
+    render(<SidebarItem {...defaultProps} image="/profile.png" />);
+
+    expect(document.querySelector("img")).toBeInTheDocument();
+    expect(document.querySelector("img")).toHaveAttribute("src", "/profile.png");
+    expect(document.querySelector("svg")).not.toBeInTheDocument();
+  });
+
+  it("should render image with size 40 when size is 'profile'", () => {
+    render(<SidebarItem {...defaultProps} image="/profile.png" size="profile" />);
+    const img = document.querySelector("img");
+    expect(img).toHaveAttribute("width", "40");
+    expect(img).toHaveAttribute("height", "40");
+  });
+
+  it("should render image with size 24 for default size", () => {
+    render(<SidebarItem {...defaultProps} image="/profile.png" />);
+    const img = document.querySelector("img");
+    expect(img).toHaveAttribute("width", "24");
+    expect(img).toHaveAttribute("height", "24");
+  });
+
+  /**
+   * TEST 4: Variant tests (CVA)
    */
   it.each([
     ["important", "bg-primary"],
     ["secondary", "bg-zinc-100"],
   ])("should apply correct classes for variant %s", (variant, expectedClass) => {
-    render(<SidebarItem {...defaultProps} variant={variant as any} />);
+    // On force onClick pour s'assurer que c'est un bouton et faciliter la sélection
+    render(<SidebarItem {...defaultProps} variant={variant as any} onClick={() => {}} />);
     const item = screen.getByRole("button");
     expect(item).toHaveClass(expectedClass);
   });
 
   it("should apply icon size classes when size is 'icon'", () => {
-    render(<SidebarItem {...defaultProps} size="icon" />);
+    render(<SidebarItem {...defaultProps} size="icon" onClick={() => {}} />);
     const item = screen.getByRole("button");
-    expect(item).toHaveClass("px-3 py-3"); // Checks the class defined in CVA
+    expect(item).toHaveClass("w-fit", "px-3", "py-3");
+  });
+
+  it("should apply profile size classes when size is 'profile'", () => {
+    render(<SidebarItem {...defaultProps} size="profile" />);
+    const item = screen.getByText(/dashboard/i).parentElement;
+    expect(item).toHaveClass("w-full", "px-2", "py-2");
   });
 
   /**
-   * Conditional icon logic (Color)
+   * TEST 5: Conditional icon logic (Color)
    */
   it("should set icon color to white only when variant is important and NOT active", () => {
     const { rerender } = render(
       <SidebarItem {...defaultProps} variant="important" active={false} />,
     );
 
-    // We verify the 'color' prop passed to the icon (Lucide icon)
-    // Note: Lucide renders an SVG, we check the stroke attribute accordingly
     let icon = document.querySelector("svg");
-
     expect(icon).toHaveAttribute("stroke", "white");
 
     // If active, it should revert to default color even when variant is important
@@ -87,7 +128,7 @@ describe("SidebarItem Component", () => {
   });
 
   /**
-   * Disabled state (Logic & UI)
+   * TEST 6: Disabled state (Logic & UI)
    */
   it("should handle disabled state for links", () => {
     render(<SidebarItem {...defaultProps} href="/target" variant="disabled" />);
@@ -111,20 +152,21 @@ describe("SidebarItem Component", () => {
   });
 
   /**
-   * Active state
+   * TEST 7: Active state
    */
   it("should apply active styles and disable pointer events", () => {
-    render(<SidebarItem {...defaultProps} active />);
+    render(<SidebarItem {...defaultProps} active onClick={() => {}} />);
 
     const item = screen.getByRole("button");
     expect(item).toHaveClass("bg-secondary", "pointer-events-none");
   });
 
   /**
-   * Custom className
+   * TEST 8: Custom className
    */
   it("should merge custom className with tailwind-merge", () => {
     render(<SidebarItem {...defaultProps} className="custom-test-class" />);
-    expect(screen.getByRole("button")).toHaveClass("custom-test-class");
+    const item = screen.getByText(/dashboard/i).parentElement;
+    expect(item).toHaveClass("custom-test-class");
   });
 });

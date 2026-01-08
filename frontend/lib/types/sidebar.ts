@@ -14,4 +14,5 @@ export interface SidebarProps {
   items: SidebarItemProps[];
   collapsed?: boolean;
   className?: string;
+  children?: React.ReactNode;
 }

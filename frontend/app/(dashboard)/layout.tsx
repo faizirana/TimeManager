@@ -4,6 +4,9 @@ import React from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import { LayoutDashboard, Clock, User, Users, ChartNoAxesCombined } from "lucide-react";
 import { usePathname } from "next/navigation";
+import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
+import FloatingMenu from "@/components/UI/FloatingMenu";
+import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
@@ -27,9 +30,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return { ...item, active };
   });
 
+  const userMenuItems = [
+    { label: "Voir mon profil", onClick: () => alert("Profile à faire") },
+    { label: "Paramètres", onClick: () => alert("Paramètres à faire") },
+    { label: "Déconnexion", color: "text-red-600", onClick: () => alert("Déconnexion à faire") },
+  ];
+
   return (
     <div className="flex h-screen w-screen">
-      <Sidebar className="min-w-[220px]" items={sidebarItems} />
+      <Sidebar className="min-w-[220px]" items={sidebarItems}>
+        <DarkModeSwitcher />
+        <FloatingMenu
+          menuItems={userMenuItems}
+          buttonContent={
+            <SidebarItem
+              label="Test"
+              image="https://picsum.photos/200"
+              size={"profile"}
+            ></SidebarItem>
+          }
+        />
+      </Sidebar>
       <main className="w-full h-full">{children}</main>
     </div>
   );
