@@ -57,7 +57,7 @@ export default function SidebarItem({
           alt=""
           width={size === "profile" ? 40 : 24}
           height={size === "profile" ? 40 : 24}
-          className="object-cover rounded-lg" // Ensures the image is square and cropped
+          className="object-cover rounded-lg"
           unoptimized
         />
       ) : (
