@@ -24,7 +24,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/UI/Table";
-import { getTeamById } from "@/lib/services/teams/teamsService";
+import { getTeamById } from "@/lib/services/teams/teamService";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { TableSkeleton } from "@/components/UI/TableSkeleton";
 import Toast from "@/components/UI/Toast";

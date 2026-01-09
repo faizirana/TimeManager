@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { getTeams } from "@/lib/services/teams/teamService";
-import { Team } from "@/lib/types/team";
+import { Team } from "@/lib/types/teams";
 
 interface UseDashboardTeamsParams {
   userId?: number;

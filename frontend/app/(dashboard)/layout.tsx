@@ -3,14 +3,15 @@
 import React from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import { LayoutDashboard, Clock, Users, ChartNoAxesCombined } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   const pathname = usePathname() ?? "/";
 
@@ -33,9 +34,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   const userMenuItems = [
-    { label: "Voir mon profil", onClick: () => alert("Profile à faire") },
-    { label: "Paramètres", onClick: () => alert("Paramètres à faire") },
-    { label: "Déconnexion", color: "text-red-600", onClick: () => alert("Déconnexion à faire") },
+    { label: "Voir mon profil", onClick: () => router.push("/profile") },
+    { label: "Déconnexion", color: "text-red-600", onClick: logout },
   ];
 
   return (

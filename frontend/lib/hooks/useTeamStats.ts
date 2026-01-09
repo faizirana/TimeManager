@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from "react";
 import { getTeamStats } from "@/lib/services/teams/teamService";
-import { TeamStatsResponse } from "@/lib/types/team";
+import { TeamStatsResponse } from "@/lib/types/teams";
 
 interface UseTeamStatsParams {
   teamId: number;
