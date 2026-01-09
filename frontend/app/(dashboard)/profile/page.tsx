@@ -10,7 +10,6 @@ import {
 import { UserProfile, UpdateUserData } from "@/lib/types/user";
 import ProfileView from "@/components/profile/ProfileView";
 import ProfileEditForm from "@/components/profile/ProfileEditForm";
-import { useAuth } from "@/lib/hooks/useAuth";
 import { Skeleton } from "@/components/UI/Skeleton";
 
 /**
