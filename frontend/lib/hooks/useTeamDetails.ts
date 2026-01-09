@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { getTeamById } from "@/lib/services/teams/teamsService";
+import { getTeamById } from "@/lib/services/teams/teamService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { formatShift } from "@/lib/utils/teamTransformers";
 

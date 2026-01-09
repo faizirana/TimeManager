@@ -401,3 +401,168 @@ export const deleteTimeRecording = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+/**
+ * Get time recording statistics for employees
+ * Calculates work hours, attendance rate, and other metrics
+ */
+export const getTimeRecordingStats = async (req, res) => {
+  try {
+    const { id_user, start_date, end_date } = req.query;
+    let targetUserId = id_user ? parseInt(id_user) : null;
+
+    // Authorization: employees can only see their own stats
+    if (req.user.role === "employee") {
+      targetUserId = req.user.id;
+    } else if (req.user.role === "manager" && targetUserId) {
+      // Check if user is in manager's team
+      const teamMember = await TeamMember.findOne({
+        include: [
+          {
+            model: Team,
+            as: "team",
+            where: { id_manager: req.user.id },
+          },
+        ],
+        where: { id_user: targetUserId },
+      });
+
+      if (!teamMember && targetUserId !== req.user.id) {
+        return res.status(403).json({
+          message: "Forbidden - Cannot access statistics for users outside your team",
+        });
+      }
+    }
+
+    // If no specific user requested, default to current user for non-admins
+    if (!targetUserId && req.user.role !== "admin") {
+      targetUserId = req.user.id;
+    }
+
+    // Build where clause
+    const whereClause = {};
+    if (targetUserId) {
+      whereClause.id_user = targetUserId;
+    } else if (req.user.role === "manager") {
+      // Get all team members for this manager
+      const teamMembers = await TeamMember.findAll({
+        include: [
+          {
+            model: Team,
+            as: "team",
+            where: { id_manager: req.user.id },
+          },
+        ],
+      });
+      const memberIds = teamMembers.map((tm) => tm.id_user);
+      memberIds.push(req.user.id);
+      whereClause.id_user = memberIds;
+    }
+
+    // Apply date filters
+    if (start_date || end_date) {
+      whereClause.timestamp = {};
+      if (start_date) {
+        whereClause.timestamp[db.Sequelize.Op.gte] = new Date(start_date);
+      }
+      if (end_date) {
+        whereClause.timestamp[db.Sequelize.Op.lte] = new Date(end_date);
+      }
+    }
+
+    // Fetch all recordings
+    const recordings = await TimeRecording.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "surname", "email"],
+        },
+      ],
+      order: [
+        ["id_user", "ASC"],
+        ["timestamp", "ASC"],
+      ],
+    });
+
+    // Group by user and calculate stats
+    const userStats = {};
+
+    recordings.forEach((record) => {
+      const userId = record.id_user;
+
+      if (!userStats[userId]) {
+        userStats[userId] = {
+          user: {
+            id: record.user.id,
+            name: record.user.name,
+            surname: record.user.surname,
+            email: record.user.email,
+          },
+          totalHours: 0,
+          totalDays: 0,
+          arrivals: [],
+          departures: [],
+          workSessions: [],
+        };
+      }
+
+      if (record.type === "Arrival") {
+        userStats[userId].arrivals.push(record.timestamp);
+      } else {
+        userStats[userId].departures.push(record.timestamp);
+      }
+    });
+
+    // Calculate work hours for each user
+    Object.keys(userStats).forEach((userId) => {
+      const stats = userStats[userId];
+      const { arrivals, departures } = stats;
+
+      // Match arrivals with departures
+      const workDays = new Set();
+      for (let i = 0; i < Math.min(arrivals.length, departures.length); i++) {
+        const arrival = new Date(arrivals[i]);
+        const departure = new Date(departures[i]);
+
+        if (departure > arrival) {
+          const hoursWorked = (departure - arrival) / (1000 * 60 * 60);
+          stats.totalHours += hoursWorked;
+
+          // Track unique work days
+          const dayKey = arrival.toISOString().split("T")[0];
+          workDays.add(dayKey);
+
+          stats.workSessions.push({
+            date: dayKey,
+            arrival: arrival.toISOString(),
+            departure: departure.toISOString(),
+            hours: hoursWorked,
+          });
+        }
+      }
+
+      stats.totalDays = workDays.size;
+      stats.averageHoursPerDay = stats.totalDays > 0 ? stats.totalHours / stats.totalDays : 0;
+
+      // Clean up temporary arrays
+      delete stats.arrivals;
+      delete stats.departures;
+    });
+
+    // Convert to array
+    const statsArray = Object.values(userStats);
+
+    return res.status(200).json({
+      statistics: statsArray,
+      period: {
+        start: start_date || null,
+        end: end_date || null,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching time recording statistics:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

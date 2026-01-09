@@ -4,10 +4,10 @@
 
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useTeamMembers } from "@/lib/hooks/useTeamMembers";
-import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamsService";
+import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamService";
 
 // Mock services
-jest.mock("@/lib/services/teams/teamsService");
+jest.mock("@/lib/services/teams/teamService");
 
 const mockGetTeamById = getTeamById as jest.MockedFunction<typeof getTeamById>;
 const mockAddTeamMember = addTeamMember as jest.MockedFunction<typeof addTeamMember>;

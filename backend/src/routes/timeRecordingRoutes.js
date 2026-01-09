@@ -5,6 +5,7 @@ import {
   createTimeRecording,
   updateTimeRecording,
   deleteTimeRecording,
+  getTimeRecordingStats,
 } from "../controllers/timeRecordingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/rolesMiddleware.js";
@@ -160,6 +161,141 @@ const router = express.Router();
  *               message: "Employees can only view their own time recordings"
  */
 router.get("/", authenticate, authorize("admin", "manager", "employee"), getTimeRecordings);
+
+/**
+ * @swagger
+ * /timerecordings/stats:
+ *   get:
+ *     summary: Get time recording statistics for employees
+ *     description: |
+ *       Returns statistics including total hours worked, work days, and average hours per day.
+ *
+ *       **Authorization:**
+ *       - **Employees**: Can only view their own statistics
+ *       - **Managers**: Can view their own stats and their team members' stats
+ *       - **Admins**: Can view any user's statistics or all statistics
+ *
+ *       **Example queries:**
+ *       - `/timerecordings/stats?id_user=2` - John's stats
+ *       - `/timerecordings/stats?start_date=2026-01-01T00:00:00.000Z&end_date=2026-01-07T23:59:59.999Z` - Stats for a specific period
+ *       - `/timerecordings/stats` - All users stats (admin/manager) or own stats (employee)
+ *     tags: [TimeRecordings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id_user
+ *         schema:
+ *           type: integer
+ *         description: Filter statistics by user ID
+ *         example: 2
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Start date for statistics period (ISO 8601 format)
+ *         example: "2026-01-01T00:00:00.000Z"
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: End date for statistics period (ISO 8601 format)
+ *         example: "2026-01-07T23:59:59.999Z"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statistics:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           name:
+ *                             type: string
+ *                           surname:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                       totalHours:
+ *                         type: number
+ *                         description: Total hours worked in the period
+ *                       totalDays:
+ *                         type: integer
+ *                         description: Number of unique work days
+ *                       averageHoursPerDay:
+ *                         type: number
+ *                         description: Average hours worked per day
+ *                       workSessions:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             date:
+ *                               type: string
+ *                               format: date
+ *                             arrival:
+ *                               type: string
+ *                               format: date-time
+ *                             departure:
+ *                               type: string
+ *                               format: date-time
+ *                             hours:
+ *                               type: number
+ *                 period:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *                     end:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *             example:
+ *               statistics:
+ *                 - user:
+ *                     id: 2
+ *                     name: "John"
+ *                     surname: "Doe"
+ *                     email: "john.employee@example.com"
+ *                   totalHours: 40
+ *                   totalDays: 5
+ *                   averageHoursPerDay: 8
+ *                   workSessions:
+ *                     - date: "2026-01-06"
+ *                       arrival: "2026-01-06T09:00:00.000Z"
+ *                       departure: "2026-01-06T17:00:00.000Z"
+ *                       hours: 8
+ *                     - date: "2026-01-07"
+ *                       arrival: "2026-01-07T09:00:00.000Z"
+ *                       departure: "2026-01-07T17:00:00.000Z"
+ *                       hours: 8
+ *               period:
+ *                 start: "2026-01-01T00:00:00.000Z"
+ *                 end: "2026-01-07T23:59:59.999Z"
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *       403:
+ *         description: Forbidden - Cannot access statistics for users outside your team
+ */
+router.get(
+  "/stats",
+  authenticate,
+  authorize("admin", "manager", "employee"),
+  getTimeRecordingStats,
+);
 
 /**
  * @swagger
