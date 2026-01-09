@@ -6,7 +6,7 @@
  */
 
 import { apiClient } from "@/lib/utils/apiClient";
-import { User } from "@/lib/types/teams";
+import { User } from "@/lib/types/team";
 
 /**
  * Fetch all users

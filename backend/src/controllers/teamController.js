@@ -5,9 +5,15 @@ const { Team, User, TeamMember, sequelize } = db;
 // GET /teams
 export const getTeams = async (req, res) => {
   try {
-    const { id_user } = req.query;
+    const { id_user, id_manager } = req.query;
     const whereClause = {};
 
+    // Filter by manager
+    if (id_manager) {
+      whereClause.id_manager = id_manager;
+    }
+
+    // Filter by member (user in team)
     if (id_user) {
       const memberships = await TeamMember.findAll({
         where: { id_user },
@@ -186,29 +192,186 @@ export const removeUserFromTeam = async (req, res) => {
   }
 };
 
-// POST /teams/validate/conflicts
-export const validateTeamAssignments = async (req, res) => {
+/**
+ * Get statistics for a specific team
+ * Returns aggregated stats for all team members
+ */
+export const getTeamStats = async (req, res) => {
   try {
-    const teams = await Team.findAll({ include: [{ model: User, as: "members" }] });
+    const teamId = parseInt(req.params.id);
+    const { start_date, end_date } = req.query;
 
-    // Simple rule: a user cannot belong to 2 teams managed by the same manager
-    const userToManagers = {};
+    // Get team with members
+    const team = await Team.findByPk(teamId, {
+      include: [
+        {
+          model: User,
+          as: "manager",
+          attributes: ["id", "name", "surname", "email"],
+        },
+        {
+          model: User,
+          as: "members",
+          attributes: ["id", "name", "surname", "email"],
+          through: { attributes: [] },
+        },
+      ],
+    });
 
-    for (const team of teams) {
-      for (const user of team.members) {
-        if (!userToManagers[user.id]) userToManagers[user.id] = new Set();
-        if (userToManagers[user.id].has(team.id_manager)) {
-          return res.status(400).json({
-            message: `User ${user.id} is in conflicting teams managed by manager ${team.id_manager}`,
-          });
-        }
-        userToManagers[user.id].add(team.id_manager);
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Authorization check
+    if (req.user.role === "manager" && team.id_manager !== req.user.id) {
+      return res.status(403).json({
+        message: "Forbidden - Cannot access statistics for other managers' teams",
+      });
+    }
+
+    // Get member IDs
+    const memberIds = team.members.map((m) => m.id);
+
+    if (memberIds.length === 0) {
+      return res.status(200).json({
+        team: {
+          id: team.id,
+          name: team.name,
+          manager: team.manager,
+        },
+        statistics: [],
+        aggregated: {
+          totalMembers: 0,
+          totalHours: 0,
+          averageHoursPerMember: 0,
+        },
+        period: {
+          start: start_date || null,
+          end: end_date || null,
+        },
+      });
+    }
+
+    // Build where clause for time recordings
+    const whereClause = {
+      id_user: memberIds,
+    };
+
+    if (start_date || end_date) {
+      whereClause.timestamp = {};
+      if (start_date) {
+        whereClause.timestamp[db.Sequelize.Op.gte] = new Date(start_date);
+      }
+      if (end_date) {
+        whereClause.timestamp[db.Sequelize.Op.lte] = new Date(end_date);
       }
     }
 
-    return res.status(200).json({ message: "All team assignments are valid" });
+    // Fetch all recordings for team members
+    const recordings = await db.TimeRecording.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "surname", "email"],
+        },
+      ],
+      order: [
+        ["id_user", "ASC"],
+        ["timestamp", "ASC"],
+      ],
+    });
+
+    // Calculate stats per user
+    const userStats = {};
+    recordings.forEach((record) => {
+      const userId = record.id_user;
+
+      if (!userStats[userId]) {
+        userStats[userId] = {
+          user: {
+            id: record.user.id,
+            name: record.user.name,
+            surname: record.user.surname,
+            email: record.user.email,
+          },
+          totalHours: 0,
+          totalDays: 0,
+          arrivals: [],
+          departures: [],
+        };
+      }
+
+      if (record.type === "Arrival") {
+        userStats[userId].arrivals.push(record.timestamp);
+      } else {
+        userStats[userId].departures.push(record.timestamp);
+      }
+    });
+
+    // Calculate work hours
+    let teamTotalHours = 0;
+    let teamTotalDays = 0;
+    let teamTotalAveragePerDay = 0;
+
+    Object.keys(userStats).forEach((userId) => {
+      const stats = userStats[userId];
+      const { arrivals, departures } = stats;
+
+      const workDays = new Set();
+      for (let i = 0; i < Math.min(arrivals.length, departures.length); i++) {
+        const arrival = new Date(arrivals[i]);
+        const departure = new Date(departures[i]);
+
+        if (departure > arrival) {
+          const hoursWorked = (departure - arrival) / (1000 * 60 * 60);
+          stats.totalHours += hoursWorked;
+
+          const dayKey = arrival.toISOString().split("T")[0];
+          workDays.add(dayKey);
+        }
+      }
+
+      stats.totalDays = workDays.size;
+      stats.averageHoursPerDay = stats.totalDays > 0 ? stats.totalHours / stats.totalDays : 0;
+
+      // Accumulate for team aggregations
+      teamTotalHours += stats.totalHours;
+      teamTotalDays += stats.totalDays;
+      teamTotalAveragePerDay += stats.averageHoursPerDay;
+
+      delete stats.arrivals;
+      delete stats.departures;
+    });
+
+    const statsArray = Object.values(userStats);
+    const memberCount = memberIds.length;
+
+    // Calculate team averages according to new formulas:
+    // - totalHours: sum of all member hours
+    // - averageDaysWorked: (1/memberCount) * sum of days worked by each member
+    // - averageHoursPerDay: (1/memberCount) * sum of average hours per day of each member
+    return res.status(200).json({
+      team: {
+        id: team.id,
+        name: team.name,
+        manager: team.manager,
+      },
+      statistics: statsArray,
+      aggregated: {
+        totalMembers: memberCount,
+        totalHours: teamTotalHours,
+        averageDaysWorked: memberCount > 0 ? teamTotalDays / memberCount : 0,
+        averageHoursPerDay: memberCount > 0 ? teamTotalAveragePerDay / memberCount : 0,
+      },
+      period: {
+        start: start_date || null,
+        end: end_date || null,
+      },
+    });
   } catch (error) {
-    console.error("Error validating team assignments:", error);
+    console.error("Error fetching team statistics:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

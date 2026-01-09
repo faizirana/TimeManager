@@ -10,11 +10,11 @@ import {
   updateTeam,
   addTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamsService";
+} from "@/lib/services/teams/teamService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 
 // Mock services
-jest.mock("@/lib/services/teams/teamsService");
+jest.mock("@/lib/services/teams/teamService");
 jest.mock("@/lib/services/timetable/timetableService");
 
 const mockGetTeams = getTeams as jest.MockedFunction<typeof getTeams>;

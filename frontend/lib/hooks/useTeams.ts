@@ -10,7 +10,7 @@ import {
   updateTeam,
   addTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamsService";
+} from "@/lib/services/teams/teamService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { formatShift } from "@/lib/utils/teamTransformers";
 import { TeamDisplay } from "@/lib/types/teams";
