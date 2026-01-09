@@ -8,7 +8,7 @@
  * - Tracking of current sort state (column and direction)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 /**
  * Custom hook for managing table sorting logic
@@ -33,14 +33,19 @@ import { useState, useEffect } from "react";
  * ```
  */
 export function useTableSort<T>(initialData: T[]) {
-  const [data, setData] = useState<T[]>(initialData);
+  const [sortedData, setSortedData] = useState<T[]>([]);
   const [sortColumn, setSortColumn] = useState<keyof T | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
-  // Update data when initialData changes
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
+  // Use memoized data that updates when initialData content changes
+  const data = useMemo(() => {
+    // If we have sorting applied, return the sorted data
+    if (sortColumn !== null) {
+      return sortedData;
+    }
+    // Otherwise return the initialData
+    return initialData;
+  }, [initialData, sortedData, sortColumn]);
 
   /**
    * Handles sorting of table data by a specific column
@@ -61,7 +66,7 @@ export function useTableSort<T>(initialData: T[]) {
       direction = "desc";
     }
 
-    const sorted = [...data].sort((a, b) => {
+    const sorted = [...initialData].sort((a, b) => {
       // If a custom comparison function is provided
       if (customCompare) {
         return direction === "asc" ? customCompare(a, b) : customCompare(b, a);
@@ -86,7 +91,7 @@ export function useTableSort<T>(initialData: T[]) {
     });
 
     // Update state with sorted data and sort metadata
-    setData(sorted);
+    setSortedData(sorted);
     setSortColumn(column);
     setSortDirection(direction);
   };

@@ -28,6 +28,7 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
           placeholder=" "
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="text-gray-900"
           required
         />
         <Label variant="secondary" htmlFor="floating_email">
@@ -44,6 +45,7 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
           placeholder=" "
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="text-gray-900"
           required
         />
         <Label variant="secondary" htmlFor="floating_password">

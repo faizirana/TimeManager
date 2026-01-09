@@ -98,6 +98,7 @@ describe("AuthContext", () => {
 
       expect(result.current.accessToken).toBe("stored-token");
       expect(result.current.user).toEqual({
+        id: "1",
         email: "test@example.com",
         name: "Test",
         surname: "User",
@@ -154,6 +155,7 @@ describe("AuthContext", () => {
 
       expect(result.current.accessToken).toBe("new-refreshed-token");
       expect(result.current.user).toEqual({
+        id: "1",
         email: "test@example.com",
         name: "Test",
         surname: "User",
@@ -235,10 +237,18 @@ describe("AuthContext", () => {
       });
 
       expect(result.current.accessToken).toBe("new-token");
-      expect(result.current.user).toEqual(userData);
+      expect(result.current.user).toEqual({
+        id: "1",
+        email: "test@example.com",
+        name: "Test",
+        surname: "User",
+      });
       expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
         "auth_session",
-        JSON.stringify({ token: "new-token", user: userData }),
+        JSON.stringify({
+          token: "new-token",
+          userStorage: { email: "test@example.com", name: "Test", surname: "User" },
+        }),
       );
     });
 
@@ -475,7 +485,10 @@ describe("AuthContext", () => {
       await waitFor(() => {
         expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
           "auth_session",
-          JSON.stringify({ token: "new-token", user: userData }),
+          JSON.stringify({
+            token: "new-token",
+            userStorage: { email: "test@example.com", name: "Test", surname: "User" },
+          }),
         );
       });
     });

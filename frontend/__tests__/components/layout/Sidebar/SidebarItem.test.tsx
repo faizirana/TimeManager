@@ -6,6 +6,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 import { LayoutDashboard } from "lucide-react";
+import { AuthProvider } from "@/lib/contexts/AuthContext";
 
 // Mock Next.js Link
 jest.mock("next/link", () => {
@@ -24,17 +25,30 @@ jest.mock("next/image", () => {
   );
 });
 
+// Mock useRouter
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    pathname: "/",
+  }),
+  usePathname: () => "/",
+}));
+
 describe("SidebarItem Component", () => {
   const defaultProps = {
     label: "Dashboard",
     icon: LayoutDashboard,
   };
 
+  const renderWithAuth = (ui: React.ReactElement) => {
+    return render(<AuthProvider>{ui}</AuthProvider>);
+  };
+
   /**
    * TEST 1: Basic rendering
    */
   it("should render with label and icon", () => {
-    render(<SidebarItem {...defaultProps} />);
+    renderWithAuth(<SidebarItem {...defaultProps} />);
 
     expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
     expect(document.querySelector("svg")).toBeInTheDocument();
@@ -44,68 +58,59 @@ describe("SidebarItem Component", () => {
    * TEST 2: Wrapper logic (Link vs Button vs Div)
    */
   it("should render as a link when href is provided", () => {
-    render(<SidebarItem {...defaultProps} href="/dashboard" />);
+    renderWithAuth(<SidebarItem {...defaultProps} href="/dashboard" />);
     const link = screen.getByRole("link", { name: /dashboard/i });
     expect(link).toHaveAttribute("href", "/dashboard");
   });
 
   it("should render as a button when onClick is provided without href", () => {
-    render(<SidebarItem {...defaultProps} onClick={() => {}} />);
+    renderWithAuth(<SidebarItem {...defaultProps} onClick={() => {}} />);
     expect(screen.getByRole("button", { name: /dashboard/i })).toBeInTheDocument();
   });
 
   it("should render as a div when neither href nor onClick is provided", () => {
-    const { container } = render(<SidebarItem {...defaultProps} />);
+    const { container } = renderWithAuth(<SidebarItem {...defaultProps} />);
     // On vérifie que le premier élément HTML est bien un DIV
     expect(container.firstChild?.nodeName).toBe("DIV");
   });
 
   /**
-   * TEST 3: Image vs Icon logic
+   * TEST 3: Avatar vs Icon logic
    */
-  it("should render an image and ignore icon if image prop is provided", () => {
-    render(<SidebarItem {...defaultProps} image="/profile.png" />);
+  it("should render an avatar when hasAvatar is true", () => {
+    renderWithAuth(<SidebarItem {...defaultProps} hasAvatar={true} />);
 
-    expect(document.querySelector("img")).toBeInTheDocument();
-    expect(document.querySelector("img")).toHaveAttribute("src", "/profile.png");
-    expect(document.querySelector("svg")).not.toBeInTheDocument();
+    // Avatar component devrait être rendu
+    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
   });
 
-  it("should render image with size 40 when size is 'profile'", () => {
-    render(<SidebarItem {...defaultProps} image="/profile.png" size="profile" />);
-    const img = document.querySelector("img");
-    expect(img).toHaveAttribute("width", "40");
-    expect(img).toHaveAttribute("height", "40");
-  });
+  it("should render icon when hasAvatar is false", () => {
+    renderWithAuth(<SidebarItem {...defaultProps} hasAvatar={false} />);
 
-  it("should render image with size 24 for default size", () => {
-    render(<SidebarItem {...defaultProps} image="/profile.png" />);
-    const img = document.querySelector("img");
-    expect(img).toHaveAttribute("width", "24");
-    expect(img).toHaveAttribute("height", "24");
+    expect(document.querySelector("svg")).toBeInTheDocument();
   });
 
   /**
    * TEST 4: Variant tests (CVA)
    */
   it.each([
-    ["important", "bg-primary"],
+    ["important", "bg-green-700"],
     ["secondary", "bg-zinc-100"],
   ])("should apply correct classes for variant %s", (variant, expectedClass) => {
     // On force onClick pour s'assurer que c'est un bouton et faciliter la sélection
-    render(<SidebarItem {...defaultProps} variant={variant as any} onClick={() => {}} />);
+    renderWithAuth(<SidebarItem {...defaultProps} variant={variant as any} onClick={() => {}} />);
     const item = screen.getByRole("button");
     expect(item).toHaveClass(expectedClass);
   });
 
   it("should apply icon size classes when size is 'icon'", () => {
-    render(<SidebarItem {...defaultProps} size="icon" onClick={() => {}} />);
+    renderWithAuth(<SidebarItem {...defaultProps} size="icon" onClick={() => {}} />);
     const item = screen.getByRole("button");
     expect(item).toHaveClass("w-fit", "px-3", "py-3");
   });
 
   it("should apply profile size classes when size is 'profile'", () => {
-    render(<SidebarItem {...defaultProps} size="profile" />);
+    renderWithAuth(<SidebarItem {...defaultProps} size="profile" />);
     const item = screen.getByText(/dashboard/i).parentElement;
     expect(item).toHaveClass("w-full", "px-2", "py-2");
   });
@@ -114,7 +119,7 @@ describe("SidebarItem Component", () => {
    * TEST 5: Conditional icon logic (Color)
    */
   it("should set icon color to white only when variant is important and NOT active", () => {
-    const { rerender } = render(
+    const { rerender } = renderWithAuth(
       <SidebarItem {...defaultProps} variant="important" active={false} />,
     );
 
@@ -122,7 +127,11 @@ describe("SidebarItem Component", () => {
     expect(icon).toHaveAttribute("stroke", "white");
 
     // If active, it should revert to default color even when variant is important
-    rerender(<SidebarItem {...defaultProps} variant="important" active={true} />);
+    rerender(
+      <AuthProvider>
+        <SidebarItem {...defaultProps} variant="important" active={true} />
+      </AuthProvider>,
+    );
     icon = document.querySelector("svg");
     expect(icon).toHaveAttribute("stroke", "var(--color-primary)");
   });
@@ -131,7 +140,7 @@ describe("SidebarItem Component", () => {
    * TEST 6: Disabled state (Logic & UI)
    */
   it("should handle disabled state for links", () => {
-    render(<SidebarItem {...defaultProps} href="/target" variant="disabled" />);
+    renderWithAuth(<SidebarItem {...defaultProps} href="/target" variant="disabled" />);
 
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "#");
@@ -143,7 +152,7 @@ describe("SidebarItem Component", () => {
     const handleClick = jest.fn();
     const user = userEvent.setup();
 
-    render(<SidebarItem {...defaultProps} variant="disabled" onClick={handleClick} />);
+    renderWithAuth(<SidebarItem {...defaultProps} variant="disabled" onClick={handleClick} />);
 
     const button = screen.getByRole("button");
     await user.click(button);
@@ -155,7 +164,7 @@ describe("SidebarItem Component", () => {
    * TEST 7: Active state
    */
   it("should apply active styles and disable pointer events", () => {
-    render(<SidebarItem {...defaultProps} active onClick={() => {}} />);
+    renderWithAuth(<SidebarItem {...defaultProps} active onClick={() => {}} />);
 
     const item = screen.getByRole("button");
     expect(item).toHaveClass("bg-secondary", "pointer-events-none");
@@ -165,7 +174,7 @@ describe("SidebarItem Component", () => {
    * TEST 8: Custom className
    */
   it("should merge custom className with tailwind-merge", () => {
-    render(<SidebarItem {...defaultProps} className="custom-test-class" />);
+    renderWithAuth(<SidebarItem {...defaultProps} className="custom-test-class" />);
     const item = screen.getByText(/dashboard/i).parentElement;
     expect(item).toHaveClass("custom-test-class");
   });

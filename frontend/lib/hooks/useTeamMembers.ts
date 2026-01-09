@@ -44,7 +44,7 @@ export function useTeamMembers(
       const transformedMembers = transformMembers(teamData.members, managerId, teamShift);
       setMembers(transformedMembers);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load team members");
+      setError(err instanceof Error ? err.message : "Équipe introuvable");
     } finally {
       setLoading(false);
     }
