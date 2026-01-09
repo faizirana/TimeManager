@@ -28,6 +28,7 @@ COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
 # Copy application source
 COPY frontend ./frontend
 COPY package.json package-lock.json ./
+COPY eslint.config.mjs ./
 
 # Set environment for build
 ENV NEXT_TELEMETRY_DISABLED=1
