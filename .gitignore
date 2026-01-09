@@ -13,8 +13,6 @@
 .env.dev
 .env.prod
 *.local
-# Allow committing an example env if present
-!.env.example
 
 # =========================
 # NODE Projects
