@@ -98,9 +98,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    working_dir: /app/backend
     command: >
       sh -c "
-      cd backend &&
       npx sequelize-cli db:migrate &&
       node server.js
       "
