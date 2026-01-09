@@ -35,6 +35,7 @@ interface User {
   email: string;
   name: string;
   surname: string;
+  role: "manager" | "employee" | "admin";
 }
 
 /**
@@ -110,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: userData.email,
         name: userData.name,
         surname: userData.surname,
+        role: userData.role,
       };
 
       setUser(data);
@@ -188,6 +190,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [accessToken, user]);
 
   /**
+   * Logout function - clears tokens and user state
+   * Calls backend logout endpoint to invalidate refresh token
+   */
+  const logout = useCallback(async () => {
+    try {
+      // Call backend logout to invalidate refresh token
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear all auth state
+      setAccessToken(null);
+      setUser(null);
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  }, []);
+
+  /**
    * Refresh access token using the refresh token stored in httpOnly cookie
    * Called automatically by apiClient when receiving 401 responses
    * @returns New access token or null if refresh failed
@@ -216,19 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await logout();
       return null;
     }
-  }, []);
-
-  /**
-   * Configure API client with token getter and refresh logic
-   * This enables automatic Bearer token injection and refresh handling
-   */
-  useEffect(() => {
-    apiClient.setTokenGetter(() => accessToken);
-    apiClient.setRefreshTokenFunction(refreshAccessToken);
-    apiClient.setUnauthorizedHandler(() => {
-      logout();
-    });
-  }, [accessToken, refreshAccessToken]);
+  }, [logout]);
 
   /**
    * Login function - authenticates user and stores tokens
@@ -278,25 +289,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   /**
-   * Logout function - clears tokens and user state
-   * Calls backend logout endpoint to invalidate refresh token
+   * Configure API client with token getter and refresh logic
+   * This enables automatic Bearer token injection and refresh handling
    */
-  const logout = useCallback(async () => {
-    try {
-      // Call backend logout to invalidate refresh token
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Clear all auth state
-      setAccessToken(null);
-      setUser(null);
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    }
-  }, []);
+  useEffect(() => {
+    apiClient.setTokenGetter(() => accessToken);
+    apiClient.setRefreshTokenFunction(refreshAccessToken);
+    apiClient.setUnauthorizedHandler(() => {
+      logout();
+    });
+  }, [accessToken, refreshAccessToken, logout]);
 
   const value = {
     user,

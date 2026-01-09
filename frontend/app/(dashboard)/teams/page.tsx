@@ -31,6 +31,7 @@ import Toast from "@/components/UI/Toast";
 import { AddTeamModal } from "@/components/teams/AddTeamModal";
 import { EditTeamModal } from "@/components/teams/EditTeamModal";
 import { Team } from "@/lib/types/teams";
+import { canManageTeams } from "@/lib/utils/permissions";
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -112,13 +113,15 @@ export default function TeamsPage() {
       <div className="flex items-center gap-4 mb-8">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">Teams</h1>
         <div className="flex-1"></div>
-        <Button
-          variant="primary"
-          icon={<Plus size={18} strokeWidth={3} />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Nouvelle équipe
-        </Button>
+        {canManageTeams(user?.role) && (
+          <Button
+            variant="primary"
+            icon={<Plus size={18} strokeWidth={3} />}
+            onClick={() => setIsModalOpen(true)}
+          >
+            Nouvelle équipe
+          </Button>
+        )}
       </div>
 
       {/* Error Toast */}
@@ -186,7 +189,7 @@ export default function TeamsPage() {
                 >
                   Members
                 </TableHead>
-                <TableHead className="w-24">Actions</TableHead>
+                {canManageTeams(user?.role) && <TableHead className="w-24">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -199,15 +202,17 @@ export default function TeamsPage() {
                   </TableCell>
                   <TableCell className="dark:text-gray-300">{team.shift}</TableCell>
                   <TableCell className="dark:text-gray-300">{team.members}</TableCell>
-                  <TableCell>
-                    <button
-                      onClick={(e) => handleEditTeam(team.id, e)}
-                      className="p-2 rounded-md text-[var(--color-primary)] hover:text-[var(--color-primary-soft)] hover:bg-[var(--color-primary)]/10 dark:hover:bg-[var(--color-primary)]/20 transition-colors"
-                      aria-label="Modifier l'équipe"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                  </TableCell>
+                  {canManageTeams(user?.role) && (
+                    <TableCell>
+                      <button
+                        onClick={(e) => handleEditTeam(team.id, e)}
+                        className="p-2 rounded-md text-[var(--color-primary)] hover:text-[var(--color-primary-soft)] hover:bg-[var(--color-primary)]/10 dark:hover:bg-[var(--color-primary)]/20 transition-colors"
+                        aria-label="Modifier l'équipe"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -75,7 +75,7 @@ describe("AuthContext", () => {
     it("should restore session from sessionStorage", async () => {
       const storedSession = {
         token: "stored-token",
-        user: { email: "test@example.com", name: "Test", surname: "User" },
+        user: { email: "test@example.com", name: "Test", surname: "User", role: "employee" },
       };
       mockSessionStorage["auth_session"] = JSON.stringify(storedSession);
 
@@ -87,7 +87,13 @@ describe("AuthContext", () => {
         } as Response)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "1", email: "test@example.com", name: "Test", surname: "User" }), // /api/users/:id response
+          json: async () => ({
+            id: "1",
+            email: "test@example.com",
+            name: "Test",
+            surname: "User",
+            role: "employee",
+          }), // /api/users/:id response
         } as Response);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -102,6 +108,7 @@ describe("AuthContext", () => {
         email: "test@example.com",
         name: "Test",
         surname: "User",
+        role: "employee",
       });
     });
 
@@ -144,7 +151,13 @@ describe("AuthContext", () => {
         } as Response)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "1", email: "test@example.com", name: "Test", surname: "User" }), // /api/users/:id
+          json: async () => ({
+            id: "1",
+            email: "test@example.com",
+            name: "Test",
+            surname: "User",
+            role: "manager",
+          }), // /api/users/:id
         } as Response);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -159,13 +172,14 @@ describe("AuthContext", () => {
         email: "test@example.com",
         name: "Test",
         surname: "User",
+        role: "manager",
       });
     });
 
     it("should clear session when both token and refresh fail", async () => {
       const storedSession = {
         token: "expired-token",
-        user: { id: "1", email: "test@example.com", name: "Test", surname: "User" },
+        user: { id: "1", email: "test@example.com", name: "Test", surname: "User", role: "admin" },
       };
       mockSessionStorage["auth_session"] = JSON.stringify(storedSession);
 
@@ -195,7 +209,12 @@ describe("AuthContext", () => {
   describe("Login", () => {
     it("should login successfully and fetch user data", async () => {
       const loginResponse = { accessToken: "new-token" };
-      const userData = { email: "test@example.com", name: "Test", surname: "User" };
+      const userData = {
+        email: "test@example.com",
+        name: "Test",
+        surname: "User",
+        role: "employee",
+      };
 
       mockFetch
         .mockResolvedValueOnce({
@@ -242,6 +261,7 @@ describe("AuthContext", () => {
         email: "test@example.com",
         name: "Test",
         surname: "User",
+        role: "employee",
       });
       expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
         "auth_session",
@@ -346,7 +366,7 @@ describe("AuthContext", () => {
     it("should clear session even if logout API fails", async () => {
       const storedSession = {
         token: "stored-token",
-        user: { email: "test@example.com", name: "Test", surname: "User" },
+        user: { email: "test@example.com", name: "Test", surname: "User", role: "admin" },
       };
       mockSessionStorage["auth_session"] = JSON.stringify(storedSession);
 
@@ -358,7 +378,13 @@ describe("AuthContext", () => {
         } as Response)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ id: "1", email: "test@example.com", name: "Test", surname: "User" }), // /api/users/:id
+          json: async () => ({
+            id: "1",
+            email: "test@example.com",
+            name: "Test",
+            surname: "User",
+            role: "admin",
+          }), // /api/users/:id
         } as Response)
         .mockRejectedValueOnce(new Error("Network error"));
 
@@ -408,7 +434,7 @@ describe("AuthContext", () => {
     it("should logout when refresh fails", async () => {
       const storedSession = {
         token: "stored-token",
-        user: { email: "test@example.com", name: "Test", surname: "User" },
+        user: { email: "test@example.com", name: "Test", surname: "User", role: "employee" },
       };
       mockSessionStorage["auth_session"] = JSON.stringify(storedSession);
 
@@ -496,7 +522,7 @@ describe("AuthContext", () => {
     it("should remove session from sessionStorage when logged out", async () => {
       const storedSession = {
         token: "stored-token",
-        user: { email: "test@example.com", name: "Test", surname: "User" },
+        user: { email: "test@example.com", name: "Test", surname: "User", role: "employee" },
       };
       mockSessionStorage["auth_session"] = JSON.stringify(storedSession);
 

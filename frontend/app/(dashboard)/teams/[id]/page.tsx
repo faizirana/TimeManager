@@ -37,6 +37,7 @@ import { DeleteMemberModal } from "@/components/teams/DeleteMemberModal";
 import { AddMembersModal } from "@/components/teams/AddMembersModal";
 import { Member } from "@/lib/types/teams";
 import { canRemoveMember, getMemberFullName } from "@/lib/utils/teamTransformers";
+import { canManageTeams } from "@/lib/utils/permissions";
 
 // Mapping of situation types to their icons
 const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
@@ -154,13 +155,15 @@ export default function TeamMembersPage() {
           {teamName || "Loading..."}
         </h1>
         <div className="flex-1"></div>
-        <Button
-          variant="primary"
-          icon={<Plus size={18} strokeWidth={3} />}
-          onClick={() => setIsAddMembersModalOpen(true)}
-        >
-          Ajouter des membres
-        </Button>
+        {canManageTeams(user?.role) && (
+          <Button
+            variant="primary"
+            icon={<Plus size={18} strokeWidth={3} />}
+            onClick={() => setIsAddMembersModalOpen(true)}
+          >
+            Ajouter des membres
+          </Button>
+        )}
       </div>
 
       {/* Error Toast */}
@@ -220,7 +223,7 @@ export default function TeamMembersPage() {
                 >
                   Shift
                 </TableHead>
-                <TableHead className="w-24">Actions</TableHead>
+                {canManageTeams(user?.role) && <TableHead className="w-24">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -250,21 +253,23 @@ export default function TeamMembersPage() {
                     <StatusBadge variant={member.status}>{statusLabels[member.status]}</StatusBadge>
                   </TableCell>
                   <TableCell className="dark:text-gray-300">{teamShift}</TableCell>
-                  <TableCell>
-                    <button
-                      onClick={(e) => handleRemoveMember(member.id, e)}
-                      disabled={member.isManager}
-                      className="p-2 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      aria-label="Retirer le membre"
-                      title={
-                        member.isManager
-                          ? "Impossible de supprimer le manager"
-                          : "Retirer de l'équipe"
-                      }
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </TableCell>
+                  {canManageTeams(user?.role) && (
+                    <TableCell>
+                      <button
+                        onClick={(e) => handleRemoveMember(member.id, e)}
+                        disabled={member.isManager}
+                        className="p-2 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label="Retirer le membre"
+                        title={
+                          member.isManager
+                            ? "Impossible de supprimer le manager"
+                            : "Retirer de l'équipe"
+                        }
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
