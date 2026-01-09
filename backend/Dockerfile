@@ -2,7 +2,7 @@
 # Multi-stage build to minimize final image size
 
 # Stage 1: Dependencies
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 WORKDIR /app
 
 # Copy root package.json and workspace files
@@ -13,7 +13,7 @@ COPY backend/package.json ./backend/
 RUN npm ci --ignore-scripts
 
 # Stage 2: Builder
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -24,7 +24,7 @@ COPY backend ./backend
 COPY package.json package-lock.json ./
 
 # Stage 3: Runner (Production)
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install production dependencies + sequelize-cli for migrations
