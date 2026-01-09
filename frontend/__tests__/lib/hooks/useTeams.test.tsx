@@ -113,7 +113,7 @@ describe("useTeams", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(mockGetTeams).toHaveBeenCalledWith(5);
+    expect(mockGetTeams).toHaveBeenCalledWith({ id_user: 5 });
   });
 
   it("should handle teams without timetable", async () => {

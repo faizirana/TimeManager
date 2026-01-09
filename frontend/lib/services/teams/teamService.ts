@@ -6,7 +6,7 @@
  */
 
 import { apiClient } from "@/lib/utils/apiClient";
-import { Team, TeamStatsResponse } from "@/lib/types/team";
+import { Team, TeamStatsResponse } from "@/lib/types/teams";
 
 // ==================== QUERY OPERATIONS ====================
 

@@ -41,7 +41,7 @@ export function useTeamMembers(
       setError(null);
 
       const teamData = await getTeamById(teamId);
-      const transformedMembers = transformMembers(teamData.members, managerId, teamShift);
+      const transformedMembers = transformMembers(teamData.members ?? [], managerId, teamShift);
       setMembers(transformedMembers);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Équipe introuvable");

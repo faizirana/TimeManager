@@ -15,7 +15,7 @@ interface User {
   name: string;
   surname: string;
   email: string;
-  role: string;
+  role?: string;
 }
 
 interface AddMembersModalProps {

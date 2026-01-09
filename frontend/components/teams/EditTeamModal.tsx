@@ -36,7 +36,7 @@ export function EditTeamModal({ isOpen, onClose, team, onSubmit }: EditTeamModal
   useEffect(() => {
     if (isOpen && team) {
       setName(team.name);
-      setSelectedTimetableId(team.id_timetable);
+      setSelectedTimetableId(team.id_timetable ?? null);
       fetchTimetables();
     }
   }, [isOpen, team]);
