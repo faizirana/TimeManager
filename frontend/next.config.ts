@@ -2,6 +2,9 @@ import { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for Docker production builds
+  output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
+
   experimental: {
     turbo: {
       // Set the root directory for Next.js to the workspace root

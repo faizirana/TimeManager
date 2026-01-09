@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
 import timeRecordingRoutes from "./routes/timeRecordingRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -15,6 +16,11 @@ import swaggerJsDoc from "swagger-jsdoc";
 dotenv.config();
 
 const app = express();
+
+// Trust proxy - trust first proxy (nginx) for X-Forwarded-For headers
+// This prevents IP spoofing while allowing rate limiting to work correctly
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -249,6 +255,17 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Health check endpoint for production monitoring
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.use("/", healthRoutes);
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
 app.use("/teams", teamRoutes);

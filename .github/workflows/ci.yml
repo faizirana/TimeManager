@@ -100,3 +100,56 @@ jobs:
         run: DOCKER_BUILDKIT=0 docker-compose build
         env:
           COMPOSE_DOCKER_CLI_BUILD: 0
+
+  # Job 3 : Build Docker Production Images
+  build-production-docker:
+    name: Build Production Docker Images
+    runs-on: self-hosted
+    timeout-minutes: 30
+    needs: [lint-format-test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
+      - name: Pull base images if needed
+        run: |
+          if ! docker images node:18-alpine --format "{{.Repository}}:{{.Tag}}" | grep -q "node:18-alpine"; then
+            echo "Image node:18-alpine not found in cache, attempting to pull..."
+            docker pull node:18-alpine || echo "Pull failed, will use cache or skip if unavailable"
+          else
+            echo "Image node:18-alpine already in cache"
+          fi
+        continue-on-error: true
+
+      - name: Build Production Images with Docker Compose
+        run: DOCKER_BUILDKIT=0 docker-compose -f docker-compose.prod.yml build
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 0
+
+      - name: Tag and Push Production Images
+        run: |
+          # Tag backend production image
+          docker tag t-dev-700-project-tls_4-backend:latest ${{ secrets.DOCKER_USERNAME }}/t-dev-700-backend:latest
+          docker tag t-dev-700-project-tls_4-backend:latest ${{ secrets.DOCKER_USERNAME }}/t-dev-700-backend:${{ github.sha }}
+
+          # Tag frontend production image
+          docker tag t-dev-700-project-tls_4-frontend:latest ${{ secrets.DOCKER_USERNAME }}/t-dev-700-frontend:latest
+          docker tag t-dev-700-project-tls_4-frontend:latest ${{ secrets.DOCKER_USERNAME }}/t-dev-700-frontend:${{ github.sha }}
+
+          # Push images
+          docker push ${{ secrets.DOCKER_USERNAME }}/t-dev-700-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/t-dev-700-backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/t-dev-700-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/t-dev-700-frontend:${{ github.sha }}
