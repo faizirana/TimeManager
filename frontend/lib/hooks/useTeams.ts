@@ -76,7 +76,7 @@ export function useTeams(userId?: number): UseTeamsResult {
             id: team.id,
             name: team.name,
             shift,
-            members: team.members?.length || 0,
+            members: team.members?.length ?? 0,
           };
         }),
       );

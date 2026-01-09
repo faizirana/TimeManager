@@ -21,7 +21,6 @@ import { Skeleton } from "@/components/UI/Skeleton";
 export default function ProfilePage() {
   useProtectedRoute();
 
-  const { user: authUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,9 +93,9 @@ export default function ProfilePage() {
 
       // If password was changed, the backend invalidates all tokens
       // User will be automatically logged out by the auth system
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to update profile:", err);
-      setError(err.message || "Erreur lors de la mise à jour du profil");
+      setError(err instanceof Error ? err.message : "Erreur lors de la mise à jour du profil");
       throw err; // Re-throw to let the form handle it
     }
   };
