@@ -6,6 +6,16 @@ import base from "../eslint.config.mjs";
 export default [
   ...base,
 
+  // Add browser and node globals
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+
   // Files and folders to ignore (frontend specific)
   {
     ignores: [

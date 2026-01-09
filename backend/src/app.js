@@ -7,6 +7,8 @@ import usersRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
+import timeRecordingRoutes from "./routes/timeRecordingRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -14,6 +16,11 @@ import swaggerJsDoc from "swagger-jsdoc";
 dotenv.config();
 
 const app = express();
+
+// Trust proxy - trust first proxy (nginx) for X-Forwarded-For headers
+// This prevents IP spoofing while allowing rate limiting to work correctly
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -46,6 +53,195 @@ const swaggerOptions = {
           description: "Enter your JWT token in the format: Bearer <token>",
         },
       },
+      schemas: {
+        User: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 2,
+            },
+            name: {
+              type: "string",
+              example: "John",
+            },
+            surname: {
+              type: "string",
+              example: "Doe",
+            },
+            mobileNumber: {
+              type: "string",
+              example: "0123456789",
+            },
+            email: {
+              type: "string",
+              format: "email",
+              example: "john.employee@example.com",
+            },
+            role: {
+              type: "string",
+              enum: ["admin", "manager", "employee"],
+              example: "employee",
+            },
+            id_manager: {
+              type: "integer",
+              nullable: true,
+              example: 1,
+              description: "ID of the manager (null for top-level managers)",
+            },
+          },
+        },
+        Team: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 1,
+            },
+            name: {
+              type: "string",
+              example: "Team Alpha",
+            },
+            id_manager: {
+              type: "integer",
+              example: 1,
+              description: "Manager user ID (must have manager role)",
+            },
+            id_timetable: {
+              type: "integer",
+              nullable: true,
+              example: 1,
+              description: "Associated timetable ID",
+            },
+          },
+        },
+        Timetable: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 1,
+            },
+            Shift_start: {
+              type: "string",
+              pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$",
+              example: "09:00",
+              description: "Shift start time in HH:MM format",
+            },
+            Shift_end: {
+              type: "string",
+              pattern: "^([01]\\d|2[0-3]):([0-5]\\d)$",
+              example: "17:00",
+              description: "Shift end time in HH:MM format",
+            },
+            Associate: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Team",
+              },
+              description: "List of teams using this timetable",
+            },
+          },
+        },
+        TimeRecording: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 1,
+            },
+            timestamp: {
+              type: "string",
+              format: "date-time",
+              example: "2026-01-07T09:00:00.000Z",
+            },
+            type: {
+              type: "string",
+              enum: ["Arrival", "Departure"],
+              example: "Arrival",
+            },
+            id_user: {
+              type: "integer",
+              example: 2,
+            },
+          },
+        },
+        LoginRequest: {
+          type: "object",
+          required: ["email", "password"],
+          properties: {
+            email: {
+              type: "string",
+              format: "email",
+              example: "alice.manager@example.com",
+            },
+            password: {
+              type: "string",
+              format: "password",
+              example: "Manager123!",
+            },
+          },
+        },
+        LoginResponse: {
+          type: "object",
+          properties: {
+            accessToken: {
+              type: "string",
+              example:
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6Im1hbmFnZXIiLCJpYXQiOjE3MzY3MDg0MDAsImV4cCI6MTczNjcwOTMwMH0.example_signature",
+              description: "JWT access token (expires in 15 minutes)",
+            },
+          },
+        },
+        ErrorResponse: {
+          type: "object",
+          required: ["message"],
+          properties: {
+            message: {
+              type: "string",
+              example: "Invalid credentials",
+              description: "Error message describing what went wrong",
+            },
+            error: {
+              type: "string",
+              example: "Validation error",
+              description:
+                "Optional error category (only present for validation/constraint errors)",
+            },
+            details: {
+              type: "object",
+              additionalProperties: true,
+              example: {
+                field: "email",
+                message: "Email must be valid",
+                value: "invalid-email",
+              },
+              description:
+                "Optional additional error context (only present for validation/database constraint errors)",
+            },
+          },
+        },
+        UserProfile: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              example: 2,
+            },
+            email: {
+              type: "string",
+              format: "email",
+              example: "john.employee@example.com",
+            },
+            role: {
+              type: "string",
+              enum: ["admin", "manager", "employee"],
+              example: "employee",
+            },
+          },
+          description: "Minimal user profile returned by /auth/me endpoint",
+        },
+      },
     },
     security: [
       {
@@ -59,10 +255,22 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Health check endpoint for production monitoring
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.use("/", healthRoutes);
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
 app.use("/teams", teamRoutes);
 app.use("/timetables", timetableRoutes);
+app.use("/timerecordings", timeRecordingRoutes);
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });

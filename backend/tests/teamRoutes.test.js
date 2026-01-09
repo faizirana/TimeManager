@@ -126,7 +126,7 @@ describe("Teams API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Team not found");
+      expect(res.body.message).toBe("Équipe non trouvée");
     });
   });
 
@@ -174,7 +174,7 @@ describe("Teams API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Team not found");
+      expect(res.body.message).toBe("Équipe non trouvée");
     });
   });
 
@@ -230,31 +230,317 @@ describe("Teams API", () => {
     });
   });
 
-  describe("POST /teams/validate/conflicts", () => {
-    it("validates team assignments without conflict", async () => {
+  describe("Multi-team membership", () => {
+    it("allows a user to be in multiple teams with the same manager", async () => {
+      const team1 = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+      const team2 = await db.Team.create({ name: "Team Beta", id_manager: managerId });
+
+      // Add user to first team
+      const res1 = await request(app)
+        .post(`/teams/${team1.id}/users`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ id_user: managerId });
+      expect(res1.statusCode).toBe(201);
+
+      // Add same user to second team with same manager
+      const res2 = await request(app)
+        .post(`/teams/${team2.id}/users`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ id_user: managerId });
+      expect(res2.statusCode).toBe(201);
+
+      // Verify user is in both teams
+      const memberships = await db.TeamMember.findAll({
+        where: { id_user: managerId },
+      });
+      expect(memberships.length).toBe(2);
+    });
+
+    it("allows a user to be in multiple teams with different managers", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const manager2 = await db.User.create({
+        name: "Alice",
+        surname: "Smith",
+        mobileNumber: "0622334455",
+        email: "alice@example.com",
+        password: hashedPassword,
+        role: "manager",
+      });
+
+      const employee = await db.User.create({
+        name: "Bob",
+        surname: "Johnson",
+        mobileNumber: "0633445566",
+        email: "bob@example.com",
+        password: hashedPassword,
+        role: "employee",
+      });
+
+      const team1 = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+      const team2 = await db.Team.create({ name: "Team Gamma", id_manager: manager2.id });
+
+      // Add employee to both teams
+      await request(app)
+        .post(`/teams/${team1.id}/users`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ id_user: employee.id });
+
+      // Login as manager2 to add to their team
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: manager2.email, password: "Password123!" });
+
+      const res = await request(app)
+        .post(`/teams/${team2.id}/users`)
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+        .send({ id_user: employee.id });
+
+      expect(res.statusCode).toBe(201);
+
+      // Verify employee is in both teams
+      const memberships = await db.TeamMember.findAll({
+        where: { id_user: employee.id },
+      });
+      expect(memberships.length).toBe(2);
+    });
+
+    it("prevents duplicate membership in the same team", async () => {
       const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
       await db.TeamMember.create({ id_team: team.id, id_user: managerId });
 
       const res = await request(app)
-        .post("/teams/validate/conflicts")
-        .set("Authorization", `Bearer ${accessToken}`);
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("All team assignments are valid");
-    });
-
-    it("detects conflict if user in multiple teams with same manager", async () => {
-      const team1 = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
-      const team2 = await db.Team.create({ name: "Team Beta", id_manager: managerId });
-      await db.TeamMember.create({ id_team: team1.id, id_user: managerId });
-      await db.TeamMember.create({ id_team: team2.id, id_user: managerId });
-
-      const res = await request(app)
-        .post("/teams/validate/conflicts")
-        .set("Authorization", `Bearer ${accessToken}`);
+        .post(`/teams/${team.id}/users`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toMatch(/conflicting teams/);
+      expect(res.body.message).toBe("User already in this team");
+    });
+  });
+
+  describe("Permissions and authorization", () => {
+    it("allows admin to manage any team", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const admin = await db.User.create({
+        name: "Admin",
+        surname: "User",
+        mobileNumber: "0644556677",
+        email: "admin@example.com",
+        password: hashedPassword,
+        role: "admin",
+      });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: admin.email, password: "Password123!" });
+
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+
+      // Admin can update any team
+      const res = await request(app)
+        .put(`/teams/${team.id}`)
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+        .send({ name: "Team Updated by Admin" });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.name).toBe("Team Updated by Admin");
+    });
+
+    it("allows manager to manage their own team", async () => {
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+
+      const res = await request(app)
+        .put(`/teams/${team.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ name: "Team Updated by Manager" });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.name).toBe("Team Updated by Manager");
+    });
+
+    it("prevents manager from managing another manager's team", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const manager2 = await db.User.create({
+        name: "Alice",
+        surname: "Smith",
+        mobileNumber: "0622334455",
+        email: "alice@example.com",
+        password: hashedPassword,
+        role: "manager",
+      });
+
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: manager2.id });
+
+      // Try to update another manager's team
+      const res = await request(app)
+        .put(`/teams/${team.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ name: "Unauthorized Update" });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body.message).toMatch(/Accès refusé/);
+    });
+
+    it("allows team member to view their team", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const employee = await db.User.create({
+        name: "Bob",
+        surname: "Johnson",
+        mobileNumber: "0633445566",
+        email: "bob@example.com",
+        password: hashedPassword,
+        role: "employee",
+      });
+
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: employee.id });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: employee.email, password: "Password123!" });
+
+      const res = await request(app)
+        .get(`/teams/${team.id}`)
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.name).toBe("Team Alpha");
+    });
+
+    it("prevents non-member from viewing a team", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const employee = await db.User.create({
+        name: "Bob",
+        surname: "Johnson",
+        mobileNumber: "0633445566",
+        email: "bob@example.com",
+        password: hashedPassword,
+        role: "employee",
+      });
+
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: employee.email, password: "Password123!" });
+
+      const res = await request(app)
+        .get(`/teams/${team.id}`)
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`);
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body.message).toMatch(/Accès refusé/);
+    });
+
+    it("prevents employee from creating teams", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const employee = await db.User.create({
+        name: "Bob",
+        surname: "Johnson",
+        mobileNumber: "0633445566",
+        email: "bob@example.com",
+        password: hashedPassword,
+        role: "employee",
+      });
+
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: employee.email, password: "Password123!" });
+
+      const res = await request(app)
+        .post("/teams")
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+        .send({ name: "Unauthorized Team", id_manager: managerId });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.body.message).toBe("Forbidden");
+    });
+  });
+
+  describe("Cascade delete", () => {
+    it("deletes team members when team is deleted", async () => {
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: managerId });
+
+      // Delete the team
+      await request(app).delete(`/teams/${team.id}`).set("Authorization", `Bearer ${accessToken}`);
+
+      // Verify team members are also deleted
+      const memberships = await db.TeamMember.findAll({
+        where: { id_team: team.id },
+      });
+      expect(memberships.length).toBe(0);
+    });
+
+    it("deletes team memberships when user is deleted", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const employee = await db.User.create({
+        name: "Bob",
+        surname: "Johnson",
+        mobileNumber: "0633445566",
+        email: "bob@example.com",
+        password: hashedPassword,
+        role: "employee",
+      });
+
+      const team = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+      await db.TeamMember.create({ id_team: team.id, id_user: employee.id });
+
+      // Delete the user
+      await db.User.destroy({ where: { id: employee.id } });
+
+      // Verify memberships are also deleted
+      const memberships = await db.TeamMember.findAll({
+        where: { id_user: employee.id },
+      });
+      expect(memberships.length).toBe(0);
+    });
+  });
+
+  describe("Manager as team member scenario", () => {
+    it("allows a manager to be a member of another team", async () => {
+      const hashedPassword = await bcrypt.hash("Password123!", 12);
+      const manager2 = await db.User.create({
+        name: "Alice",
+        surname: "Smith",
+        mobileNumber: "0622334455",
+        email: "alice@example.com",
+        password: hashedPassword,
+        role: "manager",
+      });
+
+      // manager1 creates Team Alpha and manages it
+      const _teamAlpha = await db.Team.create({ name: "Team Alpha", id_manager: managerId });
+
+      // manager2 creates Team Beta and manages it
+      const teamBeta = await db.Team.create({ name: "Team Beta", id_manager: manager2.id });
+
+      // Add manager1 as a member of Team Beta (managed by manager2)
+      const loginRes = await request(app)
+        .post("/auth/login")
+        .send({ email: manager2.email, password: "Password123!" });
+
+      const res = await request(app)
+        .post(`/teams/${teamBeta.id}/users`)
+        .set("Authorization", `Bearer ${loginRes.body.accessToken}`)
+        .send({ id_user: managerId });
+
+      expect(res.statusCode).toBe(201);
+
+      // Verify manager1 can view Team Beta (as member)
+      const viewRes = await request(app)
+        .get(`/teams/${teamBeta.id}`)
+        .set("Authorization", `Bearer ${accessToken}`);
+
+      expect(viewRes.statusCode).toBe(200);
+
+      // Verify manager1 CANNOT manage Team Beta (not the manager)
+      const updateRes = await request(app)
+        .put(`/teams/${teamBeta.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ name: "Unauthorized Update" });
+
+      expect(updateRes.statusCode).toBe(403);
     });
   });
 });

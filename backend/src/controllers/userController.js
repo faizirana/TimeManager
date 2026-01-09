@@ -1,7 +1,7 @@
 import db from "../../models/index.cjs";
 import bcrypt from "bcryptjs";
 
-const { User } = db;
+const { User, sequelize } = db;
 const SALT_ROUNDS = 12;
 
 export const getUsers = async (req, res) => {
@@ -38,24 +38,32 @@ export const createUser = async (req, res) => {
     });
   }
 
+  const transaction = await sequelize.transaction();
+
   try {
     const hashedPassword = password; //await bcrypt.hash(password, SALT_ROUNDS);
 
-    const newUser = await User.create({
-      name,
-      surname,
-      mobileNumber,
-      email,
-      password: hashedPassword,
-      role,
-      id_manager: id_manager || null,
-    });
+    const newUser = await User.create(
+      {
+        name,
+        surname,
+        mobileNumber,
+        email,
+        password: hashedPassword,
+        role,
+        id_manager: id_manager || null,
+      },
+      { transaction },
+    );
+
+    await transaction.commit();
 
     const newUserObj = newUser.toJSON();
     delete newUserObj.password;
 
     return res.status(201).json(newUserObj);
   } catch (error) {
+    await transaction.rollback();
     console.error("Error creating user:", error);
     return res.status(500).json({ message: error.message || "Internal server error" });
   }
@@ -65,17 +73,31 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const { name, surname, mobileNumber, email, password, role, id_manager } = req.body;
 
-  try {
-    const user = await User.findByPk(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+  const transaction = await sequelize.transaction();
 
+  try {
+    const user = await User.findByPk(req.params.id, { transaction });
+    if (!user) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check authorization: user can update themselves, or admin can update anyone
+    const isOwnProfile = req.user.id === user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwnProfile && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to update this user" });
+    }
+
+    // Non-admins can only update their own basic info and password, not role or manager
     const updatedData = {
       name: name ?? user.name,
       surname: surname ?? user.surname,
       mobileNumber: mobileNumber ?? user.mobileNumber,
       email: email ?? user.email,
-      role: role ?? user.role,
-      id_manager: id_manager ?? user.id_manager,
+      role: isAdmin ? (role ?? user.role) : user.role,
+      id_manager: isAdmin ? (id_manager ?? user.id_manager) : user.id_manager,
     };
 
     if (password) {
@@ -85,13 +107,16 @@ export const updateUser = async (req, res) => {
       updatedData.refreshTokenFamily = null;
     }
 
-    await user.update(updatedData);
+    await user.update(updatedData, { transaction });
+
+    await transaction.commit();
 
     const updatedUserObj = user.toJSON();
     delete updatedUserObj.password;
 
     return res.status(200).json(updatedUserObj);
   } catch (error) {
+    await transaction.rollback();
     console.error("Error updating user:", error);
     return res.status(500).json({ message: error.message || "Internal server error" });
   }

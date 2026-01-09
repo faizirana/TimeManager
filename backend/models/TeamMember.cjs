@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       freezeTableName: true,
       tableName: "TeamMember",
-      timestamps: false,
+      timestamps: true,
     },
   );
 
@@ -34,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         name: "id_user",
         allowNull: false,
       },
+      onDelete: "CASCADE",
     });
 
     TeamMember.belongsTo(models.Team, {
@@ -42,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
         name: "id_team",
         allowNull: false,
       },
+      onDelete: "CASCADE",
     });
   };
 

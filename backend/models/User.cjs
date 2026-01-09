@@ -81,7 +81,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       freezeTableName: true,
       tableName: "User",
-      timestamps: false,
+      timestamps: true,
       hooks: {
         beforeValidate: (user, _options) => {
           // Vérifier que tous les champs obligatoires sont présents
@@ -220,8 +220,8 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
     });
-    User.hasOne(models.TeamMember, {
-      as: "teamMembership",
+    User.hasMany(models.TeamMember, {
+      as: "teamMemberships",
       foreignKey: {
         name: "id_user",
         allowNull: false,

@@ -24,10 +24,27 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       freezeTableName: true,
-      timestamps: false,
+      timestamps: true,
       tableName: "Team",
     },
   );
+
+  // Hook pour valider que le manager a bien le rôle 'manager'
+  Team.beforeCreate(async (team) => {
+    const manager = await sequelize.models.User.findByPk(team.id_manager);
+    if (!manager || manager.role !== "manager") {
+      throw new Error('Le manager de l\'équipe doit avoir le rôle "manager"');
+    }
+  });
+
+  Team.beforeUpdate(async (team) => {
+    if (team.changed("id_manager")) {
+      const manager = await sequelize.models.User.findByPk(team.id_manager);
+      if (!manager || manager.role !== "manager") {
+        throw new Error('Le manager de l\'équipe doit avoir le rôle "manager"');
+      }
+    }
+  });
 
   Team.associate = (models) => {
     Team.belongsTo(models.User, {

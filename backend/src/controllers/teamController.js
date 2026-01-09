@@ -1,6 +1,6 @@
 import db from "../../models/index.cjs";
 
-const { Team, User, TeamMember } = db;
+const { Team, User, TeamMember, sequelize } = db;
 
 // GET /teams
 export const getTeams = async (req, res) => {
@@ -67,7 +67,7 @@ export const getTeamById = async (req, res) => {
 
 // POST /teams
 export const createTeam = async (req, res) => {
-  const { name, id_manager } = req.body;
+  const { name, id_manager, id_timetable } = req.body;
   if (!name || !id_manager)
     return res.status(400).json({ message: "name and id_manager are required" });
 
@@ -75,7 +75,7 @@ export const createTeam = async (req, res) => {
     const manager = await User.findByPk(id_manager);
     if (!manager) return res.status(400).json({ message: "Manager does not exist" });
 
-    const newTeam = await Team.create({ name, id_manager });
+    const newTeam = await Team.create({ name, id_manager, id_timetable });
     return res.status(201).json(newTeam);
   } catch (error) {
     console.error("Error creating team:", error);
@@ -85,7 +85,7 @@ export const createTeam = async (req, res) => {
 
 // PUT /teams/:id
 export const updateTeam = async (req, res) => {
-  const { name, id_manager } = req.body;
+  const { name, id_manager, id_timetable } = req.body;
 
   try {
     const team = await Team.findByPk(req.params.id);
@@ -96,7 +96,11 @@ export const updateTeam = async (req, res) => {
       if (!manager) return res.status(400).json({ message: "Manager does not exist" });
     }
 
-    await team.update({ name: name ?? team.name, id_manager: id_manager ?? team.id_manager });
+    await team.update({
+      name: name ?? team.name,
+      id_manager: id_manager ?? team.id_manager,
+      id_timetable: id_timetable ?? team.id_timetable,
+    });
     return res.status(200).json(team);
   } catch (error) {
     console.error("Error updating team:", error);
@@ -106,13 +110,20 @@ export const updateTeam = async (req, res) => {
 
 // DELETE /teams/:id
 export const deleteTeam = async (req, res) => {
-  try {
-    const team = await Team.findByPk(req.params.id);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+  const transaction = await sequelize.transaction();
 
-    await team.destroy();
+  try {
+    const team = await Team.findByPk(req.params.id, { transaction });
+    if (!team) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    await team.destroy({ transaction });
+    await transaction.commit();
     return res.status(200).json({ message: "Team deleted successfully" });
   } catch (error) {
+    await transaction.rollback();
     console.error("Error deleting team:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -125,18 +136,28 @@ export const addUserToTeam = async (req, res) => {
 
   if (!id_user) return res.status(400).json({ message: "id_user is required" });
 
+  const transaction = await sequelize.transaction();
+
   try {
-    const team = await Team.findByPk(id);
-    const user = await User.findByPk(id_user);
-    if (!team || !user) return res.status(404).json({ message: "Team or user not found" });
+    const team = await Team.findByPk(id, { transaction });
+    const user = await User.findByPk(id_user, { transaction });
+    if (!team || !user) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Team or user not found" });
+    }
 
     // Check if already in team
-    const exists = await TeamMember.findOne({ where: { id_team: id, id_user } });
-    if (exists) return res.status(400).json({ message: "User already in this team" });
+    const exists = await TeamMember.findOne({ where: { id_team: id, id_user }, transaction });
+    if (exists) {
+      await transaction.rollback();
+      return res.status(400).json({ message: "User already in this team" });
+    }
 
-    await TeamMember.create({ id_team: id, id_user });
+    await TeamMember.create({ id_team: id, id_user }, { transaction });
+    await transaction.commit();
     return res.status(201).json({ message: "User added to team" });
   } catch (error) {
+    await transaction.rollback();
     console.error("Error adding user to team:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -146,13 +167,20 @@ export const addUserToTeam = async (req, res) => {
 export const removeUserFromTeam = async (req, res) => {
   const { id, userId: id_user } = req.params;
 
-  try {
-    const link = await TeamMember.findOne({ where: { id_team: id, id_user } });
-    if (!link) return res.status(404).json({ message: "User not in this team" });
+  const transaction = await sequelize.transaction();
 
-    await link.destroy();
+  try {
+    const link = await TeamMember.findOne({ where: { id_team: id, id_user }, transaction });
+    if (!link) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "User not in this team" });
+    }
+
+    await link.destroy({ transaction });
+    await transaction.commit();
     return res.status(200).json({ message: "User removed from team" });
   } catch (error) {
+    await transaction.rollback();
     console.error("Error removing user from team:", error);
     return res.status(500).json({ message: "Internal server error" });
   }

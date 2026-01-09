@@ -46,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       freezeTableName: true,
       tableName: "TimeRecording",
-      timestamps: false,
+      timestamps: true,
       hooks: {
         beforeCreate: async (timeRecording, _options) => {
           const user = await sequelize.models.User.findByPk(timeRecording.id_user);

@@ -16,7 +16,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 // Mock the useAuth hook
 jest.mock("@/lib/hooks/useAuth");
 
-// Cast pour TypeScript
+// TypeScript cast
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 describe("LoginForm Component", () => {
@@ -386,5 +386,183 @@ describe("LoginForm Component", () => {
       "test@example.com",
       "password123",
     );
+  });
+
+  /**
+   * TEST 12: Toggle password visibility
+   *
+   * Scenario: User clicks the eye icon to show/hide password
+   * Expected: Password field type changes between password and text
+   */
+  it("should toggle password visibility when eye icon is clicked", async () => {
+    // ARRANGE: Render
+    render(<LoginForm />);
+    const user = userEvent.setup();
+    const passwordField = screen.getByLabelText(/Mot de passe/i);
+
+    // ASSERT: Initially password is hidden
+    expect(passwordField).toHaveAttribute("type", "password");
+    expect(screen.getByRole("button", { name: /Afficher/i })).toBeInTheDocument();
+
+    // ACT: Click to show password
+    const toggleButton = screen.getByRole("button", { name: /Afficher/i });
+    await user.click(toggleButton);
+
+    // ASSERT: Password is now visible (type=text)
+    expect(passwordField).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: /Masquer/i })).toBeInTheDocument();
+
+    // ACT: Click again to hide password
+    const hideButton = screen.getByRole("button", { name: /Masquer/i });
+    await user.click(hideButton);
+
+    // ASSERT: Password is hidden again
+    expect(passwordField).toHaveAttribute("type", "password");
+    expect(screen.getByRole("button", { name: /Afficher/i })).toBeInTheDocument();
+  });
+
+  /**
+   * TEST 13: Shows Eye icon when password is hidden
+   *
+   * Scenario: Password field is in hidden state
+   * Expected: Eye icon (not EyeOff) is displayed
+   */
+  it("should show Eye icon when password is hidden", () => {
+    // ARRANGE & ACT: Render
+    const { container } = render(<LoginForm />);
+
+    // ASSERT: Eye icon should be present (look for the svg with specific viewBox or path)
+    const button = screen.getByRole("button", { name: /Afficher/i });
+    expect(button).toBeInTheDocument();
+
+    // Eye icon is rendered
+    const svg = button.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+  });
+
+  /**
+   * TEST 14: Shows EyeOff icon when password is visible
+   *
+   * Scenario: User has toggled password to be visible
+   * Expected: EyeOff icon (not Eye) is displayed
+   */
+  it("should show EyeOff icon when password is visible", async () => {
+    // ARRANGE: Render
+    const { container } = render(<LoginForm />);
+    const user = userEvent.setup();
+
+    // ACT: Toggle password to visible
+    const toggleButton = screen.getByRole("button", { name: /Afficher/i });
+    await user.click(toggleButton);
+
+    // ASSERT: EyeOff icon should now be present
+    const hideButton = screen.getByRole("button", { name: /Masquer/i });
+    expect(hideButton).toBeInTheDocument();
+
+    // EyeOff icon is rendered
+    const svg = hideButton.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+  });
+
+  /**
+   * TEST 15: Disabled prop disables the form
+   *
+   * Scenario: Component is rendered with disabled=true
+   * Expected: Submit button shows "Redirection..." and is disabled
+   */
+  it("should disable form when disabled prop is true", () => {
+    // ARRANGE & ACT: Render with disabled prop
+    render(<LoginForm disabled={true} />);
+
+    // ASSERT: Submit button shows "Redirection..." and is disabled
+    const submitButton = screen.getByRole("button", { name: /Redirection\.\.\./i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  /**
+   * TEST 16: Button shows correct text based on state
+   *
+   * Scenario: Test all three states of button text
+   * Expected: Text changes based on loading and disabled states
+   */
+  it("should show 'Se connecter' when not loading and not disabled", () => {
+    // ARRANGE & ACT
+    render(<LoginForm disabled={false} />);
+
+    // ASSERT
+    expect(screen.getByRole("button", { name: /Se connecter/i })).toBeInTheDocument();
+  });
+
+  it("should show 'Connexion...' when loading", () => {
+    // ARRANGE
+    mockUseAuth.mockReturnValue({
+      handleSubmit: jest.fn(),
+      loading: true,
+      error: "",
+      logout: jest.fn(),
+    });
+
+    // ACT
+    render(<LoginForm />);
+
+    // ASSERT
+    expect(screen.getByRole("button", { name: /Connexion\.\.\./i })).toBeInTheDocument();
+  });
+
+  it("should show 'Redirection...' when disabled", () => {
+    // ARRANGE & ACT
+    render(<LoginForm disabled={true} />);
+
+    // ASSERT
+    expect(screen.getByRole("button", { name: /Redirection\.\.\./i })).toBeInTheDocument();
+  });
+
+  /**
+   * TEST 17: Form should be disabled when loading OR disabled prop is true
+   *
+   * Scenario: Test that button is disabled in both loading and disabled states
+   * Expected: Button is disabled in both cases
+   */
+  it("should disable button when loading is true", () => {
+    // ARRANGE
+    mockUseAuth.mockReturnValue({
+      handleSubmit: jest.fn(),
+      loading: true,
+      error: "",
+      logout: jest.fn(),
+    });
+
+    // ACT
+    render(<LoginForm />);
+
+    // ASSERT
+    const submitButton = screen.getByRole("button", { name: /Connexion\.\.\./i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should disable button when disabled prop is true", () => {
+    // ARRANGE & ACT
+    render(<LoginForm disabled={true} />);
+
+    // ASSERT
+    const submitButton = screen.getByRole("button", { name: /Redirection\.\.\./i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should disable button when both loading and disabled are true", () => {
+    // ARRANGE
+    mockUseAuth.mockReturnValue({
+      handleSubmit: jest.fn(),
+      loading: true,
+      error: "",
+      logout: jest.fn(),
+    });
+
+    // ACT
+    render(<LoginForm disabled={true} />);
+
+    // ASSERT
+    const submitButton = screen.getByRole("button", { name: /Connexion\.\.\./i });
+    expect(submitButton).toBeDisabled();
   });
 });

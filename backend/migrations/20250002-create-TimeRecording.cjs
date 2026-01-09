@@ -22,8 +22,9 @@ module.exports = {
           model: "User",
           key: "id",
         },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
-      // Add other fields here
     });
   },
   down: async (queryInterface, _Sequelize) => {

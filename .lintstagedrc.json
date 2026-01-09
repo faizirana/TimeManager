@@ -1,5 +1,11 @@
 {
-  "frontend/**/*.{js,jsx,ts,tsx}": ["cd frontend && eslint --fix", "prettier --write"],
-  "backend/**/*.{js,cjs}": ["cd backend && eslint --fix", "prettier --write"],
+  "frontend/**/*.{js,jsx,ts,tsx}": [
+    "eslint --fix --config frontend/eslint.config.mjs --max-warnings 50",
+    "prettier --write"
+  ],
+  "backend/**/*.{js,cjs}": [
+    "eslint --fix --config backend/eslint.config.mjs --max-warnings 50",
+    "prettier --write"
+  ],
   "*.{json,md,yml,yaml}": ["prettier --write"]
 }
