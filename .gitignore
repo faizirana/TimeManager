@@ -54,3 +54,6 @@ docker-compose.override.yml
 .docker/
 docker-data/
 .dockerignore
+
+# Docker logs
+logs/
