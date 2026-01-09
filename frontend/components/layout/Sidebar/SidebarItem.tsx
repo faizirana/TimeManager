@@ -1,20 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { SidebarItemProps } from "@/lib/types/sidebar";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/UI/Avatar";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const sidebarItemVariants = cva(
   "flex items-center gap-3 rounded-lg text-sm font-medium transition-colors",
   {
     variants: {
       variant: {
-        default: "text-black dark:text-white",
-        important: "bg-primary text-white",
+        default: "text-[var(--foreground)]",
+        important: "bg-green-700 hover:bg-green-800 text-white",
         secondary: "bg-zinc-100 dark:bg-zinc-900",
-        disabled: "opacity-50 cursor-not-allowed pointer-events-none text-black dark:text-white",
+        disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
       },
       active: { true: "text-black dark:text-white bg-secondary pointer-events-none", false: "" },
       size: { full: "w-full px-4 py-2", icon: "w-fit px-3 py-3", profile: "w-full px-2 py-2" },
@@ -32,8 +33,8 @@ type SidebarItemVariantProps = VariantProps<typeof sidebarItemVariants>;
 
 export default function SidebarItem({
   label,
+  hasAvatar,
   icon: Icon,
-  image,
   href,
   onClick,
   className,
@@ -41,6 +42,7 @@ export default function SidebarItem({
   size,
   active,
 }: SidebarItemProps & SidebarItemVariantProps) {
+  const { user } = useAuth();
   const Wrapper = href ? Link : onClick ? "button" : "div";
   return (
     <Wrapper
@@ -51,14 +53,11 @@ export default function SidebarItem({
       tabIndex={variant === "disabled" ? -1 : undefined}
     >
       {/* Render image if provided, otherwise render icon */}
-      {image ? (
-        <Image
-          src={image}
-          alt=""
-          width={size === "profile" ? 40 : 24}
-          height={size === "profile" ? 40 : 24}
-          className="object-cover rounded-lg"
-          unoptimized
+      {hasAvatar ? (
+        <Avatar
+          name={user?.name ?? ""}
+          surname={user?.surname ?? ""}
+          size={size === "profile" ? "w-10 h-10" : "w-6 h-6"}
         />
       ) : (
         Icon && (

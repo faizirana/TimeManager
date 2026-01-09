@@ -67,7 +67,7 @@ describe("Label Component", () => {
 
     // ASSERT: Verify the label has the custom class
     const labelElement = screen.getByText("Email");
-    expect(labelElement).toHaveClass("text-gray-500"); // Default class from Label component
+    expect(labelElement).toHaveClass("text-[var(--muted-foreground)]"); // Default class from Label component (floating variant)
     expect(labelElement).toHaveClass("custom-label-class"); // Custom class
   });
 });

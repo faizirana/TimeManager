@@ -67,7 +67,7 @@ export const getTeamById = async (req, res) => {
 
 // POST /teams
 export const createTeam = async (req, res) => {
-  const { name, id_manager } = req.body;
+  const { name, id_manager, id_timetable } = req.body;
   if (!name || !id_manager)
     return res.status(400).json({ message: "name and id_manager are required" });
 
@@ -75,7 +75,7 @@ export const createTeam = async (req, res) => {
     const manager = await User.findByPk(id_manager);
     if (!manager) return res.status(400).json({ message: "Manager does not exist" });
 
-    const newTeam = await Team.create({ name, id_manager });
+    const newTeam = await Team.create({ name, id_manager, id_timetable });
     return res.status(201).json(newTeam);
   } catch (error) {
     console.error("Error creating team:", error);
@@ -85,7 +85,7 @@ export const createTeam = async (req, res) => {
 
 // PUT /teams/:id
 export const updateTeam = async (req, res) => {
-  const { name, id_manager } = req.body;
+  const { name, id_manager, id_timetable } = req.body;
 
   try {
     const team = await Team.findByPk(req.params.id);
@@ -96,7 +96,11 @@ export const updateTeam = async (req, res) => {
       if (!manager) return res.status(400).json({ message: "Manager does not exist" });
     }
 
-    await team.update({ name: name ?? team.name, id_manager: id_manager ?? team.id_manager });
+    await team.update({
+      name: name ?? team.name,
+      id_manager: id_manager ?? team.id_manager,
+      id_timetable: id_timetable ?? team.id_timetable,
+    });
     return res.status(200).json(team);
   } catch (error) {
     console.error("Error updating team:", error);

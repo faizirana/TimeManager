@@ -335,6 +335,7 @@ describe("useAuth Hook (UI Wrapper)", () => {
     });
 
     expect(result.current.user).toEqual({
+      id: "1",
       email: "test@example.com",
       name: "Test",
       surname: "Admin",

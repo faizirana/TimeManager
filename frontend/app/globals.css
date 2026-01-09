@@ -2,11 +2,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --color-primary: #3c6f48;
-  --color-primary-soft: #558560;
-  --color-secondary: #3c6f4830;
+  --background: #e4e4e4;
+  --foreground: #292828;
+  --color-primary: #15803d;
+  --color-primary-soft: #16a34a;
+  --color-secondary: #0051ff;
+  --color-secondary-soft: #3b82f6;
+
+  /* Dégradé de couleurs pour les éléments UI */
+  --background-2: #ffffff;
+  --surface: #cbcbcb;
+  --surface-hover: #d6d6d6;
+  --border: #d4d4d4;
+  --muted: #a3a3a3;
+  --muted-foreground: #525252;
+}
+
+.dark {
+  --background: #403e3e;
+  --foreground: #ebebeb;
+
+  /* Dégradé de couleurs pour les éléments UI */
+  --background-2: #292828;
+  --surface: #1f1f1f;
+  --surface-hover: #4d4d4d;
+  --border: #404040;
+  --muted: #6b6b6b;
+  --muted-foreground: #a3a3a3;
 }
 
 @theme inline {
@@ -16,15 +38,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }

@@ -217,8 +217,10 @@ module.exports = {
     await queryInterface.bulkInsert(
       "TeamMember",
       [
+        { id_team: 1, id_user: 1 }, // Alice (manager) in Team Alpha
         { id_team: 1, id_user: 5 }, // Mike in Team Alpha
         { id_team: 1, id_user: 6 }, // Lisa in Team Alpha
+        { id_team: 2, id_user: 1 }, // Alice (manager) in Team Beta
         { id_team: 2, id_user: 6 }, // Lisa also in Team Beta (multi-membership)
         { id_team: 2, id_user: 7 }, // Emma in Team Beta
         { id_team: 2, id_user: 3 }, // Admin in Team Beta (for testing)
@@ -226,6 +228,7 @@ module.exports = {
         { id_team: 3, id_user: 8 }, // David in Team Gamma
         { id_team: 3, id_user: 9 }, // Sophie in Team Gamma
         { id_team: 3, id_user: 10 }, // Tom in Team Gamma
+        { id_team: 3, id_user: 2 }, // John in Team Gamma
       ],
       { ignoreDuplicates: true },
     );
