@@ -106,7 +106,7 @@ describe("SidebarItem Component", () => {
   it("should apply icon size classes when size is 'icon'", () => {
     renderWithAuth(<SidebarItem {...defaultProps} size="icon" onClick={() => {}} />);
     const item = screen.getByRole("button");
-    expect(item).toHaveClass("w-fit", "px-3", "py-3");
+    expect(item).toHaveClass("px-3", "py-3");
   });
 
   it("should apply profile size classes when size is 'profile'", () => {

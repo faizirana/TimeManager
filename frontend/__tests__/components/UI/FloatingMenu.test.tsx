@@ -79,7 +79,7 @@ describe("FloatingMenu Component", () => {
     expect(deleteButton).toHaveClass("text-red-500");
 
     const editButton = screen.getByRole("button", { name: "Edit" });
-    expect(editButton).toHaveClass("text-black"); // Default color
+    expect(editButton).toHaveClass("text-zinc-950"); // Default color
   });
 
   /**

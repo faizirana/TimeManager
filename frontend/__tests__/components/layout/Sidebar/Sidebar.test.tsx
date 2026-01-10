@@ -66,7 +66,7 @@ describe("Sidebar Component", () => {
     const { container } = render(<Sidebar items={mockItems} collapsed />);
 
     const aside = container.querySelector("aside");
-    expect(aside).toHaveClass("w-16");
+    expect(aside).toHaveClass("w-20");
   });
 
   /**
