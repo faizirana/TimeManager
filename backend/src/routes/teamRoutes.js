@@ -7,6 +7,7 @@ import {
   deleteTeam,
   addUserToTeam,
   removeUserFromTeam,
+  getTeamStats,
 } from "../controllers/teamController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/rolesMiddleware.js";
@@ -560,5 +561,136 @@ router.post("/:id/users", authenticate, canManageTeamMembers, addUserToTeam);
  *                   message: "User is not a member of this team"
  */
 router.delete("/:id/users/:userId", authenticate, canManageTeamMembers, removeUserFromTeam);
+
+/**
+ * @swagger
+ * /teams/{id}/stats:
+ *   get:
+ *     summary: Get statistics for a specific team
+ *     description: |
+ *       Returns aggregated statistics for all members of a team.
+ *
+ *       **Authorization:**
+ *       - **Managers**: Can only view stats for their own teams
+ *       - **Admins**: Can view any team's statistics
+ *
+ *       **Example queries:**
+ *       - `/teams/1/stats` - Stats for Team Alpha
+ *       - `/teams/1/stats?start_date=2026-01-01T00:00:00.000Z&end_date=2026-01-07T23:59:59.999Z` - Stats for a specific period
+ *     tags: [Teams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The team ID
+ *         example: 1
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Start date for statistics period (ISO 8601 format)
+ *         example: "2026-01-01T00:00:00.000Z"
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: End date for statistics period (ISO 8601 format)
+ *         example: "2026-01-07T23:59:59.999Z"
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved team statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 team:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *                     manager:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         name:
+ *                           type: string
+ *                         surname:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                 statistics:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: object
+ *                       totalHours:
+ *                         type: number
+ *                       totalDays:
+ *                         type: integer
+ *                       averageHoursPerDay:
+ *                         type: number
+ *                 aggregated:
+ *                   type: object
+ *                   properties:
+ *                     totalMembers:
+ *                       type: integer
+ *                     totalHours:
+ *                       type: number
+ *                     averageHoursPerMember:
+ *                       type: number
+ *                 period:
+ *                   type: object
+ *                   properties:
+ *                     start:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *                     end:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *             example:
+ *               team:
+ *                 id: 1
+ *                 name: "Team Alpha"
+ *                 manager:
+ *                   id: 1
+ *                   name: "Alice"
+ *                   surname: "Manager"
+ *                   email: "alice.manager@example.com"
+ *               statistics:
+ *                 - user:
+ *                     id: 2
+ *                     name: "John"
+ *                     surname: "Doe"
+ *                     email: "john.employee@example.com"
+ *                   totalHours: 40
+ *                   totalDays: 5
+ *                   averageHoursPerDay: 8
+ *               aggregated:
+ *                 totalMembers: 3
+ *                 totalHours: 120
+ *                 averageHoursPerMember: 40
+ *               period:
+ *                 start: "2026-01-01T00:00:00.000Z"
+ *                 end: "2026-01-07T23:59:59.999Z"
+ *       404:
+ *         description: Team not found
+ *       403:
+ *         description: Forbidden - Cannot access other managers' teams
+ */
+router.get("/:id/stats", authenticate, authorize("admin", "manager"), getTeamStats);
 
 export default router;

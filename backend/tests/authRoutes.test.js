@@ -95,12 +95,16 @@ describe("Auth API", () => {
   });
 
   describe("GET /auth/me", () => {
-    it("returns current user", async () => {
+    it("returns current user with all profile fields", async () => {
       const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.email).toBe("kevin@example.com");
       expect(res.body).toHaveProperty("id");
+      expect(res.body).toHaveProperty("name", "Kevin");
+      expect(res.body).toHaveProperty("surname", "Durand");
+      expect(res.body).toHaveProperty("role", "manager");
+      expect(res.body).toHaveProperty("mobileNumber", "0611223344");
     });
 
     it("fails if token missing", async () => {

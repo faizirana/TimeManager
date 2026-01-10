@@ -45,11 +45,11 @@ const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
   telework: Computer,
 };
 
-const statusLabels = {
+const statusLabels: Record<Member["status"], string> = {
   inProgress: "En cours",
   onPause: "On pause",
-  late: "Late",
-  planned: "Planned",
+  late: "En retard",
+  planned: "Planifié",
 };
 
 export default function TeamMembersPage() {

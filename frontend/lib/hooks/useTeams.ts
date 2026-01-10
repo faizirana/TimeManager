@@ -10,7 +10,7 @@ import {
   updateTeam,
   addTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamsService";
+} from "@/lib/services/teams/teamService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { formatShift } from "@/lib/utils/teamTransformers";
 import { TeamDisplay } from "@/lib/types/teams";
@@ -55,7 +55,7 @@ export function useTeams(userId?: number): UseTeamsResult {
       setLoading(true);
       setError(null);
 
-      const teamsData = await getTeams(userId);
+      const teamsData = await getTeams({ id_user: userId });
 
       // Transform API data to display format
       const displayTeams: TeamDisplay[] = await Promise.all(
@@ -76,7 +76,7 @@ export function useTeams(userId?: number): UseTeamsResult {
             id: team.id,
             name: team.name,
             shift,
-            members: team.members?.length || 0,
+            members: team.members?.length ?? 0,
           };
         }),
       );

@@ -311,11 +311,29 @@ module.exports = {
       });
     }
 
-    // Add one recording for Alice (manager doing spot checks)
+    // Add recordings for Alice (manager) - Team Alpha manager
     timeRecordings.push({
       id: recordingId++,
-      timestamp: "2026-01-07T10:00:00.000Z",
+      timestamp: "2026-01-02T09:30:00.000Z",
       type: "Arrival",
+      id_user: 1,
+    });
+    timeRecordings.push({
+      id: recordingId++,
+      timestamp: "2026-01-02T16:30:00.000Z",
+      type: "Departure",
+      id_user: 1,
+    });
+    timeRecordings.push({
+      id: recordingId++,
+      timestamp: "2026-01-06T10:00:00.000Z",
+      type: "Arrival",
+      id_user: 1,
+    });
+    timeRecordings.push({
+      id: recordingId++,
+      timestamp: "2026-01-06T15:00:00.000Z",
+      type: "Departure",
       id_user: 1,
     });
 

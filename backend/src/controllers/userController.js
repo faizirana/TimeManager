@@ -94,7 +94,7 @@ export const updateUser = async (req, res) => {
     const updatedData = {
       name: name ?? user.name,
       surname: surname ?? user.surname,
-      mobileNumber: mobileNumber ?? user.mobileNumber,
+      mobileNumber: mobileNumber === "" ? null : (mobileNumber ?? user.mobileNumber),
       email: email ?? user.email,
       role: isAdmin ? (role ?? user.role) : user.role,
       id_manager: isAdmin ? (id_manager ?? user.id_manager) : user.id_manager,

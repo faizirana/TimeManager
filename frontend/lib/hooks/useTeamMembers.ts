@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamsService";
+import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamService";
 import { Member } from "@/lib/types/teams";
 import { transformMembers } from "@/lib/utils/teamTransformers";
 
@@ -41,7 +41,7 @@ export function useTeamMembers(
       setError(null);
 
       const teamData = await getTeamById(teamId);
-      const transformedMembers = transformMembers(teamData.members, managerId, teamShift);
+      const transformedMembers = transformMembers(teamData.members ?? [], managerId, teamShift);
       setMembers(transformedMembers);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Équipe introuvable");
