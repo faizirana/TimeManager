@@ -22,24 +22,15 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg transition-all duration-300 ease-in-out",
+        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg transition-all duration-200 ease-in-out",
         collapsed ? "w-20 p-2" : "w-72 p-5",
         className,
       )}
+      onMouseEnter={() => setCollapsedState(false)}
+      onMouseLeave={() => setCollapsedState(true)}
+      style={{ zIndex: 100 }}
     >
-      <div className={cn("flex", collapsed ? "justify-center mb-2" : "justify-end mb-2")}>
-        <button
-          onClick={() => setCollapsedState(!collapsed)}
-          className="p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer transition-all"
-          aria-label="Toggle Sidebar"
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={20} color={toggleIconColor} />
-          ) : (
-            <PanelLeftClose size={20} color={toggleIconColor} />
-          )}
-        </button>
-      </div>
+      {/* Le bouton de toggle est supprimé, le panneau se déplie/replie au survol */}
       <div
         className={cn(
           "flex gap-3 items-center mb-6",
