@@ -8,6 +8,7 @@ export interface SidebarItemProps {
   active?: boolean;
   onClick?: () => void;
   className?: string;
+  collapsed?: boolean;
 }
 
 export interface SidebarProps {

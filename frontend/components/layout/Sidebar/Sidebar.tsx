@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, cloneElement, isValidElement, ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
 import { SidebarProps } from "@/lib/types/sidebar";
@@ -22,24 +22,37 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[var(--background-2)] shadow-md p-5 h-full rounded-r-lg",
-        collapsed ? "w-16" : "w-72",
+        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg transition-all duration-300 ease-in-out",
+        collapsed ? "w-20 p-2" : "w-72 p-5",
         className,
       )}
     >
-      <button
-        onClick={() => setCollapsedState(!collapsedState)}
-        className="self-end mb-2 p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer transition-all"
-        aria-label="Toggle Sidebar"
-      >
-        {collapsed ? (
-          <PanelLeftOpen size={20} color={toggleIconColor} />
-        ) : (
-          <PanelLeftClose size={20} color={toggleIconColor} />
+      <div className={cn("flex", collapsed ? "justify-center mb-2" : "justify-end mb-2")}>
+        <button
+          onClick={() => setCollapsedState(!collapsed)}
+          className="p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer transition-all"
+          aria-label="Toggle Sidebar"
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={20} color={toggleIconColor} />
+          ) : (
+            <PanelLeftClose size={20} color={toggleIconColor} />
+          )}
+        </button>
+      </div>
+      <div
+        className={cn(
+          "flex gap-3 items-center mb-6",
+          collapsed ? "justify-center px-0 py-0 flex-col gap-0" : "px-3 py-2",
         )}
-      </button>
-      <div className="flex gap-3 items-center mb-6 px-3 py-2">
-        <Image src={"/logo.png"} width={40} height={40} alt="Logo Time Manager"></Image>
+      >
+        <Image
+          src="/logo.png"
+          width={40}
+          height={40}
+          alt="Logo Time Manager"
+          className="flex-shrink-0"
+        />
         {!collapsed && (
           <h1 className="text-md font-bold text-zinc-950 dark:text-white">Time Manager</h1>
         )}
@@ -49,13 +62,23 @@ export default function Sidebar({
           <ul className="flex flex-col gap-1.5">
             {items.map((item) => (
               <li key={item.label}>
-                <SidebarItem {...item} />
+                <SidebarItem {...item} collapsed={collapsed} />
               </li>
             ))}
           </ul>
         </nav>
       </div>
-      <div className="flex flex-col mt-6 gap-3">{children}</div>
+      <div className={cn("flex flex-col mt-6 gap-3", collapsed && "items-center")}>
+        {children && typeof children === "object" && "map" in children
+          ? (children as ReactElement[]).map((child, index) =>
+              isValidElement(child)
+                ? cloneElement(child, { ...child.props, collapsed, key: index } as any)
+                : child,
+            )
+          : isValidElement(children)
+            ? cloneElement(children as ReactElement, { collapsed } as any)
+            : children}
+      </div>
     </aside>
   );
 }

@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen w-screen">
-      <Sidebar className="min-w-[220px]" items={sidebarItems}>
+      <Sidebar items={sidebarItems}>
         <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}

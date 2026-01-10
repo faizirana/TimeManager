@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, cloneElement, isValidElement } from "react";
 
 interface FloatingMenuProps {
   menuItems: { label: string; onClick: () => void; color?: string }[];
   buttonContent: React.ReactNode;
   direction?: "top" | "right" | "bottom" | "left";
+  collapsed?: boolean;
 }
 
 const FloatingMenu: React.FC<FloatingMenuProps> = ({
   menuItems,
   buttonContent,
   direction = "right",
+  collapsed = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +41,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
         onClick={toggleMenu}
         className={`focus:outline-none w-full ${menuItems.length > 0 ? "cursor-pointer" : ""}`}
       >
-        {buttonContent}
+        {isValidElement(buttonContent)
+          ? cloneElement(buttonContent as React.ReactElement, { collapsed } as any)
+          : buttonContent}
       </button>
 
       {isOpen && (

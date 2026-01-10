@@ -18,7 +18,7 @@ const sidebarItemVariants = cva(
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
       },
       active: { true: "text-black dark:text-white bg-secondary pointer-events-none", false: "" },
-      size: { full: "w-full px-4 py-2", icon: "w-fit px-3 py-3", profile: "w-full px-2 py-2" },
+      size: { full: "w-full px-4 py-2", icon: "px-3 py-3", profile: "w-full px-2 py-2" },
     },
     compoundVariants: [
       { variant: "default", active: false, class: "hover:bg-zinc-100 dark:hover:bg-zinc-900" },
@@ -41,16 +41,24 @@ export default function SidebarItem({
   variant,
   size,
   active,
+  collapsed,
 }: SidebarItemProps & SidebarItemVariantProps) {
   const { user } = useAuth();
   const Wrapper = href ? Link : onClick ? "button" : "div";
+  const effectiveSize = collapsed ? "icon" : size;
+
   return (
     <Wrapper
       href={variant === "disabled" ? "#" : (href as string)}
       onClick={variant === "disabled" ? undefined : onClick}
-      className={cn(sidebarItemVariants({ variant, active, size }), className)}
+      className={cn(
+        sidebarItemVariants({ variant, active, size: effectiveSize }),
+        collapsed && "justify-center",
+        className,
+      )}
       aria-disabled={variant === "disabled"}
       tabIndex={variant === "disabled" ? -1 : undefined}
+      title={collapsed ? label : undefined}
     >
       {/* Render image if provided, otherwise render icon */}
       {hasAvatar ? (
@@ -67,7 +75,7 @@ export default function SidebarItem({
           />
         )
       )}
-      {label && <span>{label}</span>}
+      {!collapsed && label && <span>{label}</span>}
     </Wrapper>
   );
 }
