@@ -7,8 +7,14 @@ import { SidebarProps } from "@/lib/types/sidebar";
 import Image from "next/image";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Import Lucide icons
 
-export default function Sidebar({ items, className, children }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+export default function Sidebar({
+  items,
+  className,
+  children,
+  collapsed: collapsedProp,
+}: SidebarProps & { collapsed?: boolean }) {
+  const [collapsedState, setCollapsedState] = useState(false);
+  const collapsed = collapsedProp ?? collapsedState;
 
   const iconColor = "var(--color-primary)"; // Default color
   const toggleIconColor = iconColor; // Dynamic color logic
@@ -22,7 +28,7 @@ export default function Sidebar({ items, className, children }: SidebarProps) {
       )}
     >
       <button
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => setCollapsedState(!collapsedState)}
         className="self-end mb-2 p-2 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer transition-all"
         aria-label="Toggle Sidebar"
       >

@@ -34,7 +34,9 @@ export const getTimeRecordings = async (req, res) => {
         if (!teamMember && parseInt(id_user) !== req.user.id) {
           return res
             .status(403)
-            .json({ message: "Forbidden - Cannot access other users' time recordings" });
+            .json({
+              message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+            });
         }
         whereClause.id_user = parseInt(id_user);
       } else {
@@ -89,7 +91,7 @@ export const getTimeRecordings = async (req, res) => {
     return res.status(200).json(recordings);
   } catch (error) {
     console.error("Error fetching time recordings:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -110,14 +112,16 @@ export const getTimeRecordingById = async (req, res) => {
     });
 
     if (!recording) {
-      return res.status(404).json({ message: "Time recording not found" });
+      return res.status(404).json({ message: "Enregistrement de temps introuvable" });
     }
 
     // Authorization check
     if (req.user.role === "employee" && recording.id_user !== req.user.id) {
       return res
         .status(403)
-        .json({ message: "Forbidden - Cannot access other users' time recordings" });
+        .json({
+          message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+        });
     }
 
     if (req.user.role === "manager") {
@@ -136,14 +140,16 @@ export const getTimeRecordingById = async (req, res) => {
       if (!teamMember && recording.id_user !== req.user.id) {
         return res
           .status(403)
-          .json({ message: "Forbidden - Cannot access other users' time recordings" });
+          .json({
+            message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+          });
       }
     }
 
     return res.status(200).json(recording);
   } catch (error) {
     console.error("Error fetching time recording:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -157,13 +163,13 @@ export const createTimeRecording = async (req, res) => {
   // Validation
   if (!timestamp || !type || !id_user) {
     return res.status(400).json({
-      message: "timestamp, type, and id_user are required",
+      message: "L'horodatage, le type et l'id_user sont requis",
     });
   }
 
   if (!["Arrival", "Departure"].includes(type)) {
     return res.status(400).json({
-      message: 'type must be either "Arrival" or "Departure"',
+      message: 'Le type doit être "Arrival" ou "Departure"',
     });
   }
 
@@ -172,7 +178,9 @@ export const createTimeRecording = async (req, res) => {
     if (req.user.role === "employee" && parseInt(id_user) !== req.user.id) {
       return res
         .status(403)
-        .json({ message: "Forbidden - Employees can only create their own time recordings" });
+        .json({
+          message: "Interdit - Les employés ne peuvent créer que leurs propres enregistrements",
+        });
     }
 
     // Managers can create for their team members
@@ -190,7 +198,8 @@ export const createTimeRecording = async (req, res) => {
 
       if (!teamMember) {
         return res.status(403).json({
-          message: "Forbidden - Cannot create time recordings for users outside your team",
+          message:
+            "Interdit - Impossible de créer des enregistrements pour des utilisateurs hors de votre équipe",
         });
       }
     }
@@ -213,8 +222,8 @@ export const createTimeRecording = async (req, res) => {
     const targetUser = await User.findByPk(parseInt(id_user));
     if (!targetUser) {
       return res.status(404).json({
-        error: "Not found",
-        message: `User with ID ${id_user} not found`,
+        error: "Non trouvé",
+        message: `Utilisateur avec l'ID ${id_user} introuvable`,
       });
     }
 
@@ -232,7 +241,7 @@ export const createTimeRecording = async (req, res) => {
     // Handle Sequelize validation errors
     if (error.name === "SequelizeValidationError") {
       return res.status(400).json({
-        error: "Validation error",
+        error: "Erreur de validation",
         message: error.errors.map((e) => e.message).join(", "),
         details: error.errors.map((e) => ({
           field: e.path,
@@ -245,8 +254,8 @@ export const createTimeRecording = async (req, res) => {
     // Handle Sequelize foreign key constraint errors
     if (error.name === "SequelizeForeignKeyConstraintError") {
       return res.status(400).json({
-        error: "Foreign key constraint error",
-        message: "The referenced user does not exist",
+        error: "Erreur de contrainte de clé étrangère",
+        message: "L'utilisateur référencé n'existe pas",
         details: { id_user: parseInt(id_user) },
       });
     }
@@ -254,9 +263,9 @@ export const createTimeRecording = async (req, res) => {
     // Handle Sequelize unique constraint errors (duplicate key)
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
-        error: "Duplicate entry",
+        error: "Entrée en double",
         message:
-          "A time recording with this ID already exists. This is likely a database sequence issue. Please contact the administrator.",
+          "Un enregistrement avec cet ID existe déjà. Il s'agit probablement d'un problème de séquence de base de données. Veuillez contacter l'administrateur.",
         details: {
           constraint: error.parent?.constraint,
           fields: error.fields,
@@ -265,8 +274,8 @@ export const createTimeRecording = async (req, res) => {
     }
 
     return res.status(500).json({
-      error: "Internal server error",
-      message: error.message || "An unexpected error occurred",
+      error: "Erreur interne du serveur",
+      message: error.message || "Une erreur inattendue s'est produite",
     });
   }
 };
@@ -280,7 +289,7 @@ export const updateTimeRecording = async (req, res) => {
     const recording = await TimeRecording.findByPk(req.params.id);
 
     if (!recording) {
-      return res.status(404).json({ message: "Time recording not found" });
+      return res.status(404).json({ message: "Enregistrement de temps introuvable" });
     }
 
     // Authorization check for managers
@@ -298,7 +307,8 @@ export const updateTimeRecording = async (req, res) => {
 
       if (!teamMember && recording.id_user !== req.user.id) {
         return res.status(403).json({
-          message: "Forbidden - Cannot update time recordings for users outside your team",
+          message:
+            "Interdit - Impossible de modifier les enregistrements d'utilisateurs hors de votre équipe",
         });
       }
     }
@@ -309,7 +319,7 @@ export const updateTimeRecording = async (req, res) => {
     if (type && type !== recording.type) {
       if (!["Arrival", "Departure"].includes(type)) {
         return res.status(400).json({
-          message: 'type must be either "Arrival" or "Departure"',
+          message: 'Le type doit être "Arrival" ou "Departure"',
         });
       }
 
@@ -357,7 +367,7 @@ export const updateTimeRecording = async (req, res) => {
     return res.status(200).json(recording);
   } catch (error) {
     console.error("Error updating time recording:", error);
-    return res.status(500).json({ message: error.message || "Internal server error" });
+    return res.status(500).json({ message: error.message || "Erreur interne du serveur" });
   }
 };
 
@@ -370,7 +380,7 @@ export const deleteTimeRecording = async (req, res) => {
     const recording = await TimeRecording.findByPk(req.params.id);
 
     if (!recording) {
-      return res.status(404).json({ message: "Time recording not found" });
+      return res.status(404).json({ message: "Enregistrement de temps introuvable" });
     }
 
     // Authorization check for managers
@@ -388,17 +398,18 @@ export const deleteTimeRecording = async (req, res) => {
 
       if (!teamMember && recording.id_user !== req.user.id) {
         return res.status(403).json({
-          message: "Forbidden - Cannot delete time recordings for users outside your team",
+          message:
+            "Interdit - Impossible de supprimer les enregistrements d'utilisateurs hors de votre équipe",
         });
       }
     }
 
     await recording.destroy();
 
-    return res.status(200).json({ message: "Time recording deleted successfully" });
+    return res.status(200).json({ message: "Enregistrement de temps supprimé avec succès" });
   } catch (error) {
     console.error("Error deleting time recording:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -429,7 +440,8 @@ export const getTimeRecordingStats = async (req, res) => {
 
       if (!teamMember && targetUserId !== req.user.id) {
         return res.status(403).json({
-          message: "Forbidden - Cannot access statistics for users outside your team",
+          message:
+            "Interdit - Impossible d'accéder aux statistiques d'utilisateurs hors de votre équipe",
         });
       }
     }
@@ -563,6 +575,6 @@ export const getTimeRecordingStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching time recording statistics:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };

@@ -20,7 +20,7 @@ export const getTimetables = async (req, res) => {
     return res.status(200).json(timetables);
   } catch (error) {
     console.error("Error fetching timetables:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -35,12 +35,12 @@ export const getTimetableById = async (req, res) => {
       ],
     });
     if (!timetable) {
-      return res.status(404).json({ message: "Timetable not found" });
+      return res.status(404).json({ message: "Horaire introuvable" });
     }
     return res.status(200).json(timetable);
   } catch (error) {
     console.error("Error fetching timetable:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -49,7 +49,7 @@ export const createTimetable = async (req, res) => {
 
   if (!Shift_start || !Shift_end) {
     return res.status(400).json({
-      message: "Shift_start and Shift_end are required",
+      message: "L'heure de début et de fin sont requises",
     });
   }
 
@@ -59,7 +59,7 @@ export const createTimetable = async (req, res) => {
 
   if (startTime >= endTime) {
     return res.status(400).json({
-      message: "Shift_start must be before Shift_end",
+      message: "L'heure de début doit être avant l'heure de fin",
     });
   }
 
@@ -71,7 +71,7 @@ export const createTimetable = async (req, res) => {
     return res.status(201).json(newTimetable);
   } catch (error) {
     console.error("Error creating timetable:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -81,7 +81,7 @@ export const updateTimetable = async (req, res) => {
   try {
     const timetable = await Timetable.findByPk(req.params.id);
     if (!timetable) {
-      return res.status(404).json({ message: "Timetable not found" });
+      return res.status(404).json({ message: "Horaire introuvable" });
     }
 
     // Récupérer les valeurs actuelles ou nouvelles
@@ -94,7 +94,7 @@ export const updateTimetable = async (req, res) => {
 
     if (startTime >= endTime) {
       return res.status(400).json({
-        message: "Shift_start must be before Shift_end",
+        message: "L'heure de début doit être avant l'heure de fin",
       });
     }
 
@@ -105,7 +105,7 @@ export const updateTimetable = async (req, res) => {
     return res.status(200).json(timetable);
   } catch (error) {
     console.error("Error updating timetable:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -113,13 +113,13 @@ export const deleteTimetable = async (req, res) => {
   try {
     const timetable = await Timetable.findByPk(req.params.id);
     if (!timetable) {
-      return res.status(404).json({ message: "Timetable not found" });
+      return res.status(404).json({ message: "Horaire introuvable" });
     }
 
     await timetable.destroy();
-    return res.status(200).json({ message: "Timetable deleted successfully" });
+    return res.status(200).json({ message: "Horaire supprimé avec succès" });
   } catch (error) {
     console.error("Error deleting timetable:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };

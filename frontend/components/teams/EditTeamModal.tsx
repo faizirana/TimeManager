@@ -50,8 +50,6 @@ export function EditTeamModal({ isOpen, onClose, team, onSubmit }: EditTeamModal
         (timetable, index, self) => index === self.findIndex((t) => t.id === timetable.id),
       );
       setTimetables(uniqueTimetables);
-    } catch (err) {
-      console.error("Failed to fetch timetables:", err);
     } finally {
       setLoadingTimetables(false);
     }

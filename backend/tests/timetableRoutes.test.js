@@ -102,7 +102,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Shift_start must be before Shift_end");
+      expect(res.body.message).toBe("L'heure de début doit être avant l'heure de fin");
     });
 
     it("rejette un timetable si Shift_start === Shift_end", async () => {
@@ -115,7 +115,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Shift_start must be before Shift_end");
+      expect(res.body.message).toBe("L'heure de début doit être avant l'heure de fin");
     });
 
     it("rejette un timetable sans Shift_start", async () => {
@@ -127,7 +127,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Shift_start and Shift_end are required");
+      expect(res.body.message).toBe("L'heure de début et de fin sont requises");
     });
 
     it("rejette un timetable sans Shift_end", async () => {
@@ -139,7 +139,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Shift_start and Shift_end are required");
+      expect(res.body.message).toBe("L'heure de début et de fin sont requises");
     });
 
     it("rejette la création sans token d'authentification", async () => {
@@ -190,7 +190,7 @@ describe("Timetable API", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Timetable not found");
+      expect(res.body.message).toBe("Horaire introuvable");
     });
 
     it("rejette la requête sans token d'authentification", async () => {
@@ -260,7 +260,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Shift_start must be before Shift_end");
+      expect(res.body.message).toBe("L'heure de début doit être avant l'heure de fin");
     });
 
     it("retourne 404 pour un timetable inexistant", async () => {
@@ -273,7 +273,7 @@ describe("Timetable API", () => {
         });
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Timetable not found");
+      expect(res.body.message).toBe("Horaire introuvable");
     });
 
     it("interdit à un manager de modifier un timetable d'une autre équipe", async () => {
@@ -321,7 +321,7 @@ describe("Timetable API", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Timetable deleted successfully");
+      expect(res.body.message).toBe("Horaire supprimé avec succès");
 
       // Vérifier que le timetable n'existe plus
       const getRes = await request(app)
@@ -349,7 +349,7 @@ describe("Timetable API", () => {
         .set("Authorization", `Bearer ${managerToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Timetable deleted successfully");
+      expect(res.body.message).toBe("Horaire supprimé avec succès");
     });
 
     it("interdit à un employee de supprimer un timetable", async () => {
@@ -367,7 +367,7 @@ describe("Timetable API", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("Timetable not found");
+      expect(res.body.message).toBe("Horaire introuvable");
     });
 
     it("rejette la requête sans token d'authentification", async () => {

@@ -51,8 +51,7 @@ export function useTimeRecordings({
       });
 
       setTimeRecordings(response);
-    } catch (err) {
-      console.error("Error fetching time recordings:", err);
+    } catch (_err) {
       setError("Impossible de charger les shifts");
     } finally {
       setLoading(false);

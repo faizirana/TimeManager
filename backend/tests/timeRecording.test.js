@@ -189,7 +189,7 @@ describe("TimeRecording API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toContain("required");
+      expect(res.body.message).toContain("requis");
     });
 
     it("should fail when type is missing", async () => {
@@ -202,7 +202,7 @@ describe("TimeRecording API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toContain("required");
+      expect(res.body.message).toContain("requis");
     });
 
     it("should fail when id_user is missing", async () => {
@@ -215,7 +215,7 @@ describe("TimeRecording API", () => {
         });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toContain("required");
+      expect(res.body.message).toContain("requis");
     });
 
     it("should fail when trying to create consecutive Arrivals", async () => {
@@ -350,7 +350,7 @@ describe("TimeRecording API", () => {
         });
 
       expect(res.statusCode).toBe(403);
-      expect(res.body.message).toContain("Forbidden");
+      expect(res.body.message).toContain("Interdit");
     });
 
     it("should allow manager to create time recording for team member", async () => {
@@ -391,7 +391,7 @@ describe("TimeRecording API", () => {
         });
 
       expect(res.statusCode).toBe(403);
-      expect(res.body.message).toContain("outside your team");
+      expect(res.body.message).toContain("hors de votre équipe");
     });
   });
 
@@ -555,7 +555,7 @@ describe("TimeRecording API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toContain("not found");
+      expect(res.body.message).toContain("introuvable");
     });
   });
 
@@ -670,7 +670,7 @@ describe("TimeRecording API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toContain("deleted successfully");
+      expect(res.body.message).toContain("supprimé avec succès");
 
       const deleted = await TimeRecording.findByPk(recording.id);
       expect(deleted).toBeNull();

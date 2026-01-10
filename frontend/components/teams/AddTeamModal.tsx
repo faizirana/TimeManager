@@ -59,8 +59,6 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
         (timetable, index, self) => index === self.findIndex((t) => t.id === timetable.id),
       );
       setTimetables(uniqueTimetables);
-    } catch (err) {
-      console.error("Failed to fetch timetables:", err);
     } finally {
       setLoadingTimetables(false);
     }
@@ -73,8 +71,6 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
       // Filter out current user from the list (manager will be auto-added)
       const filteredUsers = data.filter((u) => u.id !== user?.id);
       setUsers(filteredUsers);
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
     } finally {
       setLoadingUsers(false);
     }

@@ -8,8 +8,8 @@ export default function ClockInPage() {
   const { user, loading } = useProtectedRoute();
   const {
     timeRecordings,
-    loading: timeRecordingsLoading,
-    error: TimeRecordingsError,
+    loading: _timeRecordingsLoading,
+    error: _TimeRecordingsError,
   } = useTimeRecordings();
 
   // Show loading state while checking authentication

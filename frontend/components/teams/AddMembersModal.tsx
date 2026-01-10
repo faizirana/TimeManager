@@ -52,8 +52,7 @@ export function AddMembersModal({
       // Filter out users who are already in the team
       const availableUsers = data.filter((u) => !currentMemberIds.includes(u.id));
       setUsers(availableUsers);
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
+    } catch (_err) {
       setError("Erreur lors du chargement des utilisateurs");
     } finally {
       setLoadingUsers(false);
