@@ -40,7 +40,7 @@ describe("User Model", () => {
           role: "manager",
           id_manager: null,
         }),
-      ).rejects.toThrow("Name must be filled and cannot be null !");
+      ).rejects.toThrow("notNull Violation: User.name cannot be null");
     });
 
     it("should not create a user without a surname", async () => {
@@ -53,20 +53,22 @@ describe("User Model", () => {
           role: "manager",
           id_manager: null,
         }),
-      ).rejects.toThrow("Surname must be filled and cannot be null !");
+      ).rejects.toThrow("notNull Violation: User.surname cannot be null");
     });
 
-    it("should not create a user without a mobile number", async () => {
-      await expect(
-        User.create({
-          name: "Alice",
-          surname: "Smith",
-          email: "alice.smith@example.com",
-          password: "Secure123@",
-          role: "manager",
-          id_manager: null,
-        }),
-      ).rejects.toThrow("MobileNumber must be filled and cannot be null !");
+    it("should create a user without a mobile number (optional field)", async () => {
+      const user = await User.create({
+        name: "Alice",
+        surname: "Smith",
+        email: "alice.smith.nomobile@example.com",
+        password: "Secure123@",
+        role: "manager",
+        mobileNumber: null,
+        id_manager: null,
+      });
+
+      expect(user.name).toBe("Alice");
+      expect(user.mobileNumber).toBeNull();
     });
 
     it("should not create a user with a non-numeric mobile number", async () => {
@@ -93,7 +95,7 @@ describe("User Model", () => {
           role: "manager",
           id_manager: null,
         }),
-      ).rejects.toThrow("Email must be filled and cannot be null !");
+      ).rejects.toThrow("notNull Violation: User.email cannot be null");
     });
 
     it("should not create a user with an invalid email", async () => {
@@ -120,7 +122,7 @@ describe("User Model", () => {
           role: "manager",
           id_manager: null,
         }),
-      ).rejects.toThrow("Password must be filled and cannot be null !");
+      ).rejects.toThrow("notNull Violation: User.password cannot be null");
     });
 
     it("should not create a user with a weak password", async () => {
@@ -149,7 +151,7 @@ describe("User Model", () => {
           password: "Secure123@",
           id_manager: null,
         }),
-      ).rejects.toThrow("Role must be filled and cannot be null !");
+      ).rejects.toThrow("notNull Violation: User.role cannot be null");
     });
 
     it("should not create a user with an invalid role", async () => {

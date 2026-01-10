@@ -19,10 +19,10 @@ interface ProfileEditFormProps {
  */
 export default function ProfileEditForm({ profile, onSave, onCancel }: ProfileEditFormProps) {
   const [formData, setFormData] = useState({
-    name: profile.name,
-    surname: profile.surname,
-    email: profile.email,
-    mobileNumber: profile.mobileNumber,
+    name: profile.name ?? "",
+    surname: profile.surname ?? "",
+    email: profile.email ?? "",
+    mobileNumber: profile.mobileNumber ?? "",
     password: "",
     confirmPassword: "",
   });
@@ -34,28 +34,26 @@ export default function ProfileEditForm({ profile, onSave, onCancel }: ProfileEd
     const newErrors: Record<string, string> = {};
 
     // Name validation
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = "Le prénom est requis";
     }
 
     // Surname validation
-    if (!formData.surname.trim()) {
+    if (!formData.surname?.trim()) {
       newErrors.surname = "Le nom est requis";
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
+    if (!formData.email?.trim()) {
       newErrors.email = "L'email est requis";
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = "Format d'email invalide";
     }
 
-    // Mobile number validation (numeric only)
+    // Mobile number validation (optional - only validate format if provided)
     const phoneRegex = /^[0-9]{10}$/;
-    if (!formData.mobileNumber.trim()) {
-      newErrors.mobileNumber = "Le numéro de téléphone est requis";
-    } else if (!phoneRegex.test(formData.mobileNumber)) {
+    if (formData.mobileNumber?.trim() && !phoneRegex.test(formData.mobileNumber)) {
       newErrors.mobileNumber = "Le numéro doit contenir 10 chiffres";
     }
 
@@ -185,7 +183,7 @@ export default function ProfileEditForm({ profile, onSave, onCancel }: ProfileEd
           {/* Mobile Number */}
           <div>
             <Label htmlFor="mobileNumber" variant="static">
-              Téléphone <span className="text-red-500">*</span>
+              Téléphone
             </Label>
             <Input
               type="tel"

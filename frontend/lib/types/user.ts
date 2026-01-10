@@ -10,7 +10,7 @@ export interface UserProfile {
   name: string;
   surname: string;
   email: string;
-  mobileNumber: string;
+  mobileNumber?: string;
   role: "manager" | "employee" | "admin";
   id_manager: number | null;
   createdAt?: string;
