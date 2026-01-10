@@ -32,11 +32,9 @@ export const getTimeRecordings = async (req, res) => {
         });
 
         if (!teamMember && parseInt(id_user) !== req.user.id) {
-          return res
-            .status(403)
-            .json({
-              message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
-            });
+          return res.status(403).json({
+            message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+          });
         }
         whereClause.id_user = parseInt(id_user);
       } else {
@@ -117,11 +115,9 @@ export const getTimeRecordingById = async (req, res) => {
 
     // Authorization check
     if (req.user.role === "employee" && recording.id_user !== req.user.id) {
-      return res
-        .status(403)
-        .json({
-          message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
-        });
+      return res.status(403).json({
+        message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+      });
     }
 
     if (req.user.role === "manager") {
@@ -138,11 +134,9 @@ export const getTimeRecordingById = async (req, res) => {
       });
 
       if (!teamMember && recording.id_user !== req.user.id) {
-        return res
-          .status(403)
-          .json({
-            message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
-          });
+        return res.status(403).json({
+          message: "Interdit - Impossible d'accéder aux enregistrements d'autres utilisateurs",
+        });
       }
     }
 
@@ -176,11 +170,9 @@ export const createTimeRecording = async (req, res) => {
   try {
     // Authorization: Employees can only create their own recordings
     if (req.user.role === "employee" && parseInt(id_user) !== req.user.id) {
-      return res
-        .status(403)
-        .json({
-          message: "Interdit - Les employés ne peuvent créer que leurs propres enregistrements",
-        });
+      return res.status(403).json({
+        message: "Interdit - Les employés ne peuvent créer que leurs propres enregistrements",
+      });
     }
 
     // Managers can create for their team members

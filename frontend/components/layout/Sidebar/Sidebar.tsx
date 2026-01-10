@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
 import { SidebarProps } from "@/lib/types/sidebar";
 import Image from "next/image";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Import Lucide icons
+// import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Icons plus utilisés
 
 export default function Sidebar({
   items,
@@ -16,8 +16,8 @@ export default function Sidebar({
   const [collapsedState, setCollapsedState] = useState(false);
   const collapsed = collapsedProp ?? collapsedState;
 
-  const iconColor = "var(--color-primary)"; // Default color
-  const toggleIconColor = iconColor; // Dynamic color logic
+  // const iconColor = "var(--color-primary)"; // Plus utilisé
+  // const toggleIconColor = iconColor; // Plus utilisé
 
   return (
     <aside
@@ -63,11 +63,11 @@ export default function Sidebar({
         {children && typeof children === "object" && "map" in children
           ? (children as ReactElement[]).map((child, index) =>
               isValidElement(child)
-                ? cloneElement(child, { ...child.props, collapsed, key: index } as any)
+                ? cloneElement(child, { ...child.props, collapsed, key: index } as unknown)
                 : child,
             )
           : isValidElement(children)
-            ? cloneElement(children as ReactElement, { collapsed } as any)
+            ? cloneElement(children as ReactElement, { collapsed } as unknown)
             : children}
       </div>
     </aside>
