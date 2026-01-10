@@ -5,7 +5,7 @@ import { useManagerStats } from "@/lib/hooks/useManagerStats";
 import { getTeams } from "@/lib/services/teams/teamService";
 import TeamStackedBar from "./charts/TeamStackedBar";
 import PresenceHeatmap from "./charts/PresenceHeatmap";
-import { Team } from "@/lib/types/team";
+import { Team } from "@/lib/types/teams";
 
 interface ManagerStatsProps {
   userId: number;
