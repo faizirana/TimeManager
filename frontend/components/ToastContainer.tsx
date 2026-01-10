@@ -30,15 +30,15 @@ export function ToastContainer() {
   const getColors = (type: string) => {
     switch (type) {
       case "success":
-        return "bg-green-50 text-green-900 border-green-200";
+        return "bg-green-50 text-green-900 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800";
       case "error":
-        return "bg-red-50 text-red-900 border-red-200";
+        return "bg-red-50 text-red-900 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800";
       case "warning":
-        return "bg-yellow-50 text-yellow-900 border-yellow-200";
+        return "bg-yellow-50 text-yellow-900 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-800";
       case "info":
-        return "bg-blue-50 text-blue-900 border-blue-200";
+        return "bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800";
       default:
-        return "bg-gray-50 text-gray-900 border-gray-200";
+        return "bg-gray-50 text-gray-900 border-gray-200 dark:bg-gray-900/20 dark:text-gray-200 dark:border-gray-800";
     }
   };
 
