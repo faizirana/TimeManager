@@ -9,6 +9,8 @@ import teamRoutes from "./routes/teamRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
 import timeRecordingRoutes from "./routes/timeRecordingRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import managerRoutes from "./routes/managerRoutes.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -271,6 +273,8 @@ app.use("/auth", authRoutes);
 app.use("/teams", teamRoutes);
 app.use("/timetables", timetableRoutes);
 app.use("/timerecordings", timeRecordingRoutes);
+app.use("/users", userRoutes);
+app.use("/managers", managerRoutes);
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });

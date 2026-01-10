@@ -55,7 +55,7 @@ module.exports = {
           mobileNumber: "0900000000",
           email: "admin@example.com",
           password: managerPassword,
-          role: "manager", // Using manager role as admin doesn't exist in DB
+          role: "admin",
           id_manager: null,
         },
       ],
