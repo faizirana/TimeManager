@@ -30,7 +30,7 @@ import { TableSkeleton } from "@/components/UI/TableSkeleton";
 import Toast from "@/components/UI/Toast";
 import { AddTeamModal } from "@/components/teams/AddTeamModal";
 import { EditTeamModal } from "@/components/teams/EditTeamModal";
-import { Team } from "@/lib/types/teams";
+import { Team } from "@/lib/types/team";
 import { canManageTeams } from "@/lib/utils/permissions";
 
 export default function TeamsPage() {
