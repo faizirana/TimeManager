@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: "Clock in", icon: Clock, href: "/clock-in", variant: "important" },
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", variant: undefined },
     { label: "Teams", icon: Users, href: "/teams", variant: undefined },
-    { label: "Statistics", icon: ChartNoAxesCombined, href: "/stats", variant: "disabled" },
+    { label: "Statistiques", icon: ChartNoAxesCombined, href: "/statistics", variant: undefined },
   ].map((item) => {
     const itemPath = normalize(item.href);
     const current = normalize(pathname);

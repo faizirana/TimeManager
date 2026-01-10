@@ -42,6 +42,17 @@ global.IntersectionObserver = class IntersectionObserver {
 } as any;
 
 /**
+ * Mock ResizeObserver
+ * Used by Recharts for responsive containers
+ */
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+} as any;
+
+/**
  * Global fetch mock configuration
  * Removes warnings if fetch is not mocked in a test
  */
