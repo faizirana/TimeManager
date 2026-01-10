@@ -55,7 +55,11 @@ module.exports = {
           mobileNumber: "0900000000",
           email: "admin@example.com",
           password: managerPassword,
+<<<<<<< HEAD
           role: "admin", // Using manager role as admin doesn't exist in DB
+=======
+          role: "admin",
+>>>>>>> 0ed3912 ([KAN-61] FEAT: adding managerController and managerRoutes)
           id_manager: null,
         },
       ],
