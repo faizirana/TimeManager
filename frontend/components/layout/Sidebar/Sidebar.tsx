@@ -6,6 +6,7 @@ import SidebarItem from "./SidebarItem";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { SidebarProps } from "@/lib/types/sidebar";
 import Image from "next/image";
+import styles from "./Sidebar.module.css";
 // import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Icons plus utilisés
 
 export default function Sidebar({
@@ -13,8 +14,10 @@ export default function Sidebar({
   className,
   children,
   collapsed: collapsedProp,
-}: SidebarProps & { collapsed?: boolean }) {
-  const [collapsedState, setCollapsedState] = useState(true);
+  setCollapsedState: setCollapsedStateProp,
+}: SidebarProps & { collapsed?: boolean; setCollapsedState?: (collapsed: boolean) => void }) {
+  const [collapsedState, setCollapsedStateLocal] = useState(true);
+  const setCollapsedState = setCollapsedStateProp || setCollapsedStateLocal;
   const collapsed = collapsedProp ?? collapsedState;
   // Récupérer user côté client uniquement ici
   const { user } = useAuth ? useAuth() : { user: undefined };
@@ -28,14 +31,14 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg",
+        styles.sidebar,
+        "bg-[var(--background-2)] dark:bg-zinc-900 bg-white",
         "transition-[width,padding] duration-500 ease-in-out",
         collapsed ? "w-20 p-2" : "w-72 p-5",
         className,
       )}
       onMouseEnter={() => setCollapsedState(false)}
       onMouseLeave={() => setCollapsedState(true)}
-      style={{ zIndex: 100, overflow: "hidden" }}
     >
       {/* Le bouton de toggle est supprimé, le panneau se déplie/replie au survol */}
       <div

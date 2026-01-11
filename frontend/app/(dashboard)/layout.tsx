@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import { LayoutDashboard, Clock, Users, ChartNoAxesCombined } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,9 +38,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { label: "Déconnexion", color: "text-red-600", onClick: logout },
   ];
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
   return (
-    <div className="flex h-screen w-screen">
-      <Sidebar items={sidebarItems}>
+    <div className="h-screen w-screen">
+      <Sidebar
+        items={sidebarItems}
+        collapsed={sidebarCollapsed}
+        // On transmet le setter via une prop spéciale pour le contrôle parent
+        setCollapsedState={setSidebarCollapsed}
+      >
         <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}
@@ -49,7 +56,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }
         />
       </Sidebar>
-      <main className="w-full h-full">{children}</main>
+      <main
+        className="flex-1 h-full transition-all duration-500 ease-in-out"
+        style={{ marginLeft: sidebarCollapsed ? 80 : 288, minHeight: "100vh" }}
+      >
+        {children}
+      </main>
     </div>
   );
 }
