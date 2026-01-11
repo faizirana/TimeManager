@@ -107,18 +107,66 @@ bootstrap-time-manager/
 
 ## 📡 Back-end – Express.js
 
+
 Le backend fournit une API RESTful pour toutes les opérations.
 
-### 🔌 Endpoints principaux
-- `POST /auth/register` – Inscription d’un utilisateur  
-- `POST /auth/login` – Authentification   
-- `GET /time` – Historique du temps passé
-- `GET /users` – Liste des utilisateurs (admin) 
+### 🔌 Endpoints
+
+#### Authentification
+- `POST /auth/login` : Connexion, retourne un access token et un refresh token (cookie)
+- `POST /auth/logout` : Déconnexion (supprime le refresh token)
+- `POST /auth/refresh` : Rafraîchit le token d'accès via le refresh token (cookie)
+- `GET /auth/me` : Récupère l'utilisateur actuellement authentifié
+
+#### Santé
+- `GET /health` : Vérifie la santé de l’API
+
+#### Utilisateurs
+- `GET /users` : Liste tous les utilisateurs
+- `GET /users/{id}` : Détail d’un utilisateur
+- `POST /users` : Crée un utilisateur (admin uniquement)
+- `PUT /users/{id}` : Modifie un utilisateur (self/admin/manager)
+- `DELETE /users/{id}` : Supprime un utilisateur (admin uniquement)
+
+#### Managers
+- `GET /managers` : Liste tous les managers (admin uniquement)
+- `GET /managers/{id}/team` : Liste l’équipe d’un manager (admin ou manager concerné)
+
+#### Équipes
+- `GET /teams` : Liste toutes les équipes (filtrage possible par utilisateur)
+- `GET /teams/{id}` : Détail d’une équipe
+- `POST /teams` : Crée une équipe (admin/manager)
+- `PUT /teams/{id}` : Modifie une équipe (manager de l’équipe/admin)
+- `DELETE /teams/{id}` : Supprime une équipe (manager de l’équipe/admin)
+- `POST /teams/{id}/users` : Ajoute un membre à une équipe
+- `DELETE /teams/{id}/users/{userId}` : Retire un membre d’une équipe
+- `GET /teams/{id}/stats` : Statistiques d’équipe
+
+#### Pointages (TimeRecordings)
+- `GET /timerecordings` : Liste tous les pointages (filtrage possible)
+- `GET /timerecordings/stats` : Statistiques de pointage
+- `GET /timerecordings/{id}` : Détail d’un pointage
+- `POST /timerecordings` : Crée un pointage
+- `PUT /timerecordings/{id}` : Modifie un pointage (manager/admin)
+- `DELETE /timerecordings/{id}` : Supprime un pointage (manager/admin)
+
+#### Horaires (Timetables)
+- `GET /timetables` : Liste tous les horaires
+- `GET /timetables/{id}` : Détail d’un horaire
+- `POST /timetables` : Crée un horaire (manager/admin)
+- `PUT /timetables/{id}` : Modifie un horaire (manager/admin)
+- `DELETE /timetables/{id}` : Supprime un horaire (manager/admin)
 
 ### 🛡️ Middleware recommandés
-- `cors` – gestion des origines  
-- `helmet` – sécurité des headers  
+- `cors` – gestion des origines
+- `helmet` – sécurité des headers
 - `morgan` – logs HTTP
+
+#### Middlewares métiers principaux utilisés dans l’API :
+- `authenticate` : vérifie le JWT d’accès (authMiddleware)
+- `authorize(...roles)` : contrôle d’accès par rôle (rolesMiddleware)
+- `canManageTeam`, `canManageTeamMembers`, `canViewTeam` : gestion fine des droits sur les équipes (teamMiddleware)
+- `canCreateTimetable`, `canModifyTimetable` : gestion des droits sur les horaires (timetableMiddleware)
 
 ---
 
@@ -133,18 +181,31 @@ Le backend fournit une API RESTful pour toutes les opérations.
 ## 🖥️ Front-end – Next.js
 
 ### 📑 Pages principales
-- `/login` – Authentification  
-- `/dashboard` – Vue d’ensemble  
-- `/stats` – Statistiques et graphiques  
+- `/login` : Authentification (route protégée, layout dédié)
+- `/dashboard` : Vue d’ensemble après connexion
+- `/dashboard/profile` : Profil utilisateur (infos, édition)
+- `/dashboard/statistics` : Statistiques et graphiques personnels
+- `/dashboard/teams` : Liste des équipes
+- `/dashboard/teams/[id]` : Détail d’une équipe
+- `/dashboard/clock-in` : Badgeuse/pointage
 
-### 🧠 Gestion d’état
-- Context API ou Zustand / Redux
+### 🧩 Composants UI principaux
+- Boutons, inputs, sélecteurs, modals, tables, badges de rôle/statut, skeletons, etc. (voir dossier `components/UI`)
+- Toasts de notification (`ToastContainer`, `Toast`)
+- Switcher dark/light (`DarkModeSwitcher`)
 
-### 🔐 Authentification
-- JWT stocké en cookies sécurisés
-- Redirection conditionnelle côté serveur
-- Protection des routes privées
-- Gestion des rôles utilisateurs
+### 🧠 Gestion d’état & hooks
+- Utilisation de contextes React et hooks personnalisés pour l’auth, les équipes, etc.
+
+### 🔐 Authentification & sécurité
+- Authentification centralisée (login, refresh, logout)
+- JWT stocké en cookie sécurisé (httpOnly)
+- Redirection automatique si non authentifié
+- Protection des routes côté serveur et client
+- Gestion des rôles utilisateurs (admin, manager, employé)
+
+### 🎨 Thème
+- Support du mode sombre/clair
 
 ---
 
@@ -161,7 +222,7 @@ docker compose down
 
 ## 📜 Documentation API – Swagger
 Swagger est intégré directement dans le backend :
-- URL d’accès : http://localhost:3001/api-docs
+- URL d’accès : http://localhost/api-docs
 
 ---
 
