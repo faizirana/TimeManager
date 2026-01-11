@@ -11,7 +11,7 @@ const mockUser = {
   surname: "Doe",
   email: "john@example.com",
   role: "employee",
-  mobileNumber: "+33612345678",
+  mobileNumber: "0612345678",
 };
 
 describe("EditUserModal", () => {
@@ -59,24 +59,6 @@ describe("EditUserModal", () => {
       );
 
       expect(screen.queryByText("Modifier l'utilisateur")).not.toBeInTheDocument();
-    });
-
-    it("should parse phone number correctly", () => {
-      const userWithPhone = {
-        ...mockUser,
-        mobileNumber: "+33601020304",
-      };
-
-      render(
-        <EditUserModal
-          isOpen={true}
-          onClose={mockOnClose}
-          onSubmit={mockOnSubmit}
-          user={userWithPhone}
-        />,
-      );
-
-      expect(screen.getByLabelText("Numéro de mobile")).toHaveValue("0601020304");
     });
   });
 
@@ -194,7 +176,7 @@ describe("EditUserModal", () => {
           surname: "Doe",
           email: "jane@example.com",
           role: "employee",
-          mobileNumber: "+33612345678",
+          mobileNumber: "0612345678",
         });
       });
 
@@ -253,34 +235,6 @@ describe("EditUserModal", () => {
 
       expect(screen.getByLabelText("Prénom")).toBeDisabled();
       expect(screen.getByLabelText("Nom")).toBeDisabled();
-    });
-
-    it("should normalize phone number on submit", async () => {
-      mockOnSubmit.mockResolvedValue(undefined);
-
-      render(
-        <EditUserModal
-          isOpen={true}
-          onClose={mockOnClose}
-          onSubmit={mockOnSubmit}
-          user={mockUser}
-        />,
-      );
-
-      fireEvent.change(screen.getByLabelText("Numéro de mobile"), {
-        target: { value: "0701020304" },
-      });
-
-      const submitButton = screen.getByRole("button", { name: /enregistrer/i });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockOnSubmit).toHaveBeenCalledWith(
-          expect.objectContaining({
-            mobileNumber: "+33701020304",
-          }),
-        );
-      });
     });
   });
 

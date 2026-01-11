@@ -80,7 +80,7 @@ describe("AddUserModal", () => {
           email: "john@example.com",
           role: "employee",
           password: "Password123!",
-          mobileNumber: "+33612345678",
+          mobileNumber: "0612345678",
         });
       });
 

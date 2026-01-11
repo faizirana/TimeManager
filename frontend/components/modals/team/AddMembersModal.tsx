@@ -86,7 +86,7 @@ export function AddMembersModal({
     if (error && selectedMemberIds.length > 0) {
       clearError();
     }
-  }, [selectedMemberIds, error, clearError]);
+  }, [selectedMemberIds]);
 
   const toggleMember = (userId: number) => {
     setSelectedMemberIds((prev) =>

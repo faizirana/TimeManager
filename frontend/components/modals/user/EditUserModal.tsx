@@ -8,14 +8,12 @@
  * **Validation Rules:**
  * - All fields except password are required (name, surname, email, role, mobile)
  * - Email: Standard format (user@domain.com)
- * - Mobile: 10 digits starting with 0 (French format)
- * - Country Code: +1 to +999 format
+ * - Mobile: 10 digits (format: 0601020304)
  * - Role: Must be admin, manager, or employee
  *
  * **Mobile Phone Handling:**
- * - User inputs country code (+33) and mobile (0601020304)
- * - System automatically removes leading 0 and concatenates: +33601020304
- * - Result is E.164 compliant international format
+ * - User inputs mobile number directly (0601020304)
+ * - Stored as-is in the database
  *
  * **Error Handling:**
  * - Uses useErrorHandler hook for centralized error state
@@ -52,7 +50,6 @@ import { Label } from "@/components/UI/Label";
 import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
 import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
 import { validateEmail, validateMobile } from "@/lib/utils/validation";
-import { normalizePhoneNumber, parsePhoneNumber } from "@/lib/utils/formHelpers";
 import { VALIDATION_ERRORS, API_ERRORS } from "@/lib/types/errorMessages";
 import type { User } from "@/lib/types/teams";
 
@@ -76,7 +73,6 @@ export function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModal
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+33");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { error, setError, clearError } = useErrorHandler();
 
@@ -87,11 +83,7 @@ export function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModal
       setSurname(user.surname);
       setEmail(user.email);
       setRole(user.role);
-
-      // Parse mobile number (E.164 format) back to country code and local number
-      const { countryCode: cc, localNumber } = parsePhoneNumber(user.mobileNumber);
-      setCountryCode(cc);
-      setMobileNumber(localNumber);
+      setMobileNumber(user.mobileNumber);
 
       // Clear any existing errors when loading a new user
       clearError();
@@ -111,11 +103,6 @@ export function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModal
     const emailValidation = validateEmail(email);
     if (!emailValidation.valid) {
       setError(emailValidation.error ?? "Email invalide");
-      return false;
-    }
-
-    if (!/^\+\d{1,3}$/.test(countryCode)) {
-      setError(VALIDATION_ERRORS.INVALID_COUNTRY_CODE);
       return false;
     }
 
@@ -146,13 +133,12 @@ export function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModal
     if (!validate()) return;
     try {
       setIsSubmitting(true);
-      const formattedMobile = normalizePhoneNumber(countryCode, mobileNumber);
       await onSubmit({
         name: name.trim(),
         surname: surname.trim(),
         email: email.trim(),
         role: role.trim(),
-        mobileNumber: formattedMobile,
+        mobileNumber: mobileNumber.trim(),
       });
       onClose();
     } catch (err) {
@@ -263,37 +249,16 @@ export function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModal
           <Label htmlFor="edit-user-mobile" variant="static">
             Numéro de mobile
           </Label>
-          <div className="flex gap-2 items-center">
-            <div className="relative w-20">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 select-none pointer-events-none">
-                +
-              </span>
-              <Input
-                id="edit-user-country-code"
-                type="number"
-                value={countryCode.replace("+", "")}
-                onChange={(e) => setCountryCode(`+${e.target.value.replace(/\D/g, "")}`)}
-                placeholder="00"
-                disabled={isSubmitting}
-                required
-                min={1}
-                max={999}
-                className="pl-6 pr-2 w-full text-center"
-                style={{ MozAppearance: "textfield" }}
-              />
-            </div>
-            <Input
-              id="edit-user-mobile"
-              type="text"
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
-              placeholder="Ex: 0601020304"
-              disabled={isSubmitting}
-              required
-              maxLength={10}
-              className="flex-1"
-            />
-          </div>
+          <Input
+            id="edit-user-mobile"
+            type="text"
+            value={mobileNumber}
+            onChange={(e) => setMobileNumber(e.target.value)}
+            placeholder="Ex: 0601020304"
+            disabled={isSubmitting}
+            required
+            maxLength={10}
+          />
         </div>
       </form>
     </Modal>

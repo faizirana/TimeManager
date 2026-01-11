@@ -48,6 +48,7 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john.doe@example.com",
+        mobileNumber: "+33601020304",
         role: "employee",
         isManager: false,
         situation: { type: "onsite" },

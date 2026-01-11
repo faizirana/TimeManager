@@ -126,11 +126,12 @@ export default function AdminTeamsPage() {
     name: string;
     id_manager: number;
     id_timetable: number;
+    memberIds?: number[];
   }) {
     try {
       await createNewTeam({
         ...teamData,
-        memberIds: [],
+        memberIds: teamData.memberIds || [],
       });
       addModal.close();
       showSuccess(SUCCESS_MESSAGES.CREATED("Équipe"));
@@ -142,7 +143,11 @@ export default function AdminTeamsPage() {
   /**
    * Handles team update
    */
-  async function handleUpdateTeam(teamData: { name: string; id_timetable: number }) {
+  async function handleUpdateTeam(teamData: {
+    name: string;
+    id_timetable: number;
+    memberIds?: number[];
+  }) {
     if (!teamToEdit) return;
     try {
       await updateExistingTeam(teamToEdit.id, teamData);
@@ -268,7 +273,7 @@ export default function AdminTeamsPage() {
                   ID
                 </TableHead>
                 <TableHead
-                  className="w-full"
+                  className="w-1/2 whitespace-nowrap"
                   sortable
                   sortDirection={sortColumn === "name" ? sortDirection : null}
                   onSort={() => handleSort("name")}
@@ -294,7 +299,7 @@ export default function AdminTeamsPage() {
                   Membres
                 </TableHead>
                 <TableHead
-                  className="w-auto whitespace-nowrap text-right"
+                  className="w-1/2 whitespace-nowrap text-right"
                   sortable
                   sortDirection={sortColumn === "shift" ? sortDirection : null}
                   onSort={() => handleSort("shift")}

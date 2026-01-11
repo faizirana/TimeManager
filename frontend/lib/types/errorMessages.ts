@@ -28,7 +28,7 @@ export const VALIDATION_ERRORS = {
  * API error messages
  */
 export const API_ERRORS = {
-  FETCH_FAILED: (resource: string) => `Échec du chargement de ${resource}. Veuillez réessayer.`,
+  FETCH_FAILED: (resource: string) => `Échec du chargement des ${resource}. Veuillez réessayer.`,
   CREATE_FAILED: (resource: string) => `Échec de la création de ${resource}. Veuillez réessayer.`,
   CREATE_TEAM_FAILED: "Erreur lors de la création de l'équipe",
   CREATE_USER_FAILED: "Erreur lors de la création de l'utilisateur",

@@ -91,7 +91,7 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
     if (error && (name || selectedTimetableId || selectedMemberIds.length > 0)) {
       clearError();
     }
-  }, [name, selectedTimetableId, selectedMemberIds, error, clearError]);
+  }, [name, selectedTimetableId, selectedMemberIds]);
 
   // Reset form when modal opens
   useEffect(() => {

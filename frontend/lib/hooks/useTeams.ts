@@ -10,6 +10,7 @@ import {
   createTeam,
   updateTeam,
   addTeamMember,
+  removeTeamMember,
   getTeamById,
   deleteTeam,
 } from "@/lib/services/teams/teamsService";
@@ -32,6 +33,7 @@ interface UseTeamsResult {
     teamData: {
       name: string;
       id_timetable: number;
+      memberIds?: number[];
     },
   ) => Promise<void>;
   deleteTeamById: (teamId: number) => Promise<void>;
@@ -134,10 +136,37 @@ export function useTeams(userId?: number): UseTeamsResult {
     teamData: {
       name: string;
       id_timetable: number;
+      memberIds?: number[];
     },
   ): Promise<void> => {
     try {
-      await updateTeam(teamId, teamData);
+      const { memberIds, ...teamInfo } = teamData;
+
+      // Update team basic info
+      await updateTeam(teamId, teamInfo);
+
+      // Update members if memberIds is provided
+      if (memberIds !== undefined) {
+        // Get current team to compare members
+        const currentTeam = await getTeamById(teamId);
+        const currentMemberIds = currentTeam.members?.map((m) => m.id) || [];
+
+        // Find members to add (in new list but not in current)
+        const membersToAdd = memberIds.filter((id) => !currentMemberIds.includes(id));
+
+        // Find members to remove (in current list but not in new)
+        const membersToRemove = currentMemberIds.filter((id) => !memberIds.includes(id));
+
+        // Add new members
+        if (membersToAdd.length > 0) {
+          await Promise.all(membersToAdd.map((memberId) => addTeamMember(teamId, memberId)));
+        }
+
+        // Remove members
+        if (membersToRemove.length > 0) {
+          await Promise.all(membersToRemove.map((memberId) => removeTeamMember(teamId, memberId)));
+        }
+      }
 
       // Update local state optimistically
       const updatedTeam = await getTeamById(teamId);
