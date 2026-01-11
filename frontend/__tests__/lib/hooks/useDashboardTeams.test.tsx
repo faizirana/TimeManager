@@ -4,10 +4,10 @@
 
 import { renderHook, waitFor } from "@testing-library/react";
 import { useDashboardTeams } from "@/lib/hooks/useDashboardTeams";
-import { getTeams } from "@/lib/services/teams/teamService";
+import { getTeams } from "@/lib/services/teams/teamsService";
 
 // Mock the service
-jest.mock("@/lib/services/teams/teamService");
+jest.mock("@/lib/services/teams/teamsService");
 
 const mockGetTeams = getTeams as jest.MockedFunction<typeof getTeams>;
 

@@ -1,7 +1,66 @@
+/**
+ * TeamDetailPage Component
+ *
+ * Detailed view of a specific team and its members.
+ * Displays team information, member list with status, and management actions.
+ *
+ * **Features:**
+ * - View team details (name, manager, timetable)
+ * - View all team members with status and situation
+ * - Add new members to the team (managers only)
+ * - Remove members from the team (managers only)
+ * - Sort members by name, role, status, or situation
+ * - Real-time status badges (Présent, Absent, En congé)
+ * - Situation icons (Sur site, Télétravail)
+ *
+ * **Access Control:**
+ * - All authenticated users can view team details
+ * - Only team managers can add/remove members
+ * - Managers cannot remove themselves
+ * - Permission checks via canManageTeams and canRemoveMember
+ *
+ * **State Management:**
+ * - useTeamDetails: Fetches team information
+ * - useTeamMembers: Manages member list and CRUD operations
+ * - useModal: Controls AddMembersModal and DeleteMemberModal visibility
+ * - useErrorHandler: Centralized error state management
+ * - useTableSort: Handles multi-field member sorting
+ * - useAuth: Provides current user context for permissions
+ *
+ * **Member Information:**
+ * - Avatar and full name
+ * - Role badge (Admin, Manager, Employee)
+ * - Status badge (Présent, Absent, En congé)
+ * - Situation (Sur site with MapPin icon, Télétravail with Computer icon)
+ * - Remove button (managers only, not for self)
+ *
+ * **Sorting:**
+ * - Name: Alphabetical A-Z / Z-A
+ * - Role: Admin > Manager > Employee
+ * - Status: Present > Absent > On leave (custom handleSituationSort)
+ * - Situation: Onsite > Telework
+ *
+ * **Navigation:**
+ * - Breadcrumb trail: Équipes > [Team Name]
+ * - Back to teams list via breadcrumb link
+ *
+ * @component
+ * @returns {JSX.Element} The team detail page
+ *
+ * @example
+ * // Accessed via /teams/[id] route
+ * // Example: /teams/5 shows details for team with ID 5
+ * // Members can view, managers can add/remove members
+ */
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
+import { useToast } from "@/lib/hooks/useToast";
+import { useTableSearch } from "@/lib/hooks/useTableSearch";
+import { useTablePagination } from "@/lib/hooks/useTablePagination";
 import {
   LucideIcon,
   ChevronRight,
@@ -13,6 +72,7 @@ import {
   MapPin,
   Computer,
   Trash2,
+  Search,
 } from "lucide-react";
 import { useTableSort } from "@/lib/hooks/useTableSort";
 import { useTeamDetails } from "@/lib/hooks/useTeamDetails";
@@ -20,6 +80,9 @@ import { useTeamMembers } from "@/lib/hooks/useTeamMembers";
 import { Button } from "@/components/UI/Button";
 import { StatusBadge } from "@/components/UI/StatusBadge";
 import { RoleBadge } from "@/components/UI/RoleBadge";
+import Toast from "@/components/UI/Toast";
+import { LoadingState } from "@/components/UI/LoadingState";
+import { TablePagination } from "@/components/UI/TablePagination";
 import { compareShifts } from "@/lib/utils/sortHelpers";
 import {
   Table,
@@ -31,18 +94,19 @@ import {
 } from "@/components/UI/Table";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Avatar } from "@/components/UI/Avatar";
-import { TableSkeleton } from "@/components/UI/TableSkeleton";
-import Toast from "@/components/UI/Toast";
-import { DeleteMemberModal } from "@/components/teams/DeleteMemberModal";
-import { AddMembersModal } from "@/components/teams/AddMembersModal";
+import { DeleteMemberModal } from "@/components/modals/team/DeleteMemberModal";
+import { AddMembersModal } from "@/components/modals/team/AddMembersModal";
 import { Member } from "@/lib/types/teams";
 import { canRemoveMember, getMemberFullName } from "@/lib/utils/teamTransformers";
+import { ClockStatusIndicator } from "@/components/UI/ClockStatusIndicator";
+import { getElapsedTime } from "@/lib/services/statusCalculator";
 import { canManageTeams } from "@/lib/utils/permissions";
+import { SUCCESS_MESSAGES } from "@/lib/types/errorMessages";
 
 // Mapping of situation types to their icons
 const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
   onsite: MapPin,
-  telework: Computer,
+  absent: Computer,
 };
 
 const statusLabels: Record<Member["status"], string> = {
@@ -75,12 +139,27 @@ export default function TeamMembersPage() {
   } = useTeamMembers(teamId, managerId, teamShift);
 
   // UI state
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const deleteModal = useModal();
+  const addMembersModal = useModal();
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
-  const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast, showSuccess, showError, clearToast } = useToast();
 
-  const { data: sortedMembers, sortColumn, sortDirection, handleSort } = useTableSort(members);
+  // Search hook with debouncing
+  const { searchQuery, setSearchQuery, filteredData } = useTableSearch(
+    members,
+    ["name", "surname"],
+    300,
+  );
+
+  // Table sorting
+  const { data: sortedMembers, sortColumn, sortDirection, handleSort } = useTableSort(filteredData);
+
+  // Pagination
+  const { page, totalPages, start, end, nextPage, prevPage, goToPage } = useTablePagination(
+    sortedMembers.length,
+    10,
+  );
+  const paginatedMembers = sortedMembers.slice(start, end);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -91,9 +170,9 @@ export default function TeamMembersPage() {
 
   // Sync errors from hooks
   useEffect(() => {
-    if (detailsError) setError(detailsError);
-    if (membersError) setError(membersError);
-  }, [detailsError, membersError]);
+    if (detailsError) showError(detailsError);
+    if (membersError) showError(membersError);
+  }, [detailsError, membersError, showError]);
 
   const loading = detailsLoading || membersLoading;
 
@@ -112,12 +191,12 @@ export default function TeamMembersPage() {
 
     // Don't allow removing the manager
     if (!canRemoveMember(member)) {
-      setError("Impossible de supprimer le manager de l'équipe");
+      showError("Impossible de supprimer le manager de l'équipe");
       return;
     }
 
     setMemberToDelete(member);
-    setIsDeleteModalOpen(true);
+    deleteModal.open();
   };
 
   const confirmRemoveMember = async () => {
@@ -126,16 +205,18 @@ export default function TeamMembersPage() {
     try {
       await removeMember(memberToDelete.id);
       setMemberToDelete(null);
+      showSuccess(SUCCESS_MESSAGES.REMOVED("Membre"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de la suppression du membre");
+      showError(err instanceof Error ? err.message : "Erreur lors de la suppression du membre");
     }
   };
 
   const handleAddMembers = async (memberIds: number[]) => {
     try {
       await addMembers(memberIds);
+      showSuccess(SUCCESS_MESSAGES.ADDED(memberIds.length > 1 ? "Membres" : "Membre"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de l'ajout des membres");
+      showError(err instanceof Error ? err.message : "Erreur lors de l'ajout des membres");
       throw err;
     }
   };
@@ -159,23 +240,34 @@ export default function TeamMembersPage() {
           <Button
             variant="primary"
             icon={<Plus size={18} strokeWidth={3} />}
-            onClick={() => setIsAddMembersModalOpen(true)}
+            onClick={addMembersModal.open}
           >
             Ajouter des membres
           </Button>
         )}
       </div>
 
-      {/* Error Toast */}
-      {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
+      {/* Toast notifications */}
+      {toast && <Toast {...toast} onClose={clearToast} />}
 
       {/* Table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">
-        {/* Loading state */}
-        {loading && <TableSkeleton rows={8} columns={4} />}
+        {/* Search input */}
+        <div className="p-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un membre par nom..."
+              className="w-full pl-10 pr-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              aria-label="Search members"
+            />
+          </div>
+        </div>
 
-        {/* Members table */}
-        {!loading && (
+        <LoadingState isLoading={loading}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -227,7 +319,7 @@ export default function TeamMembersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedMembers.map((member) => (
+              {paginatedMembers.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -237,6 +329,15 @@ export default function TeamMembersPage() {
                           {member.name} {member.surname}
                         </span>
                         {member.isManager && <RoleBadge>Manager</RoleBadge>}
+                        {/* Clock status indicator */}
+                        <ClockStatusIndicator
+                          status={member.clockStatus}
+                          elapsedTime={
+                            member.lastClockIn
+                              ? getElapsedTime(member.lastClockIn.toISOString())
+                              : undefined
+                          }
+                        />
                       </div>
                     </div>
                   </TableCell>
@@ -246,7 +347,7 @@ export default function TeamMembersPage() {
                         const Icon = situationIcons[member.situation.type];
                         return <Icon size={16} className="text-gray-600 dark:text-gray-400" />;
                       })()}
-                      <span>{member.situation.type === "onsite" ? "Sur Site" : "Télétravail"}</span>
+                      <span>{member.situation.type === "onsite" ? "Sur Site" : "Absent"}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -274,14 +375,25 @@ export default function TeamMembersPage() {
               ))}
             </TableBody>
           </Table>
-        )}
+
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            onNextPage={nextPage}
+            onPrevPage={prevPage}
+            onGoToPage={goToPage}
+            startItem={start + 1}
+            endItem={Math.min(end, sortedMembers.length)}
+            totalItems={sortedMembers.length}
+          />
+        </LoadingState>
       </div>
 
       {/* Delete Member Modal */}
       <DeleteMemberModal
-        isOpen={isDeleteModalOpen}
+        isOpen={deleteModal.isOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
+          deleteModal.close();
           setMemberToDelete(null);
         }}
         onConfirm={confirmRemoveMember}
@@ -290,8 +402,8 @@ export default function TeamMembersPage() {
 
       {/* Add Members Modal */}
       <AddMembersModal
-        isOpen={isAddMembersModalOpen}
-        onClose={() => setIsAddMembersModalOpen(false)}
+        isOpen={addMembersModal.isOpen}
+        onClose={addMembersModal.close}
         onSubmit={handleAddMembers}
         currentMemberIds={members.map((m) => m.id)}
       />

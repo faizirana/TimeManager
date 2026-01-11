@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, cloneElement, isValidElement } from "react";
+import { useState, cloneElement, isValidElement, useRef } from "react";
 import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { SidebarProps } from "@/lib/types/sidebar";
 import Image from "next/image";
-import styles from "./Sidebar.module.css";
 // import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Icons plus utilisés
 
 export default function Sidebar({
@@ -17,8 +16,9 @@ export default function Sidebar({
   setCollapsedState: setCollapsedStateProp,
 }: SidebarProps & { collapsed?: boolean; setCollapsedState?: (collapsed: boolean) => void }) {
   const [collapsedState, setCollapsedStateLocal] = useState(true);
-  const setCollapsedState = setCollapsedStateProp || setCollapsedStateLocal;
+  const setCollapsedState = setCollapsedStateProp ?? setCollapsedStateLocal;
   const collapsed = collapsedProp ?? collapsedState;
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Récupérer user côté client uniquement ici
   const { user } = useAuth ? useAuth() : { user: undefined };
   // Ensure user is undefined if null or not an object with name/surname
@@ -28,17 +28,36 @@ export default function Sidebar({
   // const iconColor = "var(--color-primary)"; // Plus utilisé
   // const toggleIconColor = iconColor; // Plus utilisé
 
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setCollapsedState(false);
+    }, 100);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setCollapsedState(true);
+    }, 300);
+  };
+
   return (
     <aside
       className={cn(
-        styles.sidebar,
+        "fixed top-0 left-0 h-screen shadow-md z-[100] flex flex-col",
+        "md:min-w-16",
         "bg-[var(--background-2)] dark:bg-zinc-900 bg-white",
         "transition-[width,padding] duration-500 ease-in-out",
         collapsed ? "w-20 p-2" : "w-72 p-5",
         className,
       )}
-      onMouseEnter={() => setCollapsedState(false)}
-      onMouseLeave={() => setCollapsedState(true)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Le bouton de toggle est supprimé, le panneau se déplie/replie au survol */}
       <div

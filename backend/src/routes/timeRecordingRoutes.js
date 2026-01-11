@@ -6,6 +6,7 @@ import {
   updateTimeRecording,
   deleteTimeRecording,
   getTimeRecordingStats,
+  getTeamTimeRecordings,
 } from "../controllers/timeRecordingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { authorize } from "../middleware/rolesMiddleware.js";
@@ -713,5 +714,99 @@ router.put("/:id", authenticate, authorize("manager", "admin"), updateTimeRecord
  *               message: "Only managers and administrators can delete time recordings"
  */
 router.delete("/:id", authenticate, authorize("manager", "admin"), deleteTimeRecording);
+
+/**
+ * @swagger
+ * /timerecordings/team/{teamId}:
+ *   get:
+ *     summary: Get time recordings for all team members on a specific date
+ *     description: |
+ *       Returns clock in/out data for all members of a team on a specific date.
+ *       Used for real-time team status display.
+ *
+ *       **Authorization:**
+ *       - Team manager can access their own team's recordings
+ *       - Admin can access any team's recordings
+ *     tags: [TimeRecordings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The team ID
+ *         example: 1
+ *       - in: query
+ *         name: date
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date to filter recordings (YYYY-MM-DD). Defaults to today.
+ *         example: "2025-01-20"
+ *     responses:
+ *       200:
+ *         description: List of time recordings for the team
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 teamId:
+ *                   type: integer
+ *                   example: 1
+ *                 date:
+ *                   type: string
+ *                   format: date
+ *                   example: "2025-01-20"
+ *                 recordings:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 100
+ *                       id_user:
+ *                         type: integer
+ *                         example: 5
+ *                       start_time:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-01-20T08:30:00.000Z"
+ *                       end_time:
+ *                         type: string
+ *                         format: date-time
+ *                         nullable: true
+ *                         example: null
+ *                       location:
+ *                         type: string
+ *                         enum: [onsite, telework]
+ *                         example: "onsite"
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 5
+ *                           name:
+ *                             type: string
+ *                             example: "Dupont"
+ *                           surname:
+ *                             type: string
+ *                             example: "Jean"
+ *                           email:
+ *                             type: string
+ *                             example: "jean.dupont@example.com"
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *       403:
+ *         description: Forbidden - User doesn't have access to this team
+ *       404:
+ *         description: Team not found
+ */
+router.get("/team/:teamId", authenticate, getTeamTimeRecordings);
 
 export default router;

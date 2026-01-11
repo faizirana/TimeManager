@@ -112,8 +112,10 @@ interface TableCellProps {
  */
 export function Table({ children, className = "" }: TableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg">
-      <table className={`w-full ${className}`}>{children}</table>
+    <div className="w-full rounded-lg">
+      <div className="overflow-x-auto">
+        <table className={`w-full ${className}`}>{children}</table>
+      </div>
     </div>
   );
 }

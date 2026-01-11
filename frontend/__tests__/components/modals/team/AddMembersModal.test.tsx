@@ -4,7 +4,7 @@
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { AddMembersModal } from "@/components/teams/AddMembersModal";
+import { AddMembersModal } from "@/components/modals/team/AddMembersModal";
 import { getUsers } from "@/lib/services/users/usersService";
 
 // Mock the service
@@ -52,8 +52,22 @@ describe("AddMembersModal", () => {
 
   it("should fetch users on mount", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
-      { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
+      {
+        id: 2,
+        name: "Jane",
+        surname: "Smith",
+        email: "jane@example.com",
+        role: "Employee",
+        mobileNumber: "+33605060708",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -74,9 +88,30 @@ describe("AddMembersModal", () => {
 
   it("should filter out current members", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
-      { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
-      { id: 3, name: "Bob", surname: "Wilson", email: "bob@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
+      {
+        id: 2,
+        name: "Jane",
+        surname: "Smith",
+        email: "jane@example.com",
+        role: "Employee",
+        mobileNumber: "+33605060708",
+      },
+      {
+        id: 3,
+        name: "Bob",
+        surname: "Wilson",
+        email: "bob@example.com",
+        role: "Employee",
+        mobileNumber: "+33609080706",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -99,7 +134,14 @@ describe("AddMembersModal", () => {
 
   it("should show empty state when all users are members", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -122,8 +164,22 @@ describe("AddMembersModal", () => {
 
   it("should select and deselect users", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
-      { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
+      {
+        id: 2,
+        name: "Jane",
+        surname: "Smith",
+        email: "jane@example.com",
+        role: "Employee",
+        mobileNumber: "+33605060708",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -157,8 +213,22 @@ describe("AddMembersModal", () => {
 
   it("should display selected count", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
-      { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
+      {
+        id: 2,
+        name: "Jane",
+        surname: "Smith",
+        email: "jane@example.com",
+        role: "Employee",
+        mobileNumber: "+33605060708",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -191,8 +261,22 @@ describe("AddMembersModal", () => {
 
   it("should call onSubmit with selected member IDs", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
-      { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
+      {
+        id: 2,
+        name: "Jane",
+        surname: "Smith",
+        email: "jane@example.com",
+        role: "Employee",
+        mobileNumber: "+33605060708",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -244,7 +328,14 @@ describe("AddMembersModal", () => {
 
   it("should disable add button when no members selected", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);
@@ -268,7 +359,14 @@ describe("AddMembersModal", () => {
 
   it("should enable add button when members are selected", async () => {
     const mockUsers = [
-      { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Employee" },
+      {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Employee",
+        mobileNumber: "+33601020304",
+      },
     ];
 
     mockGetUsers.mockResolvedValue(mockUsers);

@@ -76,3 +76,24 @@ export async function createTimetable(timetableData: {
 }): Promise<Timetable> {
   return apiClient.post<Timetable>("/timetables", timetableData);
 }
+
+/**
+ * Delete a timetable
+ *
+ * @param {number} timetableId - ID of the timetable to delete
+ * @returns {Promise<void>}
+ * @throws {Error} If deletion fails
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   await deleteTimetable(1);
+ *   console.log("Timetable deleted successfully");
+ * } catch (error) {
+ *   console.error("Failed to delete timetable:", error);
+ * }
+ * ```
+ */
+export async function deleteTimetable(timetableId: number): Promise<void> {
+  return apiClient.delete(`/timetables/${timetableId}`);
+}

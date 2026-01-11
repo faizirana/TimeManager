@@ -24,9 +24,10 @@ describe("LoginForm Component", () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({
       handleSubmit: jest.fn(),
+      logout: jest.fn(),
       loading: false,
       error: "",
-      logout: jest.fn(),
+      user: null,
     });
   });
 
@@ -90,6 +91,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Prepare mock handleSubmit
     const mockHandleSubmit = jest.fn();
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: mockHandleSubmit,
       loading: false,
       error: "",
@@ -128,6 +130,7 @@ describe("LoginForm Component", () => {
   it("should display loading state during submission", () => {
     // ARRANGE: Set loading state to true
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: true,
       error: "",
@@ -153,6 +156,7 @@ describe("LoginForm Component", () => {
     const errorMessage = "Identifiants incorrects";
 
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: false,
       error: errorMessage,
@@ -180,6 +184,7 @@ describe("LoginForm Component", () => {
     const mockHandleSubmit = jest.fn();
 
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: mockHandleSubmit,
       loading: false,
       error: errorMessage,
@@ -227,6 +232,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Initial render with error
     const errorMessage = "Identifiants incorrects";
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: false,
       error: errorMessage,
@@ -240,6 +246,7 @@ describe("LoginForm Component", () => {
 
     // ACT: Update mock to clear the error
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: false,
       error: "", // Error cleared
@@ -262,6 +269,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Setup mock
     const mockHandleSubmit = jest.fn();
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: mockHandleSubmit,
       loading: false,
       error: "",
@@ -290,6 +298,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Setup mock
     const mockHandleSubmit = jest.fn();
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: mockHandleSubmit,
       loading: false,
       error: "",
@@ -360,6 +369,7 @@ describe("LoginForm Component", () => {
     // ARRANGE: Setup mock
     const mockHandleSubmit = jest.fn();
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: mockHandleSubmit,
       loading: false,
       error: "",
@@ -496,6 +506,7 @@ describe("LoginForm Component", () => {
   it("should show 'Connexion...' when loading", () => {
     // ARRANGE
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: true,
       error: "",
@@ -526,6 +537,7 @@ describe("LoginForm Component", () => {
   it("should disable button when loading is true", () => {
     // ARRANGE
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: true,
       error: "",
@@ -552,6 +564,7 @@ describe("LoginForm Component", () => {
   it("should disable button when both loading and disabled are true", () => {
     // ARRANGE
     mockUseAuth.mockReturnValue({
+      user: null,
       handleSubmit: jest.fn(),
       loading: true,
       error: "",

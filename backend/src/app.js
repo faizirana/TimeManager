@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import teamRoutes from "./routes/teamRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
 import timeRecordingRoutes from "./routes/timeRecordingRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import managerRoutes from "./routes/managerRoutes.js";
@@ -275,6 +276,7 @@ app.use("/timetables", timetableRoutes);
 app.use("/timerecordings", timeRecordingRoutes);
 app.use("/users", userRoutes);
 app.use("/managers", managerRoutes);
+app.use("/stats", statsRoutes);
 
 app.get("/", (req, res) => {
   res.send({ message: "Backend is running 🚀" });

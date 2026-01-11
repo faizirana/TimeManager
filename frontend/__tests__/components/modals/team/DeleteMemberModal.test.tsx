@@ -4,7 +4,7 @@
 
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { DeleteMemberModal } from "@/components/teams/DeleteMemberModal";
+import { DeleteMemberModal } from "@/components/modals/team/DeleteMemberModal";
 
 describe("DeleteMemberModal", () => {
   const mockOnClose = jest.fn();
