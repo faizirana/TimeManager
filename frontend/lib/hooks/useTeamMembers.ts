@@ -98,7 +98,7 @@ export function useTeamMembers(
         situation: calculatedSituation,
         lastClockIn: lastClockIn ? new Date(lastClockIn.timestamp) : undefined,
         lastClockOut: lastClockOut ? new Date(lastClockOut.timestamp) : undefined,
-        clockStatus: isActive ? "active" : lastClockOut ? "paused" : "none",
+        clockStatus: (isActive ? "active" : lastClockOut ? "paused" : "none") as const,
       };
     });
   }, [baseMembers, timeRecordings, recordingsLoading]);
