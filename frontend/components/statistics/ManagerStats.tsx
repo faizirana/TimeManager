@@ -87,7 +87,7 @@ export default function ManagerStats({ userId }: ManagerStatsProps) {
 
           {teams && teams.length > 1 && (
             <select
-              value={selectedTeamId || "all"}
+              value={selectedTeamId ?? "all"}
               onChange={(e) =>
                 setSelectedTeamId(e.target.value === "all" ? undefined : Number(e.target.value))
               }
@@ -106,7 +106,7 @@ export default function ManagerStats({ userId }: ManagerStatsProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <p className="text-blue-100 text-sm">Total heures équipe</p>
-            <p className="text-2xl font-bold">{data.totalTeamHours.toFixed(1)}h</p>
+            <p className="text-2xl font-bold">{data.totalTeamHours.toFixed(1) ?? 0}h</p>
           </div>
           <div>
             <p className="text-blue-100 text-sm">Moyenne/membre</p>

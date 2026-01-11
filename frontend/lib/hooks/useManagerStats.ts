@@ -65,7 +65,7 @@ export function useManagerStats(
 
         // Calculate how many members likely worked this day
         // Based on average days worked ratio
-        const avgDaysWorked = response.aggregated.averageDaysWorked || 0;
+        const avgDaysWorked = response.aggregated.averageDaysWorked ?? 0;
         const workingDaysInPeriod = 30; // approximate
         const presenceRatio = Math.min(avgDaysWorked / workingDaysInPeriod, 1);
 
@@ -98,10 +98,10 @@ export function useManagerStats(
       };
 
       setData(transformedData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching manager stats:", err);
       const errorMessage =
-        err.response?.data?.message || err.message || "An error occurred while fetching stats";
+        err.response?.data?.message ?? err.message ?? "An error occurred while fetching stats";
       setError(errorMessage);
     } finally {
       setLoading(false);

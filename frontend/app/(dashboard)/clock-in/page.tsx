@@ -24,8 +24,7 @@ export default function ClockInPage() {
   // Helper: get last type
   const lastType = timeRecordings.length > 0 ? timeRecordings[0].type : null;
 
-  // Helper: get last timestamp
-  const lastTimestamp = timeRecordings.length > 0 ? timeRecordings[0].timestamp : null;
+  // Helper: get last timestamp (not used, removed to fix ESLint warning)
 
   // State for elapsed time
   const [elapsed, setElapsed] = useState<string>("");
@@ -35,7 +34,7 @@ export default function ClockInPage() {
     const lastArrival = timeRecordings.find((rec) => rec.type === "Arrival");
     if (!lastArrival) {
       setElapsed("");
-      return;
+      return undefined;
     }
     const start = new Date(lastArrival.timestamp).getTime();
     const updateElapsed = () => {
@@ -68,8 +67,14 @@ export default function ClockInPage() {
       });
       showSuccess(type === "Arrival" ? "Pointage effectué !" : "Dépointage effectué !");
       await refetch();
-    } catch (err: any) {
-      showError(err?.response?.data?.message || "Erreur lors du pointage");
+    } catch (err: unknown) {
+      // Type guard for error
+      if (typeof err === "object" && err !== null && "response" in err) {
+        // @ts-expect-error: dynamic error shape
+        showError(err.response?.data?.message ?? "Erreur lors du pointage");
+      } else {
+        showError("Erreur lors du pointage");
+      }
     } finally {
       setActionLoading(false);
     }
