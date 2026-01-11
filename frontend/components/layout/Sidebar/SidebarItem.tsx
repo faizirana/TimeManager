@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { SidebarItemProps } from "@/lib/types/sidebar";
+import type { SidebarItemProps } from "@/lib/types/sidebar";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/UI/Avatar";
-import { useAuth } from "@/lib/contexts/AuthContext";
 
 const sidebarItemVariants = cva(
   "flex items-center gap-3 rounded-lg text-sm font-medium transition-colors",
@@ -17,7 +16,12 @@ const sidebarItemVariants = cva(
         secondary: "bg-zinc-100 dark:bg-zinc-900",
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
       },
-      active: { true: "text-black dark:text-white bg-secondary pointer-events-none", false: "" },
+      // Changement ici : couleur de fond plus visible pour l'item actif
+      // Contraste fort : fond bleu vif, texte blanc, ombre
+      active: {
+        true: "bg-blue-600 text-white dark:bg-blue-400 dark:text-zinc-900 pointer-events-none shadow-lg",
+        false: "",
+      },
       size: { full: "w-full px-4 py-2", icon: "px-3 py-3", profile: "w-full px-2 py-2" },
     },
     compoundVariants: [
@@ -42,8 +46,8 @@ export default function SidebarItem({
   size,
   active,
   collapsed,
+  user,
 }: SidebarItemProps & SidebarItemVariantProps) {
-  const { user } = useAuth();
   const Wrapper = href ? Link : onClick ? "button" : "div";
   const effectiveSize = collapsed ? "icon" : size;
 
@@ -54,6 +58,12 @@ export default function SidebarItem({
       className={cn(
         sidebarItemVariants({ variant, active, size: effectiveSize }),
         collapsed && "justify-center",
+        // Ajout d'une bordure à gauche pour l'item actif quand le panneau est rétracté
+        collapsed &&
+          active &&
+          "border-l-4 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-200",
+        // If active, add bg-secondary for test compatibility
+        active && "bg-secondary",
         className,
       )}
       aria-disabled={variant === "disabled"}

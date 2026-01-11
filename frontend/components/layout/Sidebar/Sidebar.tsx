@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, cloneElement, isValidElement, ReactElement } from "react";
+import { useState, cloneElement, isValidElement } from "react";
 import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { SidebarProps } from "@/lib/types/sidebar";
 import Image from "next/image";
 // import { PanelLeftClose, PanelLeftOpen } from "lucide-react"; // Icons plus utilisés
@@ -15,6 +16,11 @@ export default function Sidebar({
 }: SidebarProps & { collapsed?: boolean }) {
   const [collapsedState, setCollapsedState] = useState(false);
   const collapsed = collapsedProp ?? collapsedState;
+  // Récupérer user côté client uniquement ici
+  const { user } = useAuth ? useAuth() : { user: undefined };
+  // Ensure user is undefined if null or not an object with name/surname
+  const sidebarUser =
+    user && typeof user === "object" && ("name" in user || "surname" in user) ? user : undefined;
 
   // const iconColor = "var(--color-primary)"; // Plus utilisé
   // const toggleIconColor = iconColor; // Plus utilisé
@@ -53,22 +59,18 @@ export default function Sidebar({
           <ul className="flex flex-col gap-1.5">
             {items.map((item) => (
               <li key={item.label}>
-                <SidebarItem {...item} collapsed={collapsed} />
+                <SidebarItem {...item} collapsed={collapsed} user={sidebarUser} />
               </li>
             ))}
           </ul>
         </nav>
       </div>
       <div className={cn("flex flex-col mt-6 gap-3", collapsed && "items-center")}>
-        {children && typeof children === "object" && "map" in children
-          ? (children as ReactElement[]).map((child, index) =>
-              isValidElement(child)
-                ? cloneElement(child, { ...child.props, collapsed, key: index } as unknown)
-                : child,
+        {Array.isArray(children)
+          ? children.map((child, index) =>
+              isValidElement(child) ? cloneElement(child, { key: index }) : child,
             )
-          : isValidElement(children)
-            ? cloneElement(children as ReactElement, { collapsed } as unknown)
-            : children}
+          : children}
       </div>
     </aside>
   );
