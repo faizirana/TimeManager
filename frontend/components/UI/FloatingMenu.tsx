@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, cloneElement, isValidElement } from "react";
 
 interface FloatingMenuProps {
   menuItems: { label: string; onClick: () => void; color?: string }[];
   buttonContent: React.ReactNode;
   direction?: "top" | "right" | "bottom" | "left";
+  collapsed?: boolean;
 }
 
 const FloatingMenu: React.FC<FloatingMenuProps> = ({
   menuItems,
   buttonContent,
   direction = "right",
+  collapsed = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +41,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
         onClick={toggleMenu}
         className={`focus:outline-none w-full ${menuItems.length > 0 ? "cursor-pointer" : ""}`}
       >
-        {buttonContent}
+        {isValidElement(buttonContent)
+          ? cloneElement(buttonContent as React.ReactElement<any>, { collapsed })
+          : buttonContent}
       </button>
 
       {isOpen && (
@@ -52,7 +56,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
                 : direction === "bottom"
                   ? "top-full mt-2"
                   : "right-full bottom-0 mr-2"
-          } w-48 bg-white border border-gray-200 rounded shadow-lg z-10`}
+          } w-48 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded shadow-lg z-10`}
         >
           <ul className="py-1">
             {menuItems.map((item, index) => (
@@ -62,7 +66,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
                     item.onClick();
                     setIsOpen(false);
                   }}
-                  className={`${item.color ?? "text-black"} block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none`}
+                  className={`${item.color ?? "text-zinc-950 dark:text-white"} block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 focus:outline-none`}
                 >
                   {item.label}
                 </button>

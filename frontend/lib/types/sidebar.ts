@@ -8,6 +8,8 @@ export interface SidebarItemProps {
   active?: boolean;
   onClick?: () => void;
   className?: string;
+  collapsed?: boolean;
+  user?: { name?: string; surname?: string };
 }
 
 export interface SidebarProps {

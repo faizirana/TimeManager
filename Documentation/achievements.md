@@ -3,13 +3,13 @@
 
 - [x] containers : Le frontend, le backend et la base de données sont isolés dans des conteneurs distincts.
 
-- [ ] persistency : Les logs sont persistants (ne disparaissent pas si le conteneur crash ou redémarre).
+- [x] persistency : Les logs sont persistants (ne disparaissent pas si le conteneur crash ou redémarre).
 
 - [x] orchestration : Utilisation de docker-compose pour orchestrer les services.
 
-- [ ] clean_deploy : Différenciation claire entre les configurations de chaque environnement.
+- [x] clean_deploy : Différenciation claire entre les configurations de chaque environnement.
 
-- [ ] env_specificity : Les variables d'environnement sont spécifiques à chaque environnement.
+- [x] env_specificity : Les variables d'environnement sont spécifiques à chaque environnement.
 
 - [x] secrets : Les secrets (clés, mots de passe) ne sont pas en clair sur Git et sont protégés.
 
@@ -20,7 +20,7 @@
 
 - [x] data_persist : Base de données cohérente, sans redondance, avec plusieurs tables.
 
-- [ ] data_viz : L'application permet de visualiser des graphiques pertinents.
+- [x] data_viz : L'application permet de visualiser des graphiques pertinents.
 
 
 ## 🔐 Sécurité & Authentification
@@ -46,7 +46,7 @@
 ## 🧪 Tests & Qualité de Code
 - [x] maintainability : Code lisible, fonctions atomiques, syntaxe propre et noms explicites.
 
-- [ ] robustness : Aucune erreur n'apparaît dans la console web.
+- [x] robustness : Aucune erreur n'apparaît dans la console web.
 
 - [x] tests_sequence : Suite de tests unitaires fournie et facile à lancer.
 
@@ -64,7 +64,7 @@
 ## 📄 Documentation & Présentation
 - [x] constraints : Respect strict de toutes les contraintes techniques du sujet.
 
-- [ ] doc_basic_ : Documentation technique couvrant les choix technologiques et l'architecture.
+- [x] doc_basic_ : Documentation technique couvrant les choix technologiques et l'architecture.
 
 - [ ] presentation : Support de présentation professionnel (slides/démo).
 

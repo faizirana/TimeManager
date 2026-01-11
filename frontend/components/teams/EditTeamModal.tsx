@@ -36,7 +36,7 @@ export function EditTeamModal({ isOpen, onClose, team, onSubmit }: EditTeamModal
   useEffect(() => {
     if (isOpen && team) {
       setName(team.name);
-      setSelectedTimetableId(team.id_timetable);
+      setSelectedTimetableId(team.id_timetable ?? null);
       fetchTimetables();
     }
   }, [isOpen, team]);
@@ -50,8 +50,6 @@ export function EditTeamModal({ isOpen, onClose, team, onSubmit }: EditTeamModal
         (timetable, index, self) => index === self.findIndex((t) => t.id === timetable.id),
       );
       setTimetables(uniqueTimetables);
-    } catch (err) {
-      console.error("Failed to fetch timetables:", err);
     } finally {
       setLoadingTimetables(false);
     }

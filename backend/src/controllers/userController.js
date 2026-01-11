@@ -12,7 +12,7 @@ export const getUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -21,12 +21,12 @@ export const getUserById = async (req, res) => {
     const user = await User.findByPk(req.params.id, {
       attributes: ["id", "name", "surname", "mobileNumber", "email", "role", "id_manager"],
     });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
 
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -34,7 +34,7 @@ export const createUser = async (req, res) => {
   const { name, surname, mobileNumber, email, password, role, id_manager } = req.body;
   if (!name || !surname || !mobileNumber || !email || !password || !role) {
     return res.status(400).json({
-      message: "name, surname, mobileNumber, email, password and role are required",
+      message: "Le nom, prénom, numéro de mobile, email, mot de passe et rôle sont requis",
     });
   }
 
@@ -65,7 +65,7 @@ export const createUser = async (req, res) => {
   } catch (error) {
     await transaction.rollback();
     console.error("Error creating user:", error);
-    return res.status(500).json({ message: error.message || "Internal server error" });
+    return res.status(500).json({ message: error.message || "Erreur interne du serveur" });
   }
 };
 
@@ -79,7 +79,7 @@ export const updateUser = async (req, res) => {
     const user = await User.findByPk(req.params.id, { transaction });
     if (!user) {
       await transaction.rollback();
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
     // Check authorization: user can update themselves, or admin can update anyone
@@ -87,14 +87,14 @@ export const updateUser = async (req, res) => {
     const isAdmin = req.user.role === "admin";
 
     if (!isOwnProfile && !isAdmin) {
-      return res.status(403).json({ message: "Not authorized to update this user" });
+      return res.status(403).json({ message: "Non autorisé à mettre à jour cet utilisateur" });
     }
 
     // Non-admins can only update their own basic info and password, not role or manager
     const updatedData = {
       name: name ?? user.name,
       surname: surname ?? user.surname,
-      mobileNumber: mobileNumber ?? user.mobileNumber,
+      mobileNumber: mobileNumber === "" ? null : (mobileNumber ?? user.mobileNumber),
       email: email ?? user.email,
       role: isAdmin ? (role ?? user.role) : user.role,
       id_manager: isAdmin ? (id_manager ?? user.id_manager) : user.id_manager,
@@ -118,19 +118,19 @@ export const updateUser = async (req, res) => {
   } catch (error) {
     await transaction.rollback();
     console.error("Error updating user:", error);
-    return res.status(500).json({ message: error.message || "Internal server error" });
+    return res.status(500).json({ message: error.message || "Erreur interne du serveur" });
   }
 };
 
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
 
     await user.destroy();
-    return res.status(200).json({ message: "User deleted successfully" });
+    return res.status(200).json({ message: "Utilisateur supprimé avec succès" });
   } catch (error) {
     console.error("Error deleting user:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };

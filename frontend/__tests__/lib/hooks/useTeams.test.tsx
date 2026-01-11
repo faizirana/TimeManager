@@ -10,11 +10,11 @@ import {
   updateTeam,
   addTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamsService";
+} from "@/lib/services/teams/teamService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 
 // Mock services
-jest.mock("@/lib/services/teams/teamsService");
+jest.mock("@/lib/services/teams/teamService");
 jest.mock("@/lib/services/timetable/timetableService");
 
 const mockGetTeams = getTeams as jest.MockedFunction<typeof getTeams>;
@@ -113,7 +113,7 @@ describe("useTeams", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(mockGetTeams).toHaveBeenCalledWith(5);
+    expect(mockGetTeams).toHaveBeenCalledWith({ id_user: 5 });
   });
 
   it("should handle teams without timetable", async () => {

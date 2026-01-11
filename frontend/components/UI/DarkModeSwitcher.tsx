@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 import { Moon, Sun } from "lucide-react";
 
-export default function DarkModeSwitcher() {
+export default function DarkModeSwitcher({ collapsed }: { collapsed?: boolean }) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -30,6 +30,7 @@ export default function DarkModeSwitcher() {
       size="icon"
       icon={isDark ? Sun : Moon}
       onClick={toggleDark}
+      collapsed={collapsed}
     />
   );
 }

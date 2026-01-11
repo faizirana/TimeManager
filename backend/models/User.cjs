@@ -25,10 +25,13 @@ module.exports = (sequelize, DataTypes) => {
       },
       mobileNumber: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         validate: {
-          notEmpty: { msg: "Mobile number must be filled and cannot be null !" },
-          isNumeric: { msg: "Mobile number must be numeric!" },
+          isNumericOrEmpty(value) {
+            if (value && value !== "" && !/^\d+$/.test(value)) {
+              throw new Error("Mobile number must be numeric!");
+            }
+          },
         },
       },
       email: {
@@ -83,16 +86,18 @@ module.exports = (sequelize, DataTypes) => {
       tableName: "User",
       timestamps: true,
       hooks: {
-        beforeValidate: (user, _options) => {
-          // Vérifier que tous les champs obligatoires sont présents
-          const fieldsToCheck = ["name", "surname", "mobileNumber", "email", "password", "role"];
-          fieldsToCheck.forEach((field) => {
-            if (user[field] === null || user[field] === undefined || user[field] === "") {
-              throw new Error(
-                `${field.charAt(0).toUpperCase() + field.slice(1)} must be filled and cannot be null !`,
-              );
-            }
-          });
+        beforeValidate: (user, options) => {
+          // Only validate required fields on create, not on update
+          if (options.isNewRecord) {
+            const fieldsToCheck = ["name", "surname", "email", "password", "role"];
+            fieldsToCheck.forEach((field) => {
+              if (user[field] === null || user[field] === undefined || user[field] === "") {
+                throw new Error(
+                  `${field.charAt(0).toUpperCase() + field.slice(1)} must be filled and cannot be null !`,
+                );
+              }
+            });
+          }
         },
 
         beforeCreate: async (user, options) => {

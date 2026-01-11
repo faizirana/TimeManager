@@ -16,7 +16,16 @@ describe("RoleBadge", () => {
   it("should apply correct CSS classes", () => {
     const { container } = render(<RoleBadge>User</RoleBadge>);
     const span = container.querySelector("span");
-    expect(span).toHaveClass("text-xs", "text-gray-500", "bg-gray-100", "px-2", "py-1", "rounded");
+    expect(span).toHaveClass(
+      "inline-flex",
+      "items-center",
+      "px-3",
+      "py-1",
+      "rounded-full",
+      "text-xs",
+      "font-medium",
+      "border",
+    );
   });
 
   it("should render different role text", () => {

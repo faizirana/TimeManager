@@ -10,6 +10,7 @@
  */
 
 import { render, screen } from "@testing-library/react";
+import { AuthProvider } from "@/lib/contexts/AuthContext";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 
 // Mock SidebarItem to avoid testing its internal logic again
@@ -22,17 +23,31 @@ jest.mock("@/components/UI/DarkModeSwitcher", () => {
   return () => <div data-testid="dark-mode-switcher" />;
 });
 
+// Mock Next.js router for useAuth (which uses useRouter)
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    pathname: "/",
+  }),
+  usePathname: () => "/",
+}));
+
 const mockItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Users", href: "/users" },
 ];
+
+// Helper to wrap with AuthProvider
+function renderWithAuthProvider(ui) {
+  return render(<AuthProvider>{ui}</AuthProvider>);
+}
 
 describe("Sidebar Component", () => {
   /**
    * TEST 1: Renders sidebar with items
    */
   it("should render all sidebar items", () => {
-    render(<Sidebar items={mockItems} collapsed={false} />);
+    renderWithAuthProvider(<Sidebar items={mockItems} collapsed={false} />);
 
     const items = screen.getAllByTestId("sidebar-item");
 
@@ -45,7 +60,7 @@ describe("Sidebar Component", () => {
    * TEST 2: Displays title when not collapsed
    */
   it("should display the title when sidebar is expanded", () => {
-    render(<Sidebar items={mockItems} collapsed={false} />);
+    renderWithAuthProvider(<Sidebar items={mockItems} collapsed={false} />);
 
     expect(screen.getByText(/time manager/i)).toBeInTheDocument();
   });
@@ -54,7 +69,7 @@ describe("Sidebar Component", () => {
    * TEST 3: Hides title when collapsed
    */
   it("should hide the title when sidebar is collapsed", () => {
-    render(<Sidebar items={mockItems} collapsed />);
+    renderWithAuthProvider(<Sidebar items={mockItems} collapsed />);
 
     expect(screen.queryByText(/time manager/i)).not.toBeInTheDocument();
   });
@@ -63,27 +78,27 @@ describe("Sidebar Component", () => {
    * TEST 4: Applies collapsed width
    */
   it("should apply collapsed width class when collapsed", () => {
-    const { container } = render(<Sidebar items={mockItems} collapsed />);
+    const { container } = renderWithAuthProvider(<Sidebar items={mockItems} collapsed />);
 
     const aside = container.querySelector("aside");
-    expect(aside).toHaveClass("w-16");
+    expect(aside).toHaveClass("w-20");
   });
 
   /**
    * TEST 5: Applies expanded width when not collapsed
    */
   it("should apply expanded width class when not collapsed", () => {
-    const { container } = render(<Sidebar items={mockItems} collapsed={false} />);
+    const { container } = renderWithAuthProvider(<Sidebar items={mockItems} collapsed={false} />);
 
     const aside = container.querySelector("aside");
-    expect(aside).toHaveClass("w-56");
+    expect(aside).toHaveClass("w-72");
   });
 
   /**
    * TEST 6: Applies custom className
    */
   it("should apply custom className", () => {
-    const { container } = render(
+    const { container } = renderWithAuthProvider(
       <Sidebar items={mockItems} collapsed={false} className="custom-class" />,
     );
 

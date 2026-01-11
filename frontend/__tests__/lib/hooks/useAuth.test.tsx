@@ -244,7 +244,8 @@ describe("useAuth Hook (UI Wrapper)", () => {
       await result.current.logout();
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Logout error:", expect.any(Error));
+    // Logout error is silently handled and not logged to console
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith("/login");
     expect(result.current.loading).toBe(false);
 

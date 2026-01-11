@@ -6,6 +6,7 @@
  * - Handles token refresh on 401 responses
  * - Provides type-safe HTTP methods (GET, POST, PUT, DELETE)
  * - Manages authentication lifecycle
+ * - Intelligent error handling with notifications
  *
  * @example
  * ```typescript
@@ -13,6 +14,14 @@
  * const newUser = await apiClient.post<User>('/users', { name: 'John' });
  * ```
  */
+
+import {
+  classifyError,
+  extractErrorMessage,
+  shouldNotifyUser,
+  shouldLogError,
+} from "@/lib/services/errorService";
+import { showError, showWarning } from "@/lib/services/notificationService";
 
 interface ApiClientOptions extends RequestInit {
   /** Whether the request requires authentication (default: true) */
@@ -55,6 +64,32 @@ class ApiClient {
    */
   setUnauthorizedHandler(handler: () => void) {
     this.onUnauthorized = handler;
+  }
+
+  /**
+   * Internal method to handle API errors with intelligent logging and notifications
+   */
+  private handleError(
+    statusCode: number | undefined,
+    message: string,
+    endpoint: string,
+    method: string,
+  ): void {
+    const classified = classifyError(statusCode, message);
+
+    // Log to console only if needed
+    if (shouldLogError(classified.severity)) {
+      console.error(`[${method} ${endpoint}] ${statusCode ?? "unknown"}: ${message}`);
+    }
+
+    // Show notification to user if needed
+    if (shouldNotifyUser(classified.severity)) {
+      if (classified.severity === "critical") {
+        showError(classified.userMessage);
+      } else {
+        showWarning(classified.userMessage);
+      }
+    }
   }
 
   /**
@@ -124,7 +159,9 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      throw new Error(`GET ${endpoint} failed: ${response.statusText}`);
+      const message = await extractErrorMessage(response);
+      this.handleError(response.status, message, endpoint, "GET");
+      throw new Error(message);
     }
 
     return response.json();
@@ -146,8 +183,9 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(error.message ?? `POST ${endpoint} failed`);
+      const message = await extractErrorMessage(response);
+      this.handleError(response.status, message, endpoint, "POST");
+      throw new Error(message);
     }
 
     return response.json();
@@ -169,7 +207,9 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      throw new Error(`PUT ${endpoint} failed: ${response.statusText}`);
+      const message = await extractErrorMessage(response);
+      this.handleError(response.status, message, endpoint, "PUT");
+      throw new Error(message);
     }
 
     return response.json();
@@ -189,7 +229,9 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      throw new Error(`DELETE ${endpoint} failed: ${response.statusText}`);
+      const message = await extractErrorMessage(response);
+      this.handleError(response.status, message, endpoint, "DELETE");
+      throw new Error(message);
     }
 
     return response.json();

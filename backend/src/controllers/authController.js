@@ -13,13 +13,13 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password required" });
+    return res.status(400).json({ message: "L'email et le mot de passe sont requis" });
   }
 
   try {
     const user = await User.findOne({ where: { email } });
     if (!user || !(await user.verifyPassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Identifiants invalides" });
     }
 
     // Token family (nouvelle session)
@@ -45,7 +45,7 @@ export const loginUser = async (req, res) => {
     return res.status(200).json({ accessToken });
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -68,12 +68,12 @@ export const logoutUser = async (req, res) => {
   }
 
   res.clearCookie("refreshToken");
-  res.status(200).json({ message: "Logout successful" });
+  res.status(200).json({ message: "Déconnexion réussie" });
 };
 
 export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "No token" });
+  if (!token) return res.status(401).json({ message: "Aucun token" });
 
   try {
     const payload = verifyRefreshToken(token);
@@ -82,7 +82,7 @@ export const refreshToken = async (req, res) => {
     const user = await User.findByPk(payload.id);
 
     if (!user || !user.refreshTokenHash) {
-      return res.status(403).json({ message: "Token revoked" });
+      return res.status(403).json({ message: "Token révoqué" });
     }
 
     // Vérification famille
@@ -90,7 +90,7 @@ export const refreshToken = async (req, res) => {
       user.refreshTokenHash = null;
       user.refreshTokenFamily = null;
       await user.save();
-      return res.status(403).json({ message: "Token reuse detected" });
+      return res.status(403).json({ message: "Réutilisation de token détectée" });
     }
 
     // Compare JTI with stored hash (not the full token)
@@ -100,7 +100,7 @@ export const refreshToken = async (req, res) => {
       user.refreshTokenHash = null;
       user.refreshTokenFamily = null;
       await user.save();
-      return res.status(403).json({ message: "Token reuse detected" });
+      return res.status(403).json({ message: "Réutilisation de token détectée" });
     }
 
     // Generate new token and hash
@@ -123,17 +123,17 @@ export const refreshToken = async (req, res) => {
     return res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
     console.error("Refresh error:", err.message);
-    return res.status(403).json({ message: "Invalid or expired token" });
+    return res.status(403).json({ message: "Token invalide ou expiré" });
   }
 };
 
 export const getCurrentUser = async (req, res) => {
-  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  if (!req.user) return res.status(401).json({ message: "Non autorisé" });
 
   const user = await User.findByPk(req.user.id, {
-    attributes: ["id", "email", "role"],
+    attributes: ["id", "email", "name", "surname", "role", "mobileNumber"],
   });
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+  if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
   return res.status(200).json(user);
 };

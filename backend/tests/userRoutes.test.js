@@ -82,6 +82,38 @@ describe("User API", () => {
     expect(res.body.surname).toBe("Dupont-Modifié");
   });
 
+  it("PUT /users/:id → met à jour le nom sans fournir mobileNumber", async () => {
+    const user = await db.User.findOne({ where: { email: "admin@example.com" } });
+    const res = await request(app)
+      .put(`/users/${user.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        name: "SuperAdmin",
+        surname: user.surname,
+        email: user.email,
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.name).toBe("SuperAdmin");
+  });
+
+  it("PUT /users/:id → met à jour avec mobileNumber vide", async () => {
+    const user = await db.User.findOne({ where: { email: "admin@example.com" } });
+    const res = await request(app)
+      .put(`/users/${user.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        mobileNumber: "",
+      });
+
+    expect(res.statusCode).toBe(200);
+    // Empty string should be accepted - can be null or empty
+    expect([null, "", undefined]).toContain(res.body.mobileNumber);
+  });
+
   it("DELETE /users/:id → supprime un utilisateur", async () => {
     const user = await db.User.findOne({ where: { email: "claire.durand@example.com" } });
     const res = await request(app)
@@ -89,6 +121,6 @@ describe("User API", () => {
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("User deleted successfully");
+    expect(res.body.message).toBe("Utilisateur supprimé avec succès");
   });
 });
