@@ -12,6 +12,7 @@ const sidebarItemVariants = cva(
     variants: {
       variant: {
         default: "text-[var(--foreground)]",
+        primary: "bg-blue-600 text-white",
         secondary: "bg-zinc-100 dark:bg-zinc-900",
         important: "bg-green-700 text-white",
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
@@ -25,6 +26,7 @@ const sidebarItemVariants = cva(
     },
     compoundVariants: [
       { variant: "default", active: false, class: "hover:bg-zinc-100 dark:hover:bg-zinc-900" },
+      { variant: "primary", active: false, class: "hover:bg-blue-700" },
       { variant: "secondary", active: false, class: "hover:bg-zinc-200 dark:hover:bg-zinc-800" },
       { variant: "important", active: false, class: "hover:bg-green-800" },
     ],
@@ -80,8 +82,16 @@ export default function SidebarItem({
         Icon && (
           <Icon
             size={18}
-            stroke={variant === "important" && !active ? "white" : "var(--color-primary)"}
-            color={variant === "important" && !active ? "white" : "var(--color-primary)"}
+            stroke={
+              (variant === "important" || variant === "primary") && !active
+                ? "white"
+                : "var(--color-primary)"
+            }
+            color={
+              (variant === "important" || variant === "primary") && !active
+                ? "white"
+                : "var(--color-primary)"
+            }
           />
         )
       )}

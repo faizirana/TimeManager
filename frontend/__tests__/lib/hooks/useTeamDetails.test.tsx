@@ -4,11 +4,11 @@
 
 import { renderHook, waitFor } from "@testing-library/react";
 import { useTeamDetails } from "@/lib/hooks/useTeamDetails";
-import { getTeamById } from "@/lib/services/teams/teamService";
+import { getTeamById } from "@/lib/services/teams/teamsService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 
 // Mock services
-jest.mock("@/lib/services/teams/teamService");
+jest.mock("@/lib/services/teams/teamsService");
 jest.mock("@/lib/services/timetable/timetableService");
 
 const mockGetTeamById = getTeamById as jest.MockedFunction<typeof getTeamById>;
@@ -31,6 +31,7 @@ describe("useTeamDetails", () => {
         surname: "Manager",
         email: "alice@test.com",
         role: "manager",
+        mobileNumber: "+33601020304",
       },
       members: [],
     };
@@ -64,7 +65,14 @@ describe("useTeamDetails", () => {
       name: "Marketing Team",
       id_timetable: null,
       id_manager: 3,
-      manager: { id: 3, name: "Bob", surname: "Manager", email: "bob@test.com", role: "manager" },
+      manager: {
+        id: 3,
+        name: "Bob",
+        surname: "Manager",
+        email: "bob@test.com",
+        role: "manager",
+        mobileNumber: "+33601020304",
+      },
       members: [],
     };
 
@@ -105,6 +113,7 @@ describe("useTeamDetails", () => {
         surname: "Manager",
         email: "alice@test.com",
         role: "manager",
+        mobileNumber: "+33601020304",
       },
       members: [],
     };
@@ -134,6 +143,7 @@ describe("useTeamDetails", () => {
         surname: "Manager",
         email: "alice@test.com",
         role: "manager",
+        mobileNumber: "+33601020304",
       },
       members: [],
     };

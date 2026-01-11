@@ -10,8 +10,10 @@ import {
   createTeam,
   updateTeam,
   addTeamMember,
+  removeTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamService";
+  deleteTeam,
+} from "@/lib/services/teams/teamsService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { formatShift } from "@/lib/utils/teamTransformers";
 import { TeamDisplay } from "@/lib/types/teams";
@@ -31,15 +33,17 @@ interface UseTeamsResult {
     teamData: {
       name: string;
       id_timetable: number;
+      memberIds?: number[];
     },
   ) => Promise<void>;
+  deleteTeamById: (teamId: number) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
 /**
  * Hook to manage teams list with CRUD operations
- * @param userId - The ID of the current user
- * @returns Teams array with CRUD operations and state
+ * @param userId - Optional user ID. If provided, fetches teams for that user. If undefined, fetches all teams.
+ * @returns Teams array with CRUD operations (create, update, delete) and state
  */
 export function useTeams(userId?: number): UseTeamsResult {
   const [teams, setTeams] = useState<TeamDisplay[]>([]);
@@ -47,11 +51,6 @@ export function useTeams(userId?: number): UseTeamsResult {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTeams = useCallback(async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
@@ -78,6 +77,9 @@ export function useTeams(userId?: number): UseTeamsResult {
             name: team.name,
             shift,
             members: team.members?.length ?? 0,
+            managerName: team.manager
+              ? `${team.manager.name} ${team.manager.surname}`
+              : "Non assigné",
           };
         }),
       );
@@ -134,10 +136,37 @@ export function useTeams(userId?: number): UseTeamsResult {
     teamData: {
       name: string;
       id_timetable: number;
+      memberIds?: number[];
     },
   ): Promise<void> => {
     try {
-      await updateTeam(teamId, teamData);
+      const { memberIds, ...teamInfo } = teamData;
+
+      // Update team basic info
+      await updateTeam(teamId, teamInfo);
+
+      // Update members if memberIds is provided
+      if (memberIds !== undefined) {
+        // Get current team to compare members
+        const currentTeam = await getTeamById(teamId);
+        const currentMemberIds = currentTeam.members?.map((m) => m.id) ?? [];
+
+        // Find members to add (in new list but not in current)
+        const membersToAdd = memberIds.filter((id) => !currentMemberIds.includes(id));
+
+        // Find members to remove (in current list but not in new)
+        const membersToRemove = currentMemberIds.filter((id) => !memberIds.includes(id));
+
+        // Add new members
+        if (membersToAdd.length > 0) {
+          await Promise.all(membersToAdd.map((memberId) => addTeamMember(teamId, memberId)));
+        }
+
+        // Remove members
+        if (membersToRemove.length > 0) {
+          await Promise.all(membersToRemove.map((memberId) => removeTeamMember(teamId, memberId)));
+        }
+      }
 
       // Update local state optimistically
       const updatedTeam = await getTeamById(teamId);
@@ -164,12 +193,27 @@ export function useTeams(userId?: number): UseTeamsResult {
     }
   };
 
+  /**
+   * Delete a team by ID
+   */
+  const deleteTeamById = async (teamId: number): Promise<void> => {
+    try {
+      await deleteTeam(teamId);
+      await fetchTeams();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete team";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
   return {
     teams,
     loading,
     error,
     createNewTeam,
     updateExistingTeam,
+    deleteTeamById,
     refetch: fetchTeams,
   };
 }

@@ -11,7 +11,7 @@ import {
   deleteTeam,
   addTeamMember,
   removeTeamMember,
-} from "@/lib/services/teams/teamService";
+} from "@/lib/services/teams/teamsService";
 import { apiClient } from "@/lib/utils/apiClient";
 
 // Mock apiClient

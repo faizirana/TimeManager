@@ -1,5 +1,27 @@
 /**
- * Modal for confirming team member removal
+ * DeleteMemberModal Component
+ *
+ * Confirmation modal for removing a member from a team.
+ * Displays a warning message and requires user confirmation before deletion.
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOpen - Whether the modal is visible
+ * @param {Function} props.onClose - Callback to close the modal
+ * @param {Function} props.onConfirm - Callback to confirm member removal
+ * @param {string} props.memberName - Full name of the member to remove
+ * @param {boolean} [props.isLoading=false] - Loading state during deletion
+ *
+ * @example
+ * ```tsx
+ * <DeleteMemberModal
+ *   isOpen={deleteModal.isOpen}
+ *   onClose={deleteModal.close}
+ *   onConfirm={handleDeleteMember}
+ *   memberName={`${member.name} ${member.surname}`}
+ *   isLoading={isDeleting}
+ * />
+ * ```
  */
 
 "use client";

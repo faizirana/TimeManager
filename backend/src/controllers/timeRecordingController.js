@@ -570,3 +570,98 @@ export const getTimeRecordingStats = async (req, res) => {
     return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+
+/**
+ * Get time recordings for all members of a team on a specific date
+ * Returns clock in/out data for team status display
+ */
+export const getTeamTimeRecordings = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const { date } = req.query;
+
+    // Use today if no date provided
+    const targetDate = date || new Date().toISOString().split("T")[0];
+
+    // Parse date to get start and end of day
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Check if user has access to this team
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+      return res.status(404).json({ message: "Équipe non trouvée" });
+    }
+
+    // Authorization: Admins, team managers, or team members can access
+    const isAdmin = req.user.role === "admin";
+    const isManager = team.id_manager === req.user.id;
+
+    // Check if user is a member of the team
+    const isMember = await TeamMember.findOne({
+      where: {
+        id_team: teamId,
+        id_user: req.user.id,
+      },
+    });
+
+    if (!isAdmin && !isManager && !isMember) {
+      return res.status(403).json({
+        message: "Interdit - Vous n'avez pas accès à cette équipe",
+      });
+    }
+
+    // Get all team members
+    const teamMembers = await TeamMember.findAll({
+      where: { id_team: teamId },
+      attributes: ["id_user"],
+    });
+
+    const userIds = teamMembers.map((tm) => tm.id_user);
+
+    // Get all time recordings for these users on the target date
+    const recordings = await TimeRecording.findAll({
+      where: {
+        id_user: userIds,
+        timestamp: {
+          [db.Sequelize.Op.gte]: startOfDay,
+          [db.Sequelize.Op.lte]: endOfDay,
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "surname", "email"],
+        },
+      ],
+      order: [["timestamp", "ASC"]],
+    });
+
+    // Format the response: convert Arrival/Departure pairs to clock in/out format
+    const formattedRecordings = recordings.map((record) => ({
+      id: record.id,
+      id_user: record.id_user,
+      timestamp: record.timestamp,
+      type: record.type, // 'Arrival' or 'Departure'
+      user: {
+        id: record.user.id,
+        name: record.user.name,
+        surname: record.user.surname,
+        email: record.user.email,
+      },
+    }));
+
+    return res.status(200).json({
+      teamId: parseInt(teamId),
+      date: targetDate,
+      recordings: formattedRecordings,
+    });
+  } catch (error) {
+    console.error("Error fetching team time recordings:", error);
+    return res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};

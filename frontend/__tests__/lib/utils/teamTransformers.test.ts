@@ -37,6 +37,7 @@ describe("teamTransformers", () => {
       surname: "Doe",
       email: "john.doe@example.com",
       role: "employee",
+      mobileNumber: "+33601020304",
     };
 
     it("should transform API member to UI Member", () => {
@@ -47,11 +48,13 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john.doe@example.com",
+        mobileNumber: "+33601020304",
         role: "employee",
         isManager: false,
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       });
     });
 
@@ -76,6 +79,7 @@ describe("teamTransformers", () => {
         surname: "Doe",
         email: "john.doe@example.com",
         role: "employee",
+        mobileNumber: "+33601020304",
       },
       {
         id: 2,
@@ -83,6 +87,7 @@ describe("teamTransformers", () => {
         surname: "Smith",
         email: "jane.smith@example.com",
         role: "manager",
+        mobileNumber: "+33605060708",
       },
     ];
 
@@ -110,11 +115,13 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john@example.com",
+        mobileNumber: "+33601020304",
         role: "employee",
         isManager: false,
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       };
 
       expect(getMemberFullName(member)).toBe("John Doe");
@@ -134,11 +141,13 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john@example.com",
+        mobileNumber: "+33601020304",
         role: "manager",
         isManager: true,
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       };
 
       expect(canRemoveMember(manager)).toBe(false);
@@ -150,11 +159,13 @@ describe("teamTransformers", () => {
         name: "Jane",
         surname: "Smith",
         email: "jane@example.com",
+        mobileNumber: "+33605060708",
         role: "employee",
         isManager: false,
-        situation: { type: "telework" },
+        situation: { type: "absent" },
         status: "inProgress",
         shift: "09:00 - 17:00",
+        clockStatus: "active",
       };
 
       expect(canRemoveMember(employee)).toBe(true);

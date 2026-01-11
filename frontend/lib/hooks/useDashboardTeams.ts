@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { getTeams } from "@/lib/services/teams/teamService";
+import { getTeams } from "@/lib/services/teams/teamsService";
 import { Team } from "@/lib/types/teams";
 
 interface UseDashboardTeamsParams {

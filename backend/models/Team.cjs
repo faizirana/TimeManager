@@ -29,19 +29,19 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  // Hook pour valider que le manager a bien le rôle 'manager'
+  // Hook to validate that the manager has the 'manager' or 'admin' role
   Team.beforeCreate(async (team) => {
     const manager = await sequelize.models.User.findByPk(team.id_manager);
-    if (!manager || manager.role !== "manager") {
-      throw new Error('Le manager de l\'équipe doit avoir le rôle "manager"');
+    if (!manager || (manager.role !== "manager" && manager.role !== "admin")) {
+      throw new Error('Le manager de l\'équipe doit avoir le rôle "manager" ou "admin"');
     }
   });
 
   Team.beforeUpdate(async (team) => {
     if (team.changed("id_manager")) {
       const manager = await sequelize.models.User.findByPk(team.id_manager);
-      if (!manager || manager.role !== "manager") {
-        throw new Error('Le manager de l\'équipe doit avoir le rôle "manager"');
+      if (!manager || (manager.role !== "manager" && manager.role !== "admin")) {
+        throw new Error('Le manager de l\'équipe doit avoir le rôle "manager" ou "admin"');
       }
     }
   });

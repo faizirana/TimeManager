@@ -1,4 +1,18 @@
 /**
+ * Create a new user
+ * @param userData - User creation data
+ * @returns {Promise<User>} The created user
+ */
+export async function createUser(userData: {
+  name: string;
+  surname: string;
+  email: string;
+  role: string;
+  password: string;
+}): Promise<User> {
+  return apiClient.post<User>("/users", userData);
+}
+/**
  * @fileoverview Users Service
  *
  * This service handles all user-related API calls using the centralized API client.
@@ -27,6 +41,34 @@ import { UserProfile, UpdateUserData } from "@/lib/types/user";
  */
 export async function getUsers(): Promise<User[]> {
   return apiClient.get<User[]>("/users");
+}
+
+/**
+ * Update an existing user
+ * @param userId - The ID of the user to update
+ * @param userData - User update data
+ * @returns {Promise<User>} The updated user
+ */
+export async function updateUser(
+  userId: string | number,
+  userData: {
+    name?: string;
+    surname?: string;
+    email?: string;
+    role?: string;
+    mobileNumber?: string;
+  },
+): Promise<User> {
+  return apiClient.put<User>(`/users/${userId}`, userData);
+}
+
+/**
+ * Delete a user by ID
+ * @param userId - The ID of the user to delete
+ * @returns {Promise<void>} Resolves if successful, throws on error
+ */
+export async function deleteUser(userId: string | number): Promise<void> {
+  await apiClient.delete(`/users/${userId}`);
 }
 
 /**

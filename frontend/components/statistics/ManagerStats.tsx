@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useManagerStats } from "@/lib/hooks/useManagerStats";
-import { getTeams } from "@/lib/services/teams/teamService";
+import { getTeams } from "@/lib/services/teams/teamsService";
 import TeamStackedBar from "./charts/TeamStackedBar";
 import PresenceHeatmap from "./charts/PresenceHeatmap";
 import { Team } from "@/lib/types/teams";

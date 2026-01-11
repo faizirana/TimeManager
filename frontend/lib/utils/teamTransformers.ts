@@ -24,11 +24,13 @@ export function transformMember(apiMember: User, managerId: number, shift: strin
     name: apiMember.name,
     surname: apiMember.surname,
     email: apiMember.email,
+    mobileNumber: apiMember.mobileNumber,
     role: apiMember.role,
     isManager: apiMember.id === managerId,
     situation: { type: "onsite" as const }, // Placeholder - will be from timerecording
     status: "planned" as const, // Placeholder - will be from timerecording
     shift,
+    clockStatus: "none" as const, // Placeholder - will be from timerecording
   };
 }
 
