@@ -109,6 +109,7 @@ bootstrap-time-manager/
 
 ## 📡 Back-end – Express.js
 
+
 Le backend fournit une API RESTful pour toutes les opérations.
 
 ### 🔌 Endpoints
@@ -217,10 +218,12 @@ Le backend fournit une API RESTful pour toutes les opérations.
 - Autorisation stricte sur les endpoints (admin, manager, membre d'équipe)
 - Validation renforcée côté client et serveur (email RFC, mot de passe fort, numéro mobile E.164, horaires HH:MM)
 - Messages d'erreur centralisés et sécurisés
+
 ### 🧠 Validation & utilitaires
 - Validation stricte des emails, mots de passe, numéros mobiles, horaires (voir `lib/utils/validation.ts`)
 - Helpers pour la normalisation et le parsing des données (voir `lib/utils/formHelpers.ts`)
 - Messages d'erreur centralisés et support i18n (`lib/types/errorMessages.ts`)
+
 ## 🛠️ Nouveautés de l'interface d'administration
 
 - Interface d'administration complète (utilisateurs, équipes, horaires, statistiques)
