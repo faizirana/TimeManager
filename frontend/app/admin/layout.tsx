@@ -11,7 +11,7 @@
  * @returns JSX.Element
  */
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
 import { Users, Calendar, UserCog, LayoutDashboard, ArrowLeftRight } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,12 +19,14 @@ import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Button } from "@/components/UI/Button";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const pathname = usePathname() ?? "/";
   const router = useRouter();
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
   // Normalize paths for comparison
   const normalize = (p: string) => (p === "/" ? "/" : p.replace(/\/$/, ""));
   // Define admin sidebar items
@@ -46,34 +48,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Déconnexion", color: "text-red-600", onClick: logout },
   ];
   return (
-    <div className="flex min-h-screen w-screen">
-      {/* Admin sidebar with user menu and dark mode */}
-      <Sidebar className="min-w-[220px]" items={sidebarItems}>
-        <div className="flex gap-2">
-          <DarkModeSwitcher />
-          <Button
-            variant="secondary"
-            icon={<ArrowLeftRight size={18} />}
-            iconPosition="right"
-            onClick={() => router.push("/dashboard")}
-            className="flex-1 justify-start"
-          >
-            Utilisateur
-          </Button>
-        </div>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar
+        items={sidebarItems}
+        collapsed={sidebarCollapsed}
+        setCollapsedState={setSidebarCollapsed}
+      >
+        <SidebarItem
+          label="Utilisateur"
+          icon={ArrowLeftRight}
+          variant="primary"
+          onClick={() => router.push("/dashboard")}
+          collapsed={sidebarCollapsed}
+        />
+        <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}
+          collapsed={sidebarCollapsed}
           buttonContent={
             <SidebarItem
               label={`${user?.name} ${user?.surname}`}
               size={"profile"}
               hasAvatar={true}
+              user={user ?? undefined}
             />
           }
         />
       </Sidebar>
-      {/* Main area for child pages */}
-      <main className="w-full h-full">{children}</main>
+      <main
+        className="flex-1 h-full overflow-y-auto transition-[margin-left] duration-500 ease-in-out"
+        style={{ marginLeft: sidebarCollapsed ? 80 : 288 }}
+      >
+        {children}
+      </main>
     </div>
   );
 }

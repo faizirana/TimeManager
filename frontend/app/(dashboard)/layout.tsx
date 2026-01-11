@@ -8,7 +8,6 @@ import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Button } from "@/components/UI/Button";
 import { isAdmin } from "@/lib/utils/permissions";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
-    <div className="min-h-screen w-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         items={sidebarItems}
         collapsed={sidebarCollapsed}
@@ -50,26 +49,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setCollapsedState={setSidebarCollapsed}
       >
         {isAdmin(user?.role) && (
-          <Button
-            variant="secondary"
-            icon={<ArrowLeftRight size={18} />}
-            iconPosition="right"
+          <SidebarItem
+            label="Admin"
+            icon={ArrowLeftRight}
+            variant="primary"
             onClick={() => router.push("/admin/dashboard")}
-          >
-            Admin
-          </Button>
+            collapsed={sidebarCollapsed}
+          />
         )}
         <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}
+          collapsed={sidebarCollapsed}
           buttonContent={
-            <SidebarItem label={undefined} size={"profile"} hasAvatar={true}></SidebarItem>
+            <SidebarItem
+              label={`${user?.name} ${user?.surname}`}
+              size={"profile"}
+              hasAvatar={true}
+              user={user ?? undefined}
+            />
           }
         />
       </Sidebar>
       <main
-        className="flex-1 h-full transition-all duration-500 ease-in-out"
-        style={{ marginLeft: sidebarCollapsed ? 80 : 288, minHeight: "100vh" }}
+        className="flex-1 h-full overflow-y-auto transition-[margin-left] duration-500 ease-in-out"
+        style={{ marginLeft: sidebarCollapsed ? 80 : 288 }}
       >
         {children}
       </main>
