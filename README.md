@@ -44,6 +44,8 @@ Elle permet de :
 - Visualiser des statistiques et rapports
 - Gérer les utilisateurs et leur authentification
 
+ℹ️ Un guide utilisateur détaillé est fourni dans le dossier `Documentation` sous le nom **Guide_Utilisateur.md**.
+
 ---
 
 ## 🏗️ Architecture globale
