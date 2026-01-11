@@ -58,8 +58,15 @@ export function useUsers() {
       const data = await getUsers();
       setUsers(data);
     } catch (err) {
-      console.error("Error fetching users:", err);
-      setError(API_ERRORS.FETCH_FAILED(RESOURCES.USERS));
+      const errorMessage = err instanceof Error ? err.message : "";
+
+      // Si erreur d'authentification, ne pas loguer (l'utilisateur est probablement déconnecté)
+      if (errorMessage.toLowerCase().includes("unauthorized")) {
+        setError(null); // Ne pas afficher d'erreur à l'utilisateur
+      } else {
+        console.error("Error fetching users:", err);
+        setError(API_ERRORS.FETCH_FAILED(RESOURCES.USERS));
+      }
     } finally {
       setLoading(false);
     }

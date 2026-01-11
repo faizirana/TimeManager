@@ -120,6 +120,7 @@ describe("teamTransformers", () => {
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       };
 
       expect(getMemberFullName(member)).toBe("John Doe");
@@ -145,6 +146,7 @@ describe("teamTransformers", () => {
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       };
 
       expect(canRemoveMember(manager)).toBe(false);
@@ -159,9 +161,10 @@ describe("teamTransformers", () => {
         mobileNumber: "+33605060708",
         role: "employee",
         isManager: false,
-        situation: { type: "telework" },
+        situation: { type: "absent" },
         status: "inProgress",
         shift: "09:00 - 17:00",
+        clockStatus: "active",
       };
 
       expect(canRemoveMember(employee)).toBe(true);

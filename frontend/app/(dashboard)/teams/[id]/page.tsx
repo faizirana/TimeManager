@@ -98,13 +98,15 @@ import { DeleteMemberModal } from "@/components/modals/team/DeleteMemberModal";
 import { AddMembersModal } from "@/components/modals/team/AddMembersModal";
 import { Member } from "@/lib/types/teams";
 import { canRemoveMember, getMemberFullName } from "@/lib/utils/teamTransformers";
+import { ClockStatusIndicator } from "@/components/UI/ClockStatusIndicator";
+import { getElapsedTime } from "@/lib/services/statusCalculator";
 import { canManageTeams } from "@/lib/utils/permissions";
 import { SUCCESS_MESSAGES } from "@/lib/types/errorMessages";
 
 // Mapping of situation types to their icons
 const situationIcons: Record<Member["situation"]["type"], LucideIcon> = {
   onsite: MapPin,
-  telework: Computer,
+  absent: Computer,
 };
 
 const statusLabels: Record<Member["status"], string> = {
@@ -327,6 +329,15 @@ export default function TeamMembersPage() {
                           {member.name} {member.surname}
                         </span>
                         {member.isManager && <RoleBadge>Manager</RoleBadge>}
+                        {/* Clock status indicator */}
+                        <ClockStatusIndicator
+                          status={member.clockStatus}
+                          elapsedTime={
+                            member.lastClockIn
+                              ? getElapsedTime(member.lastClockIn.toISOString())
+                              : undefined
+                          }
+                        />
                       </div>
                     </div>
                   </TableCell>
@@ -336,7 +347,7 @@ export default function TeamMembersPage() {
                         const Icon = situationIcons[member.situation.type];
                         return <Icon size={16} className="text-gray-600 dark:text-gray-400" />;
                       })()}
-                      <span>{member.situation.type === "onsite" ? "Sur Site" : "Télétravail"}</span>
+                      <span>{member.situation.type === "onsite" ? "Sur Site" : "Absent"}</span>
                     </div>
                   </TableCell>
                   <TableCell>

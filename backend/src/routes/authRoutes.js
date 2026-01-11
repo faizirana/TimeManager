@@ -14,18 +14,26 @@ const router = express.Router();
 const loginLimiter = rateLimit({
   windowMs: process.env.NODE_ENV === "test" ? 10 * 1000 : 15 * 60 * 1000, // 10 seconds in test, 15 minutes in production
   max: process.env.NODE_ENV === "test" ? 50 : 5,
-  message: "Too many login attempts, please try again after 15 minutes",
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      message: "Too many login attempts, please try again after 15 minutes",
+    });
+  },
 });
 
 // Rate limiter pour le refresh : 10 tentatives par 15 minutes (50 en test pour rapidité)
 const refreshLimiter = rateLimit({
   windowMs: process.env.NODE_ENV === "test" ? 10 * 1000 : 15 * 60 * 1000, // 10 seconds in test, 15 minutes in production
   max: process.env.NODE_ENV === "test" ? 50 : 10,
-  message: "Too many refresh requests, please try again after 15 minutes",
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      message: "Too many refresh requests, please try again after 15 minutes",
+    });
+  },
 });
 
 /**

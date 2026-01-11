@@ -22,7 +22,9 @@ export interface User {
 
 export type MemberStatus = "inProgress" | "onPause" | "late" | "planned";
 
-export type SituationType = "onsite" | "telework";
+export type SituationType = "onsite" | "absent";
+
+export type ClockInStatus = "active" | "paused" | "none";
 
 export interface MemberSituation {
   type: SituationType;
@@ -38,6 +40,9 @@ export interface MemberSituation {
  * @property {"onsite" | "telework"} situation.type - Type of work location
  * @property {"inProgress" | "onPause" | "late" | "planned"} status - Current work status
  * @property {string} shift - Formatted shift time (e.g., "09:00 - 17:00")
+ * @property {Date | undefined} lastClockIn - Timestamp of last clock in
+ * @property {Date | undefined} lastClockOut - Timestamp of last clock out
+ * @property {"active" | "paused" | "none"} clockStatus - Current clock in/out status
  */
 export interface Member extends User {
   id: number;
@@ -49,6 +54,9 @@ export interface Member extends User {
   situation: MemberSituation;
   status: MemberStatus;
   shift: string;
+  lastClockIn?: Date;
+  lastClockOut?: Date;
+  clockStatus: ClockInStatus;
 }
 
 // ============================================================================
