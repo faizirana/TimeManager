@@ -11,7 +11,8 @@ import {
   updateTeam,
   addTeamMember,
   getTeamById,
-} from "@/lib/services/teams/teamService";
+  deleteTeam,
+} from "@/lib/services/teams/teamsService";
 import { getTimetableById } from "@/lib/services/timetable/timetableService";
 import { formatShift } from "@/lib/utils/teamTransformers";
 import { TeamDisplay } from "@/lib/types/teams";
@@ -33,13 +34,14 @@ interface UseTeamsResult {
       id_timetable: number;
     },
   ) => Promise<void>;
+  deleteTeamById: (teamId: number) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
 /**
  * Hook to manage teams list with CRUD operations
- * @param userId - The ID of the current user
- * @returns Teams array with CRUD operations and state
+ * @param userId - Optional user ID. If provided, fetches teams for that user. If undefined, fetches all teams.
+ * @returns Teams array with CRUD operations (create, update, delete) and state
  */
 export function useTeams(userId?: number): UseTeamsResult {
   const [teams, setTeams] = useState<TeamDisplay[]>([]);
@@ -47,11 +49,6 @@ export function useTeams(userId?: number): UseTeamsResult {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTeams = useCallback(async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
@@ -78,6 +75,9 @@ export function useTeams(userId?: number): UseTeamsResult {
             name: team.name,
             shift,
             members: team.members?.length ?? 0,
+            managerName: team.manager
+              ? `${team.manager.name} ${team.manager.surname}`
+              : "Non assigné",
           };
         }),
       );
@@ -164,12 +164,27 @@ export function useTeams(userId?: number): UseTeamsResult {
     }
   };
 
+  /**
+   * Delete a team by ID
+   */
+  const deleteTeamById = async (teamId: number): Promise<void> => {
+    try {
+      await deleteTeam(teamId);
+      await fetchTeams();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete team";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
   return {
     teams,
     loading,
     error,
     createNewTeam,
     updateExistingTeam,
+    deleteTeamById,
     refetch: fetchTeams,
   };
 }

@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ManagerStats from "@/components/statistics/ManagerStats";
 import { useManagerStats } from "@/lib/hooks/useManagerStats";
-import { getTeams } from "@/lib/services/teams/teamService";
+import { getTeams } from "@/lib/services/teams/teamsService";
 
 jest.mock("@/lib/hooks/useManagerStats");
-jest.mock("@/lib/services/teams/teamService");
+jest.mock("@/lib/services/teams/teamsService");
 
 const mockUseManagerStats = useManagerStats as jest.MockedFunction<typeof useManagerStats>;
 const mockGetTeams = getTeams as jest.MockedFunction<typeof getTeams>;

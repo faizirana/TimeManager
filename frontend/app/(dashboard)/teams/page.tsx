@@ -1,8 +1,59 @@
+/**
+ * TeamsPage Component
+ *
+ * User's team management dashboard.
+ * Displays teams where the current user is a manager or member.
+ *
+ * **Features:**
+ * - View all user's teams with details (name, manager, timetable, member count)
+ * - Create new teams (if user has management permissions)
+ * - Edit existing teams (if user is the manager)
+ * - Navigate to team detail pages
+ * - Sort by name, shift, or member count
+ * - Role-based action visibility
+ *
+ * **Access Control:**
+ * - All authenticated users can view their teams
+ * - Only managers and admins can create teams
+ * - Only team managers can edit their teams
+ * - Permissions checked via canManageTeams utility
+ *
+ * **State Management:**
+ * - useTeams: Fetches teams for current user, provides CRUD operations
+ * - useModal: Controls AddTeamModal and EditTeamModal visibility
+ * - useErrorHandler: Centralized error state management
+ * - useTableSort: Handles multi-field sorting
+ * - useAuth: Provides current user context
+ *
+ * **Team Display:**
+ * - Team name and manager information
+ * - Timetable shift times (e.g., "09:00 - 17:00")
+ * - Member count with icon
+ * - Edit button for team managers
+ * - Click row to navigate to team details
+ *
+ * **Sorting:**
+ * - Name: Alphabetical A-Z / Z-A
+ * - Shift: By timetable times (custom compareShifts)
+ * - Members: By member count ascending/descending
+ *
+ * @component
+ * @returns {JSX.Element} The teams dashboard page
+ *
+ * @example
+ * // Accessed via /teams route
+ * // Shows only teams where user is manager or member
+ */
+
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/UI/Button";
+import { useModal } from "@/lib/hooks/useModal";
+import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
+import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import { LoadingState } from "@/components/UI/LoadingState";
 import {
   Plus,
   ArrowDownAZ,
@@ -24,12 +75,10 @@ import {
   TableHead,
   TableCell,
 } from "@/components/UI/Table";
-import { getTeamById } from "@/lib/services/teams/teamService";
+import { getTeamById } from "@/lib/services/teams/teamsService";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { TableSkeleton } from "@/components/UI/TableSkeleton";
-import Toast from "@/components/UI/Toast";
-import { AddTeamModal } from "@/components/teams/AddTeamModal";
-import { EditTeamModal } from "@/components/teams/EditTeamModal";
+import { AddTeamModal } from "@/components/modals/team/AddTeamModal";
+import { EditTeamModal } from "@/components/modals/team/EditTeamModal";
 import { Team } from "@/lib/types/teams";
 import { canManageTeams } from "@/lib/utils/permissions";
 
@@ -43,9 +92,9 @@ export default function TeamsPage() {
     createNewTeam,
     updateExistingTeam,
   } = useTeams(user?.id);
-  const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { error, setError, handleError } = useErrorHandler();
+  const addModal = useModal();
+  const editModal = useModal();
   const [teamToEdit, setTeamToEdit] = useState<Team | null>(null);
 
   const { data: sortedTeams, sortColumn, sortDirection, handleSort } = useTableSort(teams);
@@ -78,7 +127,7 @@ export default function TeamsPage() {
         memberIds: teamData.memberIds ?? [],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de la création de l'équipe");
+      handleError(err);
       throw err;
     }
   };
@@ -88,9 +137,9 @@ export default function TeamsPage() {
     try {
       const team = await getTeamById(teamId);
       setTeamToEdit(team);
-      setIsEditModalOpen(true);
+      editModal.open();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec du chargement des détails de l'équipe");
+      handleError(err);
     }
   };
 
@@ -99,10 +148,10 @@ export default function TeamsPage() {
 
     try {
       await updateExistingTeam(teamToEdit.id, teamData);
-      setIsEditModalOpen(false);
+      editModal.close();
       setTeamToEdit(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de la mise à jour de l'équipe");
+      handleError(err);
       throw err;
     }
   };
@@ -117,28 +166,24 @@ export default function TeamsPage() {
           <Button
             variant="primary"
             icon={<Plus size={18} strokeWidth={3} />}
-            onClick={() => setIsModalOpen(true)}
+            onClick={addModal.open}
           >
             Nouvelle équipe
           </Button>
         )}
       </div>
 
-      {/* Error Toast */}
-      {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
+      {/* Error Display */}
+      <ErrorDisplay error={error} variant="toast" onDismiss={() => setError(null)} />
 
       {/* Add Team Modal */}
-      <AddTeamModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateTeam}
-      />
+      <AddTeamModal isOpen={addModal.isOpen} onClose={addModal.close} onSubmit={handleCreateTeam} />
 
       {/* Edit Team Modal */}
       <EditTeamModal
-        isOpen={isEditModalOpen}
+        isOpen={editModal.isOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          editModal.close();
           setTeamToEdit(null);
         }}
         team={teamToEdit}
@@ -147,11 +192,7 @@ export default function TeamsPage() {
 
       {/* Table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">
-        {/* Loading state */}
-        {loading && <TableSkeleton rows={6} columns={3} />}
-
-        {/* Teams table */}
-        {!loading && (
+        <LoadingState isLoading={loading}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -217,7 +258,7 @@ export default function TeamsPage() {
               ))}
             </TableBody>
           </Table>
-        )}
+        </LoadingState>
       </div>
     </div>
   );

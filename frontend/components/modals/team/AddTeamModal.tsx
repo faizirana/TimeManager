@@ -1,5 +1,47 @@
 /**
- * Modal for adding a new team
+ * AddTeamModal Component
+ *
+ * Modal for creating a new team with the current user as manager.
+ * Allows selecting a timetable, optionally creating a new one, and adding initial members.
+ *
+ * **Features:**
+ * - Auto-assigns current user as manager (non-editable)
+ * - Timetable selection with inline creation option
+ * - Optional member selection (multi-select checkboxes)
+ * - Filters out current user from member list (auto-included as manager)
+ * - Uses useTimetables and useUsers hooks for data management
+ *
+ * **Validation:**
+ * - Team name is required
+ * - Timetable selection is required
+ * - Member selection is optional
+ *
+ * **Data Flow:**
+ * - Fetches timetables and users automatically on mount
+ * - Creates team with manager ID, timetable ID, and optional member IDs
+ * - Supports creating new timetable without closing this modal
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOpen - Whether the modal is visible
+ * @param {Function} props.onClose - Callback to close the modal
+ * @param {Function} props.onSubmit - Callback with team data on submission
+ * @param {string} props.onSubmit.name - Team name
+ * @param {number} props.onSubmit.id_manager - Manager's user ID (current user)
+ * @param {number} props.onSubmit.id_timetable - Selected timetable ID
+ * @param {number[]} [props.onSubmit.memberIds] - Optional array of member user IDs
+ *
+ * @example
+ * ```tsx
+ * <AddTeamModal
+ *   isOpen={addModal.isOpen}
+ *   onClose={addModal.close}
+ *   onSubmit={async (teamData) => {
+ *     await createTeam(teamData);
+ *     await refetchTeams();
+ *   }}
+ * />
+ * ```
  */
 
 "use client";
@@ -10,12 +52,13 @@ import { Button } from "@/components/UI/Button";
 import { Input } from "@/components/UI/Input";
 import { Label } from "@/components/UI/Label";
 import { Select } from "@/components/UI/Select";
+import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { getTimetables, createTimetable } from "@/lib/services/timetable/timetableService";
-import { Timetable } from "@/lib/types/timetable";
-import { getUsers } from "@/lib/services/users/usersService";
-import { User } from "@/lib/types/teams";
-import { AddTimetableModal } from "@/components/timetable/AddTimetableModal";
+import { useTimetables } from "@/lib/hooks/useTimetables";
+import { useUsers } from "@/lib/hooks/useUsers";
+import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
+import { VALIDATION_ERRORS, API_ERRORS } from "@/lib/types/errorMessages";
+import { AddTimetableModal } from "@/components/modals/timetable/AddTimetableModal";
 import { Plus } from "lucide-react";
 
 interface AddTeamModalProps {
@@ -33,65 +76,49 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [selectedTimetableId, setSelectedTimetableId] = useState<number | null>(null);
-  const [timetables, setTimetables] = useState<Timetable[]>([]);
-  const [loadingTimetables, setLoadingTimetables] = useState(false);
+  const { timetables, loading: loadingTimetables, createNewTimetable } = useTimetables();
+  const { users: allUsers, loading: loadingUsers } = useUsers();
   const [isTimetableModalOpen, setIsTimetableModalOpen] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, setError, clearError } = useErrorHandler();
 
-  // Fetch timetables and users when modal opens
+  // Filter out current user from the list (manager will be auto-added)
+  const users = allUsers.filter((u) => u.id !== user?.id);
+
+  // Auto-clear errors when user starts typing or selecting
+  useEffect(() => {
+    if (error && (name || selectedTimetableId || selectedMemberIds.length > 0)) {
+      clearError();
+    }
+  }, [name, selectedTimetableId, selectedMemberIds, error, clearError]);
+
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchTimetables();
-      fetchUsers();
+      setName("");
+      setSelectedTimetableId(null);
+      setSelectedMemberIds([]);
+      clearError();
     }
-  }, [isOpen]);
-
-  const fetchTimetables = async () => {
-    try {
-      setLoadingTimetables(true);
-      const data = await getTimetables();
-      // Remove duplicates based on ID
-      const uniqueTimetables = data.filter(
-        (timetable, index, self) => index === self.findIndex((t) => t.id === timetable.id),
-      );
-      setTimetables(uniqueTimetables);
-    } finally {
-      setLoadingTimetables(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const data = await getUsers();
-      // Filter out current user from the list (manager will be auto-added)
-      const filteredUsers = data.filter((u) => u.id !== user?.id);
-      setUsers(filteredUsers);
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
+  }, [isOpen, clearError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    clearError();
 
     if (!name.trim()) {
-      setError("Le nom de l'équipe est requis");
+      setError(VALIDATION_ERRORS.TEAM_REQUIRED);
       return;
     }
 
     if (!user?.id) {
-      setError("Utilisateur non connecté");
+      setError(VALIDATION_ERRORS.USER_NOT_CONNECTED);
       return;
     }
 
     if (!selectedTimetableId) {
-      setError("Vous devez sélectionner un horaire");
+      setError(VALIDATION_ERRORS.TIMETABLE_REQUIRED);
       return;
     }
 
@@ -107,9 +134,10 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
       // Reset form
       setName("");
       setSelectedTimetableId(null);
+      setSelectedMemberIds([]);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de la création de l'équipe");
+      setError(err instanceof Error ? err.message : API_ERRORS.CREATE_TEAM_FAILED);
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +148,7 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
       setName("");
       setSelectedTimetableId(null);
       setSelectedMemberIds([]);
-      setError(null);
+      clearError();
       onClose();
     }
   };
@@ -129,8 +157,7 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
     Shift_start: string;
     Shift_end: string;
   }) => {
-    const newTimetable = await createTimetable(timetableData);
-    setTimetables((prev) => [...prev, newTimetable]);
+    const newTimetable = await createNewTimetable(timetableData);
     setSelectedTimetableId(newTimetable.id);
   };
 
@@ -146,23 +173,24 @@ export function AddTeamModal({ isOpen, onClose, onSubmit }: AddTeamModalProps) {
       onClose={handleClose}
       title="Créer une nouvelle équipe"
       footer={
-        <>
+        <div className="flex items-center w-full gap-4">
+          {error ? (
+            <div className="flex-1">
+              <ErrorDisplay error={error} variant="inline" />
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )}
           <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
             Annuler
           </Button>
           <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Création..." : "Créer l'équipe"}
           </Button>
-        </>
+        </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
-
         <div className="space-y-2">
           <Label htmlFor="team-name" variant="static">
             Nom de l'équipe

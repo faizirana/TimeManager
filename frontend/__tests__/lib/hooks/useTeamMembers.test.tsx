@@ -4,10 +4,10 @@
 
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useTeamMembers } from "@/lib/hooks/useTeamMembers";
-import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamService";
+import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamsService";
 
 // Mock services
-jest.mock("@/lib/services/teams/teamService");
+jest.mock("@/lib/services/teams/teamsService");
 
 const mockGetTeamById = getTeamById as jest.MockedFunction<typeof getTeamById>;
 const mockAddTeamMember = addTeamMember as jest.MockedFunction<typeof addTeamMember>;
@@ -24,10 +24,31 @@ describe("useTeamMembers", () => {
       name: "Team A",
       id_manager: 1,
       id_timetable: 1,
-      manager: { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+      manager: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Manager",
+        mobileNumber: "+33601020304",
+      },
       members: [
-        { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
-        { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+        {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "john@example.com",
+          role: "Manager",
+          mobileNumber: "+33601020304",
+        },
+        {
+          id: 2,
+          name: "Jane",
+          surname: "Smith",
+          email: "jane@example.com",
+          role: "Employee",
+          mobileNumber: "+33605060708",
+        },
       ],
     };
 
@@ -59,6 +80,7 @@ describe("useTeamMembers", () => {
         surname: "Manager",
         email: "bob@example.com",
         role: "Manager",
+        mobileNumber: "+33609080706",
       },
       members: [],
     };
@@ -80,9 +102,23 @@ describe("useTeamMembers", () => {
       name: "Team A",
       id_manager: 1,
       id_timetable: 1,
-      manager: { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+      manager: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Manager",
+        mobileNumber: "+33601020304",
+      },
       members: [
-        { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+        {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "john@example.com",
+          role: "Manager",
+          mobileNumber: "+33601020304",
+        },
       ],
     };
 
@@ -111,10 +147,31 @@ describe("useTeamMembers", () => {
       name: "Team A",
       id_manager: 1,
       id_timetable: 1,
-      manager: { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+      manager: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Manager",
+        mobileNumber: "+33601020304",
+      },
       members: [
-        { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
-        { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+        {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "john@example.com",
+          role: "Manager",
+          mobileNumber: "+33601020304",
+        },
+        {
+          id: 2,
+          name: "Jane",
+          surname: "Smith",
+          email: "jane@example.com",
+          role: "Employee",
+          mobileNumber: "+33605060708",
+        },
       ],
     };
 
@@ -144,10 +201,31 @@ describe("useTeamMembers", () => {
       name: "Team A",
       id_manager: 1,
       id_timetable: 1,
-      manager: { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+      manager: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Manager",
+        mobileNumber: "+33601020304",
+      },
       members: [
-        { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
-        { id: 2, name: "Jane", surname: "Smith", email: "jane@example.com", role: "Employee" },
+        {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "john@example.com",
+          role: "Manager",
+          mobileNumber: "+33601020304",
+        },
+        {
+          id: 2,
+          name: "Jane",
+          surname: "Smith",
+          email: "jane@example.com",
+          role: "Employee",
+          mobileNumber: "+33605060708",
+        },
       ],
     };
 
@@ -190,9 +268,23 @@ describe("useTeamMembers", () => {
       name: "Team A",
       id_manager: 1,
       id_timetable: 1,
-      manager: { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+      manager: {
+        id: 1,
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        role: "Manager",
+        mobileNumber: "+33601020304",
+      },
       members: [
-        { id: 1, name: "John", surname: "Doe", email: "john@example.com", role: "Manager" },
+        {
+          id: 1,
+          name: "John",
+          surname: "Doe",
+          email: "john@example.com",
+          role: "Manager",
+          mobileNumber: "+33601020304",
+        },
       ],
     };
 

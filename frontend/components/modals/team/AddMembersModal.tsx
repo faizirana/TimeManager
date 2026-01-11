@@ -1,22 +1,54 @@
 /**
- * Modal for adding members to an existing team
+ * AddMembersModal Component
+ *
+ * Modal for adding new members to an existing team.
+ * Displays available users (excluding current team members) in a multi-select list.
+ *
+ * **Features:**
+ * - Multi-select checkboxes for user selection
+ * - Filters out users already in the team
+ * - Shows user name, email, and role for each option
+ * - Live counter of selected members
+ * - Uses useUsers hook for automatic user fetching
+ *
+ * **Validation:**
+ * - At least one member must be selected
+ * - Empty state shown if all users are already team members
+ *
+ * **Performance:**
+ * - Uses useMemo to filter available users efficiently
+ * - Prevents unnecessary re-renders on user list changes
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.isOpen - Whether the modal is visible
+ * @param {Function} props.onClose - Callback to close the modal
+ * @param {Function} props.onSubmit - Callback with array of selected user IDs
+ * @param {number[]} props.currentMemberIds - IDs of users already in the team
+ *
+ * @example
+ * ```tsx
+ * <AddMembersModal
+ *   isOpen={addMembersModal.isOpen}
+ *   onClose={addMembersModal.close}
+ *   onSubmit={async (memberIds) => {
+ *     await addTeamMembers(teamId, memberIds);
+ *     await refetchTeamMembers();
+ *   }}
+ *   currentMemberIds={team.members.map(m => m.id)}
+ * />
+ * ```
  */
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Modal } from "@/components/UI/Modal";
 import { Button } from "@/components/UI/Button";
 import { Label } from "@/components/UI/Label";
-import { getUsers } from "@/lib/services/users/usersService";
-
-interface User {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  role?: string;
-}
+import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import { useUsers } from "@/lib/hooks/useUsers";
+import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
 
 interface AddMembersModalProps {
   isOpen: boolean;
@@ -31,33 +63,30 @@ export function AddMembersModal({
   onSubmit,
   currentMemberIds,
 }: AddMembersModalProps) {
-  const [users, setUsers] = useState<User[]>([]);
+  const { users: allUsers, loading: loadingUsers } = useUsers();
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, setError, clearError } = useErrorHandler();
+
+  // Filter out users who are already in the team
+  const availableUsers = useMemo(
+    () => allUsers.filter((u) => !currentMemberIds.includes(u.id)),
+    [allUsers, currentMemberIds],
+  );
 
   useEffect(() => {
     if (isOpen) {
-      fetchUsers();
       setSelectedMemberIds([]);
-      setError(null);
+      clearError();
     }
-  }, [isOpen]);
+  }, [isOpen, clearError]);
 
-  const fetchUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const data = await getUsers();
-      // Filter out users who are already in the team
-      const availableUsers = data.filter((u) => !currentMemberIds.includes(u.id));
-      setUsers(availableUsers);
-    } catch (_err) {
-      setError("Erreur lors du chargement des utilisateurs");
-    } finally {
-      setLoadingUsers(false);
+  // Auto-clear errors when user selects members
+  useEffect(() => {
+    if (error && selectedMemberIds.length > 0) {
+      clearError();
     }
-  };
+  }, [selectedMemberIds, error, clearError]);
 
   const toggleMember = (userId: number) => {
     setSelectedMemberIds((prev) =>
@@ -67,7 +96,7 @@ export function AddMembersModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    clearError();
 
     if (selectedMemberIds.length === 0) {
       setError("Veuillez sélectionner au moins un membre");
@@ -92,7 +121,14 @@ export function AddMembersModal({
       onClose={onClose}
       title="Ajouter des membres"
       footer={
-        <>
+        <div className="flex items-center w-full gap-4">
+          {error ? (
+            <div className="flex-1">
+              <ErrorDisplay error={error} variant="inline" />
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )}
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
@@ -101,16 +137,10 @@ export function AddMembersModal({
               ? "Ajout..."
               : `Ajouter ${selectedMemberIds.length > 0 ? `(${selectedMemberIds.length})` : ""}`}
           </Button>
-        </>
+        </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
-
         <div className="space-y-2">
           <Label variant="static">Sélectionnez les membres à ajouter</Label>
 
@@ -119,14 +149,14 @@ export function AddMembersModal({
               <p className="text-sm text-[var(--muted-foreground)]">
                 Chargement des utilisateurs...
               </p>
-            ) : users.length === 0 ? (
+            ) : availableUsers.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-sm text-[var(--muted-foreground)]">
                   Tous les utilisateurs sont déjà membres de cette équipe
                 </p>
               </div>
             ) : (
-              users.map((userItem) => (
+              availableUsers.map((userItem) => (
                 <label
                   key={userItem.id}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--surface-hover)] cursor-pointer transition-colors border border-transparent hover:border-[var(--border)]"

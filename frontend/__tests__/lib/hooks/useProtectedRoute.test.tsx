@@ -63,7 +63,14 @@ describe("useProtectedRoute", () => {
   });
 
   it("should not redirect when authenticated", async () => {
-    const mockUser = { id: "1", email: "test@example.com", role: "user" };
+    const mockUser = {
+      id: 1,
+      email: "test@example.com",
+      role: "admin" as const,
+      name: "Test",
+      surname: "User",
+      mobileNumber: "+33601020304",
+    };
 
     mockUseAuth.mockReturnValue({
       user: mockUser,
@@ -132,7 +139,14 @@ describe("useProtectedRoute", () => {
   });
 
   it("should return user and loading state", () => {
-    const mockUser = { id: "1", email: "test@example.com", role: "admin" };
+    const mockUser = {
+      id: 1,
+      email: "test@example.com",
+      role: "admin" as const,
+      name: "Test",
+      surname: "User",
+      mobileNumber: "+33601020304",
+    };
 
     mockUseAuth.mockReturnValue({
       user: mockUser,
@@ -167,7 +181,14 @@ describe("useProtectedRoute", () => {
     expect(mockPush).not.toHaveBeenCalled();
 
     // Transition to authenticated
-    const mockUser = { id: "1", email: "test@example.com", role: "user" };
+    const mockUser = {
+      id: 1,
+      email: "test@example.com",
+      role: "employee" as const,
+      name: "Test",
+      surname: "User",
+      mobileNumber: "+33601020304",
+    };
     mockUseAuth.mockReturnValue({
       user: mockUser,
       loading: false,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTeamStats } from "@/lib/services/teams/teamService";
+import { getTeamStats } from "@/lib/services/teams/teamsService";
 
 interface TeamMemberHours {
   name: string;

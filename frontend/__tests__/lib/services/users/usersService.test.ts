@@ -7,13 +7,18 @@ import {
   getCurrentUserProfile,
   getUserById,
   updateCurrentUser,
+  createUser,
+  updateUser,
+  deleteUser,
 } from "@/lib/services/users/usersService";
 
 // Mock apiClient
 jest.mock("@/lib/utils/apiClient", () => ({
   apiClient: {
     get: jest.fn(),
+    post: jest.fn(),
     put: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
@@ -47,6 +52,146 @@ describe("usersService", () => {
       const result = await getUsers();
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("createUser", () => {
+    it("should create a new user", async () => {
+      const newUser = {
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        password: "Password123!",
+        role: "employee",
+        mobileNumber: "+33601020304",
+      };
+
+      const createdUser = {
+        id: 1,
+        ...newUser,
+      };
+
+      mockApiClient.post.mockResolvedValue(createdUser);
+
+      const result = await createUser(newUser);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith("/users", newUser);
+      expect(result).toEqual(createdUser);
+    });
+
+    it("should handle create user error", async () => {
+      const newUser = {
+        name: "John",
+        surname: "Doe",
+        email: "john@example.com",
+        password: "Password123!",
+        role: "employee",
+        mobileNumber: "+33601020304",
+      };
+
+      const error = new Error("Failed to create user");
+      mockApiClient.post.mockRejectedValue(error);
+
+      await expect(createUser(newUser)).rejects.toThrow("Failed to create user");
+    });
+  });
+
+  describe("updateUser", () => {
+    it("should update a user with all fields", async () => {
+      const userId = 1;
+      const updateData = {
+        name: "John",
+        surname: "Doe",
+        email: "john.updated@example.com",
+        role: "manager",
+        mobileNumber: "+33601020305",
+      };
+
+      const updatedUser = {
+        id: userId,
+        ...updateData,
+      };
+
+      mockApiClient.put.mockResolvedValue(updatedUser);
+
+      const result = await updateUser(userId, updateData);
+
+      expect(mockApiClient.put).toHaveBeenCalledWith(`/users/${userId}`, updateData);
+      expect(result).toEqual(updatedUser);
+    });
+
+    it("should update a user with partial fields", async () => {
+      const userId = 1;
+      const updateData = {
+        email: "john.newemail@example.com",
+      };
+
+      const updatedUser = {
+        id: userId,
+        name: "John",
+        surname: "Doe",
+        email: "john.newemail@example.com",
+        role: "employee",
+        mobileNumber: "+33601020304",
+      };
+
+      mockApiClient.put.mockResolvedValue(updatedUser);
+
+      const result = await updateUser(userId, updateData);
+
+      expect(mockApiClient.put).toHaveBeenCalledWith(`/users/${userId}`, updateData);
+      expect(result).toEqual(updatedUser);
+    });
+
+    it("should handle update user error", async () => {
+      const userId = 1;
+      const updateData = { name: "John" };
+      const error = new Error("Failed to update user");
+      mockApiClient.put.mockRejectedValue(error);
+
+      await expect(updateUser(userId, updateData)).rejects.toThrow("Failed to update user");
+    });
+
+    it("should accept string userId", async () => {
+      const userId = "1";
+      const updateData = { name: "John" };
+      const updatedUser = { id: 1, name: "John" };
+
+      mockApiClient.put.mockResolvedValue(updatedUser);
+
+      await updateUser(userId, updateData);
+
+      expect(mockApiClient.put).toHaveBeenCalledWith(`/users/${userId}`, updateData);
+    });
+  });
+
+  describe("deleteUser", () => {
+    it("should delete a user by id", async () => {
+      const userId = 1;
+
+      mockApiClient.delete.mockResolvedValue(undefined);
+
+      await deleteUser(userId);
+
+      expect(mockApiClient.delete).toHaveBeenCalledWith(`/users/${userId}`);
+    });
+
+    it("should handle delete user error", async () => {
+      const userId = 1;
+      const error = new Error("Failed to delete user");
+      mockApiClient.delete.mockRejectedValue(error);
+
+      await expect(deleteUser(userId)).rejects.toThrow("Failed to delete user");
+    });
+
+    it("should accept string userId", async () => {
+      const userId = "1";
+
+      mockApiClient.delete.mockResolvedValue(undefined);
+
+      await deleteUser(userId);
+
+      expect(mockApiClient.delete).toHaveBeenCalledWith(`/users/${userId}`);
     });
   });
 

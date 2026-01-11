@@ -2,17 +2,18 @@
 
 import React, { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar/Sidebar";
-import { LayoutDashboard, Clock, Users, ChartNoAxesCombined } from "lucide-react";
+import { LayoutDashboard, Clock, Users, ChartNoAxesCombined, ArrowLeftRight } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { Button } from "@/components/UI/Button";
+import { isAdmin } from "@/lib/utils/permissions";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
-
   const pathname = usePathname() ?? "/";
 
   const normalize = (p: string) => (p === "/" ? "/" : p.replace(/\/$/, ""));
@@ -41,13 +42,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
-    <div className="h-screen w-screen">
+    <div className="min-h-screen w-screen">
       <Sidebar
         items={sidebarItems}
         collapsed={sidebarCollapsed}
         // On transmet le setter via une prop spéciale pour le contrôle parent
         setCollapsedState={setSidebarCollapsed}
       >
+        {isAdmin(user?.role) && (
+          <Button
+            variant="secondary"
+            icon={<ArrowLeftRight size={18} />}
+            iconPosition="right"
+            onClick={() => router.push("/admin/dashboard")}
+          >
+            Admin
+          </Button>
+        )}
         <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}

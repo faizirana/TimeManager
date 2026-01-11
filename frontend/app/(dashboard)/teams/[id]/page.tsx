@@ -1,7 +1,64 @@
+/**
+ * TeamDetailPage Component
+ *
+ * Detailed view of a specific team and its members.
+ * Displays team information, member list with status, and management actions.
+ *
+ * **Features:**
+ * - View team details (name, manager, timetable)
+ * - View all team members with status and situation
+ * - Add new members to the team (managers only)
+ * - Remove members from the team (managers only)
+ * - Sort members by name, role, status, or situation
+ * - Real-time status badges (Présent, Absent, En congé)
+ * - Situation icons (Sur site, Télétravail)
+ *
+ * **Access Control:**
+ * - All authenticated users can view team details
+ * - Only team managers can add/remove members
+ * - Managers cannot remove themselves
+ * - Permission checks via canManageTeams and canRemoveMember
+ *
+ * **State Management:**
+ * - useTeamDetails: Fetches team information
+ * - useTeamMembers: Manages member list and CRUD operations
+ * - useModal: Controls AddMembersModal and DeleteMemberModal visibility
+ * - useErrorHandler: Centralized error state management
+ * - useTableSort: Handles multi-field member sorting
+ * - useAuth: Provides current user context for permissions
+ *
+ * **Member Information:**
+ * - Avatar and full name
+ * - Role badge (Admin, Manager, Employee)
+ * - Status badge (Présent, Absent, En congé)
+ * - Situation (Sur site with MapPin icon, Télétravail with Computer icon)
+ * - Remove button (managers only, not for self)
+ *
+ * **Sorting:**
+ * - Name: Alphabetical A-Z / Z-A
+ * - Role: Admin > Manager > Employee
+ * - Status: Present > Absent > On leave (custom handleSituationSort)
+ * - Situation: Onsite > Telework
+ *
+ * **Navigation:**
+ * - Breadcrumb trail: Équipes > [Team Name]
+ * - Back to teams list via breadcrumb link
+ *
+ * @component
+ * @returns {JSX.Element} The team detail page
+ *
+ * @example
+ * // Accessed via /teams/[id] route
+ * // Example: /teams/5 shows details for team with ID 5
+ * // Members can view, managers can add/remove members
+ */
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModal";
+import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
 import {
   LucideIcon,
   ChevronRight,
@@ -20,6 +77,8 @@ import { useTeamMembers } from "@/lib/hooks/useTeamMembers";
 import { Button } from "@/components/UI/Button";
 import { StatusBadge } from "@/components/UI/StatusBadge";
 import { RoleBadge } from "@/components/UI/RoleBadge";
+import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import { LoadingState } from "@/components/UI/LoadingState";
 import { compareShifts } from "@/lib/utils/sortHelpers";
 import {
   Table,
@@ -31,10 +90,8 @@ import {
 } from "@/components/UI/Table";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { Avatar } from "@/components/UI/Avatar";
-import { TableSkeleton } from "@/components/UI/TableSkeleton";
-import Toast from "@/components/UI/Toast";
-import { DeleteMemberModal } from "@/components/teams/DeleteMemberModal";
-import { AddMembersModal } from "@/components/teams/AddMembersModal";
+import { DeleteMemberModal } from "@/components/modals/team/DeleteMemberModal";
+import { AddMembersModal } from "@/components/modals/team/AddMembersModal";
 import { Member } from "@/lib/types/teams";
 import { canRemoveMember, getMemberFullName } from "@/lib/utils/teamTransformers";
 import { canManageTeams } from "@/lib/utils/permissions";
@@ -75,10 +132,10 @@ export default function TeamMembersPage() {
   } = useTeamMembers(teamId, managerId, teamShift);
 
   // UI state
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const deleteModal = useModal();
+  const addMembersModal = useModal();
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
-  const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, setError, handleError } = useErrorHandler();
 
   const { data: sortedMembers, sortColumn, sortDirection, handleSort } = useTableSort(members);
 
@@ -117,7 +174,7 @@ export default function TeamMembersPage() {
     }
 
     setMemberToDelete(member);
-    setIsDeleteModalOpen(true);
+    deleteModal.open();
   };
 
   const confirmRemoveMember = async () => {
@@ -127,7 +184,7 @@ export default function TeamMembersPage() {
       await removeMember(memberToDelete.id);
       setMemberToDelete(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de la suppression du membre");
+      handleError(err);
     }
   };
 
@@ -135,7 +192,7 @@ export default function TeamMembersPage() {
     try {
       await addMembers(memberIds);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de l'ajout des membres");
+      handleError(err);
       throw err;
     }
   };
@@ -159,23 +216,19 @@ export default function TeamMembersPage() {
           <Button
             variant="primary"
             icon={<Plus size={18} strokeWidth={3} />}
-            onClick={() => setIsAddMembersModalOpen(true)}
+            onClick={addMembersModal.open}
           >
             Ajouter des membres
           </Button>
         )}
       </div>
 
-      {/* Error Toast */}
-      {error && <Toast message={error} type="error" onClose={() => setError(null)} />}
+      {/* Error Display */}
+      <ErrorDisplay error={error} variant="toast" onDismiss={() => setError(null)} />
 
       {/* Table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">
-        {/* Loading state */}
-        {loading && <TableSkeleton rows={8} columns={4} />}
-
-        {/* Members table */}
-        {!loading && (
+        <LoadingState isLoading={loading}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -274,14 +327,14 @@ export default function TeamMembersPage() {
               ))}
             </TableBody>
           </Table>
-        )}
+        </LoadingState>
       </div>
 
       {/* Delete Member Modal */}
       <DeleteMemberModal
-        isOpen={isDeleteModalOpen}
+        isOpen={deleteModal.isOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
+          deleteModal.close();
           setMemberToDelete(null);
         }}
         onConfirm={confirmRemoveMember}
@@ -290,8 +343,8 @@ export default function TeamMembersPage() {
 
       {/* Add Members Modal */}
       <AddMembersModal
-        isOpen={isAddMembersModalOpen}
-        onClose={() => setIsAddMembersModalOpen(false)}
+        isOpen={addMembersModal.isOpen}
+        onClose={addMembersModal.close}
         onSubmit={handleAddMembers}
         currentMemberIds={members.map((m) => m.id)}
       />

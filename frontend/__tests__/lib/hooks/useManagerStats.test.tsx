@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { useManagerStats } from "@/lib/hooks/useManagerStats";
-import { getTeamStats } from "@/lib/services/teams/teamService";
+import { getTeamStats } from "@/lib/services/teams/teamsService";
 
-jest.mock("@/lib/services/teams/teamService");
+jest.mock("@/lib/services/teams/teamsService");
 
 const mockGetTeamStats = getTeamStats as jest.MockedFunction<typeof getTeamStats>;
 

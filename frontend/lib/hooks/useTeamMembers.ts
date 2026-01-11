@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamService";
+import { getTeamById, addTeamMember, removeTeamMember } from "@/lib/services/teams/teamsService";
 import { Member } from "@/lib/types/teams";
 import { transformMembers } from "@/lib/utils/teamTransformers";
 

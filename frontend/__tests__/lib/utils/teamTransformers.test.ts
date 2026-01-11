@@ -37,6 +37,7 @@ describe("teamTransformers", () => {
       surname: "Doe",
       email: "john.doe@example.com",
       role: "employee",
+      mobileNumber: "+33601020304",
     };
 
     it("should transform API member to UI Member", () => {
@@ -76,6 +77,7 @@ describe("teamTransformers", () => {
         surname: "Doe",
         email: "john.doe@example.com",
         role: "employee",
+        mobileNumber: "+33601020304",
       },
       {
         id: 2,
@@ -83,6 +85,7 @@ describe("teamTransformers", () => {
         surname: "Smith",
         email: "jane.smith@example.com",
         role: "manager",
+        mobileNumber: "+33605060708",
       },
     ];
 
@@ -110,6 +113,7 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john@example.com",
+        mobileNumber: "+33601020304",
         role: "employee",
         isManager: false,
         situation: { type: "onsite" },
@@ -134,6 +138,7 @@ describe("teamTransformers", () => {
         name: "John",
         surname: "Doe",
         email: "john@example.com",
+        mobileNumber: "+33601020304",
         role: "manager",
         isManager: true,
         situation: { type: "onsite" },
@@ -150,6 +155,7 @@ describe("teamTransformers", () => {
         name: "Jane",
         surname: "Smith",
         email: "jane@example.com",
+        mobileNumber: "+33605060708",
         role: "employee",
         isManager: false,
         situation: { type: "telework" },
