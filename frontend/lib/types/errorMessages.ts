@@ -28,15 +28,17 @@ export const VALIDATION_ERRORS = {
  * API error messages
  */
 export const API_ERRORS = {
-  FETCH_FAILED: (resource: string) => `Échec du chargement des ${resource}. Veuillez réessayer.`,
-  CREATE_FAILED: (resource: string) => `Échec de la création ${resource}. Veuillez réessayer.`,
+  FETCH_FAILED: (resource: string) => `Échec du chargement de ${resource}. Veuillez réessayer.`,
+  CREATE_FAILED: (resource: string) => `Échec de la création de ${resource}. Veuillez réessayer.`,
   CREATE_TEAM_FAILED: "Erreur lors de la création de l'équipe",
   CREATE_USER_FAILED: "Erreur lors de la création de l'utilisateur",
   CREATE_TIMETABLE_FAILED: "Erreur lors de la création de l'horaire.",
-  UPDATE_FAILED: (resource: string) => `Échec de la mise à jour ${resource}. Veuillez réessayer.`,
-  UPDATE_TEAM_FAILED: "Erreur lors de la modification de l'équipe",
-  UPDATE_USER_FAILED: "Erreur lors de la modification de l'utilisateur",
-  DELETE_FAILED: (resource: string) => `Échec de la suppression ${resource}. Veuillez réessayer.`,
+  UPDATE_FAILED: (resource: string) =>
+    `Échec de la mise à jour de ${resource}. Veuillez réessayer.`,
+  UPDATE_TEAM_FAILED: "Erreur lors de la mise à jour de l'équipe",
+  UPDATE_USER_FAILED: "Erreur lors de la mise à jour de l'utilisateur",
+  DELETE_FAILED: (resource: string) =>
+    `Échec de la suppression de ${resource}. Veuillez réessayer.`,
   NETWORK_ERROR: "Erreur réseau. Vérifiez votre connexion et réessayez.",
   UNAUTHORIZED: "Vous n'êtes pas autorisé à effectuer cette action.",
   FORBIDDEN: "Accès refusé.",
@@ -52,6 +54,10 @@ export const SUCCESS_MESSAGES = {
   UPDATED: (resource: string) => `${resource} mis à jour avec succès.`,
   DELETED: (resource: string) => `${resource} supprimé avec succès.`,
   SAVED: "Modifications enregistrées avec succès.",
+  ADDED: (resource: string) => `${resource} ajouté avec succès.`,
+  REMOVED: (resource: string) => `${resource} retiré avec succès.`,
+  LOGIN_SUCCESS: "Connexion réussie.",
+  LOGOUT_SUCCESS: "Déconnexion réussie.",
 } as const;
 
 /**

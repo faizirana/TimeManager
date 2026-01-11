@@ -4,82 +4,53 @@
 
 import { renderHook, waitFor } from "@testing-library/react";
 import { useAdminStats } from "@/lib/hooks/useAdminStats";
-import * as teamsService from "@/lib/services/teams/teamsService";
-import * as usersService from "@/lib/services/users/usersService";
-import * as timetableService from "@/lib/services/timetable/timetableService";
+import * as statsService from "@/lib/services/stats/statsService";
 
-jest.mock("@/lib/services/teams/teamsService");
-jest.mock("@/lib/services/users/usersService");
-jest.mock("@/lib/services/timetable/timetableService");
+jest.mock("@/lib/services/stats/statsService");
 
 describe("useAdminStats", () => {
-  const mockTeams = [
-    { id: 1, name: "Team 1", id_manager: 1, id_timetable: 1 },
-    { id: 2, name: "Team 2", id_manager: 2, id_timetable: 2 },
-  ];
-
-  const mockUsers = [
-    {
-      id: 1,
-      name: "User1",
-      surname: "Test",
-      email: "user1@test.com",
-      role: "admin",
-      mobileNumber: "+33601020304",
+  const mockStatsResponse = {
+    totalUsers: 10,
+    totalTeams: 3,
+    totalTimetables: 2,
+    roles: {
+      managers: 2,
+      employees: 7,
+      admins: 1,
     },
-    {
-      id: 2,
-      name: "User2",
-      surname: "Test",
-      email: "user2@test.com",
-      role: "manager",
-      mobileNumber: "+33601020305",
-    },
-    {
-      id: 3,
-      name: "User3",
-      surname: "Test",
-      email: "user3@test.com",
-      role: "employee",
-      mobileNumber: "+33601020306",
-    },
-  ];
-
-  const mockTimetables = [
-    { id: 1, Shift_start: "09:00", Shift_end: "17:00" },
-    { id: 2, Shift_start: "14:00", Shift_end: "22:00" },
-  ];
+    todayRecordings: 15,
+    currentlyPresent: 5,
+    teamsWithoutTimetable: 1,
+    avgTeamSize: "3.5",
+    activeManagers: 2,
+    inactiveManagers: 0,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("Initial State", () => {
-    it("should initialize with loading true and stats at 0", () => {
-      (teamsService.getTeams as jest.Mock).mockImplementation(() => new Promise(() => {}));
-      (usersService.getUsers as jest.Mock).mockImplementation(() => new Promise(() => {}));
-      (timetableService.getTimetables as jest.Mock).mockImplementation(() => new Promise(() => {}));
+    it("should initialize with loading true and all stats at 0", () => {
+      (statsService.getAdminStats as jest.Mock).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminStats());
 
       expect(result.current.loading).toBe(true);
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 0,
-        users: 0,
-        timetables: 0,
+      expect(result.current.totalUsers).toBe(0);
+      expect(result.current.totalTeams).toBe(0);
+      expect(result.current.totalTimetables).toBe(0);
+      expect(result.current.roles).toEqual({
+        managers: 0,
+        employees: 0,
+        admins: 0,
       });
     });
   });
 
   describe("Fetching Stats", () => {
     it("should fetch all stats successfully", async () => {
-      (teamsService.getTeams as jest.Mock).mockResolvedValue(mockTeams);
-      (usersService.getUsers as jest.Mock).mockResolvedValue(mockUsers);
-      (timetableService.getTimetables as jest.Mock).mockResolvedValue(mockTimetables);
+      (statsService.getAdminStats as jest.Mock).mockResolvedValue(mockStatsResponse);
 
       const { result } = renderHook(() => useAdminStats());
 
@@ -87,24 +58,25 @@ describe("useAdminStats", () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 2,
-        users: 3,
-        timetables: 2,
+      expect(result.current.totalUsers).toBe(10);
+      expect(result.current.totalTeams).toBe(3);
+      expect(result.current.totalTimetables).toBe(2);
+      expect(result.current.roles).toEqual({
+        managers: 2,
+        employees: 7,
+        admins: 1,
       });
-      expect(teamsService.getTeams).toHaveBeenCalledTimes(1);
-      expect(usersService.getUsers).toHaveBeenCalledTimes(1);
-      expect(timetableService.getTimetables).toHaveBeenCalledTimes(1);
+      expect(result.current.todayRecordings).toBe(15);
+      expect(result.current.currentlyPresent).toBe(5);
+      expect(result.current.teamsWithoutTimetable).toBe(1);
+      expect(result.current.avgTeamSize).toBe("3.5");
+      expect(result.current.activeManagers).toBe(2);
+      expect(result.current.inactiveManagers).toBe(0);
+      expect(statsService.getAdminStats).toHaveBeenCalledTimes(1);
     });
 
-    it("should handle empty data arrays", async () => {
-      (teamsService.getTeams as jest.Mock).mockResolvedValue([]);
-      (usersService.getUsers as jest.Mock).mockResolvedValue([]);
-      (timetableService.getTimetables as jest.Mock).mockResolvedValue([]);
+    it("should handle fetch error gracefully", async () => {
+      (statsService.getAdminStats as jest.Mock).mockRejectedValue(new Error("Stats fetch error"));
 
       const { result } = renderHook(() => useAdminStats());
 
@@ -112,107 +84,9 @@ describe("useAdminStats", () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 0,
-        users: 0,
-        timetables: 0,
-      });
-    });
-
-    it("should handle teams fetch error gracefully", async () => {
-      (teamsService.getTeams as jest.Mock).mockRejectedValue(new Error("Teams error"));
-      (usersService.getUsers as jest.Mock).mockResolvedValue(mockUsers);
-      (timetableService.getTimetables as jest.Mock).mockResolvedValue(mockTimetables);
-
-      const { result } = renderHook(() => useAdminStats());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 0,
-        users: 3,
-        timetables: 2,
-      });
-    });
-
-    it("should handle users fetch error gracefully", async () => {
-      (teamsService.getTeams as jest.Mock).mockResolvedValue(mockTeams);
-      (usersService.getUsers as jest.Mock).mockRejectedValue(new Error("Users error"));
-      (timetableService.getTimetables as jest.Mock).mockResolvedValue(mockTimetables);
-
-      const { result } = renderHook(() => useAdminStats());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 2,
-        users: 0,
-        timetables: 2,
-      });
-    });
-
-    it("should handle timetables fetch error gracefully", async () => {
-      (teamsService.getTeams as jest.Mock).mockResolvedValue(mockTeams);
-      (usersService.getUsers as jest.Mock).mockResolvedValue(mockUsers);
-      (timetableService.getTimetables as jest.Mock).mockRejectedValue(
-        new Error("Timetables error"),
-      );
-
-      const { result } = renderHook(() => useAdminStats());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 2,
-        users: 3,
-        timetables: 0,
-      });
-    });
-
-    it("should handle all fetch errors gracefully", async () => {
-      (teamsService.getTeams as jest.Mock).mockRejectedValue(new Error("Teams error"));
-      (usersService.getUsers as jest.Mock).mockRejectedValue(new Error("Users error"));
-      (timetableService.getTimetables as jest.Mock).mockRejectedValue(
-        new Error("Timetables error"),
-      );
-
-      const { result } = renderHook(() => useAdminStats());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect({
-        users: result.current.users,
-        teams: result.current.teams,
-        timetables: result.current.timetables,
-      }).toEqual({
-        teams: 0,
-        users: 0,
-        timetables: 0,
-      });
+      expect(result.current.error).toBe("Échec du chargement des statistiques.");
+      expect(result.current.totalUsers).toBe(0);
+      expect(result.current.totalTeams).toBe(0);
     });
   });
 });

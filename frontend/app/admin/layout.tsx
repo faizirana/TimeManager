@@ -18,11 +18,11 @@ import { usePathname, useRouter } from "next/navigation";
 import DarkModeSwitcher from "@/components/UI/DarkModeSwitcher";
 import FloatingMenu from "@/components/UI/FloatingMenu";
 import SidebarItem from "@/components/layout/Sidebar/SidebarItem";
-import { useAuth } from "@/lib/contexts/AuthContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { Button } from "@/components/UI/Button";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   // Normalize paths for comparison
@@ -42,9 +42,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
   // User menu (profile, settings, logout)
   const userMenuItems = [
-    { label: "View profile", onClick: () => alert("Profile to do") },
-    { label: "Settings", onClick: () => alert("Settings to do") },
-    { label: "Logout", color: "text-red-600", onClick: () => alert("Logout to do") },
+    { label: "Voir mon profil", onClick: () => router.push("/profile") },
+    { label: "Déconnexion", color: "text-red-600", onClick: logout },
   ];
   return (
     <div className="flex min-h-screen w-screen">

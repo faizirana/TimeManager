@@ -61,7 +61,11 @@ export default function LoginForm({ disabled = false }: { disabled?: boolean }) 
         </button>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      )}
 
       <Button variant="secondary" type="submit" disabled={loading || disabled} className="w-full">
         {loading ? "Connexion..." : disabled ? "Redirection..." : "Se connecter"}

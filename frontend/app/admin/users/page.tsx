@@ -8,12 +8,12 @@ import { useTablePagination } from "@/lib/hooks/useTablePagination";
 import { useTableSearch } from "@/lib/hooks/useTableSearch";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useModal } from "@/lib/hooks/useModal";
-import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
+import { useToast } from "@/lib/hooks/useToast";
 import { isAdmin } from "@/lib/utils/permissions";
 import { Button } from "@/components/UI/Button";
 import { Avatar } from "@/components/UI/Avatar";
 import { RoleBadge } from "@/components/UI/RoleBadge";
-import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import Toast from "@/components/UI/Toast";
 import { LoadingState } from "@/components/UI/LoadingState";
 import { TablePagination } from "@/components/UI/TablePagination";
 import {
@@ -39,6 +39,7 @@ import type { User } from "@/lib/types/teams";
 import { AddUserModal } from "@/components/modals/user/AddUserModal";
 import { EditUserModal } from "@/components/modals/user/EditUserModal";
 import { DeleteUserModal } from "@/components/modals/user/DeleteUserModal";
+import { SUCCESS_MESSAGES, RESOURCES } from "@/lib/types/errorMessages";
 
 /**
  * AdminUsersPage Component
@@ -96,7 +97,7 @@ export default function AdminUsersPage() {
     updateExistingUser,
     deleteExistingUser,
   } = useUsers();
-  const { error, setError, clearError, handleError } = useErrorHandler();
+  const { toast, showSuccess, showError, clearToast } = useToast();
   const addModal = useModal();
   const editModal = useModal();
   const deleteModal = useModal();
@@ -132,9 +133,9 @@ export default function AdminUsersPage() {
   // Set error from fetch hook
   useEffect(() => {
     if (fetchError) {
-      setError(fetchError);
+      showError(fetchError);
     }
-  }, [fetchError, setError]);
+  }, [fetchError, showError]);
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -163,11 +164,14 @@ export default function AdminUsersPage() {
       try {
         await createNewUser(userData);
         addModal.close();
+        showSuccess(SUCCESS_MESSAGES.CREATED("Utilisateur"));
       } catch (err) {
-        handleError(err);
+        showError(
+          err instanceof Error ? err.message : "Erreur lors de la création de l'utilisateur",
+        );
       }
     },
-    [createNewUser, addModal, handleError],
+    [createNewUser, addModal, showSuccess, showError],
   );
 
   /**
@@ -186,11 +190,14 @@ export default function AdminUsersPage() {
         await updateExistingUser(userToEdit.id, userData);
         editModal.close();
         setUserToEdit(null);
+        showSuccess(SUCCESS_MESSAGES.UPDATED("Utilisateur"));
       } catch (err) {
-        handleError(err);
+        showError(
+          err instanceof Error ? err.message : "Erreur lors de la mise à jour de l'utilisateur",
+        );
       }
     },
-    [userToEdit, updateExistingUser, editModal, handleError],
+    [userToEdit, updateExistingUser, editModal, showSuccess, showError],
   );
 
   /**
@@ -202,10 +209,13 @@ export default function AdminUsersPage() {
       await deleteExistingUser(userToDelete.id);
       deleteModal.close();
       setUserToDelete(null);
+      showSuccess(SUCCESS_MESSAGES.DELETED("Utilisateur"));
     } catch (err) {
-      handleError(err);
+      showError(
+        err instanceof Error ? err.message : "Erreur lors de la suppression de l'utilisateur",
+      );
     }
-  }, [userToDelete, deleteExistingUser, deleteModal, handleError]);
+  }, [userToDelete, deleteExistingUser, deleteModal, showSuccess, showError]);
 
   /**
    * Opens edit modal for specific user
@@ -285,8 +295,8 @@ export default function AdminUsersPage() {
         user={userToDelete}
       />
 
-      {/* Error notification */}
-      <ErrorDisplay error={error} variant="toast" onDismiss={clearError} />
+      {/* Toast notifications */}
+      {toast && <Toast {...toast} onClose={clearToast} />}
 
       {/* Users table section */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">

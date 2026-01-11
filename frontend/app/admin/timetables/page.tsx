@@ -48,10 +48,10 @@ import { useTableSort } from "@/lib/hooks/useTableSort";
 import { useTablePagination } from "@/lib/hooks/useTablePagination";
 import { useTableSearch } from "@/lib/hooks/useTableSearch";
 import { useModal } from "@/lib/hooks/useModal";
-import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
+import { useToast } from "@/lib/hooks/useToast";
 import { isAdmin } from "@/lib/utils/permissions";
 import { Button } from "@/components/UI/Button";
-import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import Toast from "@/components/UI/Toast";
 import { LoadingState } from "@/components/UI/LoadingState";
 import { TablePagination } from "@/components/UI/TablePagination";
 import {
@@ -75,6 +75,7 @@ import {
 } from "@/components/UI/Table";
 import { AddTimetableModal } from "@/components/modals/timetable/AddTimetableModal";
 import { DeleteTimetableModal } from "@/components/modals/timetable/DeleteTimetableModal";
+import { SUCCESS_MESSAGES, RESOURCES } from "@/lib/types/errorMessages";
 
 export default function AdminTimetablesPage() {
   const { user, loading: authLoading } = useProtectedRoute();
@@ -90,7 +91,7 @@ export default function AdminTimetablesPage() {
   } = useTimetables();
 
   // Error handler
-  const { error, setError, clearError, handleError } = useErrorHandler();
+  const { toast, showSuccess, showError, clearToast } = useToast();
 
   // Modal state
   const addModal = useModal();
@@ -131,9 +132,9 @@ export default function AdminTimetablesPage() {
   // Set error from fetch hook
   useEffect(() => {
     if (fetchError) {
-      setError(fetchError);
+      showError(fetchError);
     }
-  }, [fetchError, setError]);
+  }, [fetchError, showError]);
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -154,8 +155,9 @@ export default function AdminTimetablesPage() {
     try {
       await createNewTimetable(timetableData);
       addModal.close();
+      showSuccess(SUCCESS_MESSAGES.CREATED("Horaire"));
     } catch (err) {
-      handleError(err);
+      showError(err instanceof Error ? err.message : "Erreur lors de la création de l'horaire");
     }
   }
 
@@ -177,8 +179,9 @@ export default function AdminTimetablesPage() {
       await deleteTimetableById(selectedTimetable.id);
       deleteModal.close();
       setSelectedTimetable(null);
+      showSuccess(SUCCESS_MESSAGES.DELETED("Horaire"));
     } catch (err) {
-      handleError(err);
+      showError(err instanceof Error ? err.message : "Erreur lors de la suppression de l'horaire");
     }
   }
 
@@ -213,8 +216,8 @@ export default function AdminTimetablesPage() {
         timetable={selectedTimetable}
       />
 
-      {/* Error notification */}
-      <ErrorDisplay error={error} variant="toast" onDismiss={clearError} />
+      {/* Toast notifications */}
+      {toast && <Toast {...toast} onClose={clearToast} />}
 
       {/* Timetables table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">

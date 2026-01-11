@@ -51,9 +51,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/UI/Button";
 import { useModal } from "@/lib/hooks/useModal";
-import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
-import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
+import { useToast } from "@/lib/hooks/useToast";
+import { useTableSearch } from "@/lib/hooks/useTableSearch";
+import { useTablePagination } from "@/lib/hooks/useTablePagination";
+import Toast from "@/components/UI/Toast";
 import { LoadingState } from "@/components/UI/LoadingState";
+import { TablePagination } from "@/components/UI/TablePagination";
 import {
   Plus,
   ArrowDownAZ,
@@ -63,6 +66,7 @@ import {
   ArrowDown01,
   ArrowUp10,
   Pencil,
+  Search,
 } from "lucide-react";
 import { useTableSort } from "@/lib/hooks/useTableSort";
 import { useTeams } from "@/lib/hooks/useTeams";
@@ -81,6 +85,7 @@ import { AddTeamModal } from "@/components/modals/team/AddTeamModal";
 import { EditTeamModal } from "@/components/modals/team/EditTeamModal";
 import { Team } from "@/lib/types/teams";
 import { canManageTeams } from "@/lib/utils/permissions";
+import { SUCCESS_MESSAGES } from "@/lib/types/errorMessages";
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -92,12 +97,27 @@ export default function TeamsPage() {
     createNewTeam,
     updateExistingTeam,
   } = useTeams(user?.id);
-  const { error, setError, handleError } = useErrorHandler();
+  const { toast, showSuccess, showError, clearToast } = useToast();
   const addModal = useModal();
   const editModal = useModal();
   const [teamToEdit, setTeamToEdit] = useState<Team | null>(null);
 
-  const { data: sortedTeams, sortColumn, sortDirection, handleSort } = useTableSort(teams);
+  // Search hook with debouncing
+  const { searchQuery, setSearchQuery, filteredData } = useTableSearch(
+    teams,
+    ["name", "shift"],
+    300,
+  );
+
+  // Table sorting
+  const { data: sortedTeams, sortColumn, sortDirection, handleSort } = useTableSort(filteredData);
+
+  // Pagination
+  const { page, totalPages, start, end, nextPage, prevPage, goToPage } = useTablePagination(
+    sortedTeams.length,
+    10,
+  );
+  const paginatedTeams = sortedTeams.slice(start, end);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -108,8 +128,8 @@ export default function TeamsPage() {
 
   // Sync errors from hook
   useEffect(() => {
-    if (teamsError) setError(teamsError);
-  }, [teamsError]);
+    if (teamsError) showError(teamsError);
+  }, [teamsError, showError]);
 
   const handleTeamClick = (teamId: number) => {
     router.push(`/teams/${teamId}`);
@@ -126,8 +146,9 @@ export default function TeamsPage() {
         ...teamData,
         memberIds: teamData.memberIds ?? [],
       });
+      showSuccess(SUCCESS_MESSAGES.CREATED("Équipe"));
     } catch (err) {
-      handleError(err);
+      showError(err instanceof Error ? err.message : "Erreur lors de la création de l'équipe");
       throw err;
     }
   };
@@ -139,7 +160,7 @@ export default function TeamsPage() {
       setTeamToEdit(team);
       editModal.open();
     } catch (err) {
-      handleError(err);
+      showError(err instanceof Error ? err.message : "Erreur lors du chargement de l'équipe");
     }
   };
 
@@ -150,8 +171,9 @@ export default function TeamsPage() {
       await updateExistingTeam(teamToEdit.id, teamData);
       editModal.close();
       setTeamToEdit(null);
+      showSuccess(SUCCESS_MESSAGES.UPDATED("Équipe"));
     } catch (err) {
-      handleError(err);
+      showError(err instanceof Error ? err.message : "Erreur lors de la mise à jour de l'équipe");
       throw err;
     }
   };
@@ -173,8 +195,8 @@ export default function TeamsPage() {
         )}
       </div>
 
-      {/* Error Display */}
-      <ErrorDisplay error={error} variant="toast" onDismiss={() => setError(null)} />
+      {/* Toast notifications */}
+      {toast && <Toast {...toast} onClose={clearToast} />}
 
       {/* Add Team Modal */}
       <AddTeamModal isOpen={addModal.isOpen} onClose={addModal.close} onSubmit={handleCreateTeam} />
@@ -192,6 +214,21 @@ export default function TeamsPage() {
 
       {/* Table */}
       <div className="bg-[var(--background-2)] rounded-lg shadow">
+        {/* Search input */}
+        <div className="p-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher par nom d'équipe ou horaire..."
+              className="w-full pl-10 pr-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              aria-label="Search teams"
+            />
+          </div>
+        </div>
+
         <LoadingState isLoading={loading}>
           <Table>
             <TableHeader>
@@ -234,7 +271,7 @@ export default function TeamsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedTeams.map((team) => (
+              {paginatedTeams.map((team) => (
                 <TableRow key={team.id} onClick={() => handleTeamClick(team.id)}>
                   <TableCell className="w-1/2">
                     <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -258,6 +295,17 @@ export default function TeamsPage() {
               ))}
             </TableBody>
           </Table>
+
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            onNextPage={nextPage}
+            onPrevPage={prevPage}
+            onGoToPage={goToPage}
+            startItem={start + 1}
+            endItem={Math.min(end, sortedTeams.length)}
+            totalItems={sortedTeams.length}
+          />
         </LoadingState>
       </div>
     </div>
