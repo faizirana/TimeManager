@@ -1,6 +1,6 @@
-# 🕒 Bootstrap TIME MANAGER
+# 🕒 Time Manager
 
-**Bootstrap TIME MANAGER** est une application web de badgeuse permettant aux utilisateurs d’enregistrer, suivre et gérer leurs heures de travail en toute simplicité.  
+**Time Manager** est une application web de badgeuse permettant aux utilisateurs d’enregistrer, suivre et gérer leurs heures de travail en toute simplicité.  
 
 Le projet est construit sur une architecture moderne et scalable comprenant un **back-end en Express.js**, un **reverse-proxy sous NGINX**, une **base de données PostgreSQL**, un **front-end en Next.js**, le tout **conteneurisé avec Docker** et documenté via **Swagger**.
 
@@ -8,7 +8,7 @@ Le projet est construit sur une architecture moderne et scalable comprenant un *
 
 ## 📚 Table des matières
 
-- [🕒 Bootstrap TIME MANAGER](#-bootstrap-time-manager)
+- [🕒 Time Manager](#-bootstrap-time-manager)
   - [📚 Table des matières](#-table-des-matières)
   - [📄 Introduction](#-introduction)
   - [🏗️ Architecture globale](#️-architecture-globale)
@@ -38,7 +38,7 @@ Le projet est construit sur une architecture moderne et scalable comprenant un *
 
 ## 📄 Introduction
 
-**Bootstrap TIME MANAGER** est une solution de gestion du temps destinée aux individus et aux équipes.  
+**Time Manager** est une solution de gestion du temps destinée aux individus et aux équipes.  
 Elle permet de :
 - Enregistrer le temps passé en entreprise
 - Visualiser des statistiques et rapports
@@ -188,16 +188,26 @@ Le backend fournit une API RESTful pour toutes les opérations.
 - `/dashboard/profile` : Profil utilisateur (infos, édition)
 - `/dashboard/statistics` : Statistiques et graphiques personnels
 - `/dashboard/teams` : Liste des équipes
-- `/dashboard/teams/[id]` : Détail d’une équipe
+- `/dashboard/teams/[id]` : Détail d’une équipe avec indicateurs de pointage en temps réel (statut, temps depuis pointage, auto-refresh)
+- `/admin/users` : Gestion complète des utilisateurs (CRUD, recherche, tri, pagination, modals)
+- `/admin/teams` : Gestion des équipes (CRUD, gestion membres, colonnes personnalisées, modals)
+- `/admin/timetables` : Gestion des horaires (CRUD, modals)
+- `/admin` : Dashboard admin avec statistiques globales (10+ métriques)
 - `/dashboard/clock-in` : Badgeuse/pointage
 
 ### 🧩 Composants UI principaux
 - Boutons, inputs, sélecteurs, modals, tables, badges de rôle/statut, skeletons, etc. (voir dossier `components/UI`)
 - Toasts de notification (`ToastContainer`, `Toast`)
 - Switcher dark/light (`DarkModeSwitcher`)
+- Pagination avancée (`TablePagination.tsx`)
+- Affichage d'erreurs (`ErrorDisplay.tsx`)
+- États de chargement (`LoadingState.tsx`)
+- Indicateur de statut de pointage (`ClockStatusIndicator.tsx`)
+- Statistiques admin (`AdminStats.tsx`)
 
 ### 🧠 Gestion d’état & hooks
 - Utilisation de contextes React et hooks personnalisés pour l’auth, les équipes, etc.
+- 10 hooks personnalisés pour la gestion CRUD (utilisateurs, équipes, horaires), statistiques admin, gestion d'erreurs, modals, recherche, pagination, notifications, pointage équipe en temps réel.
 
 ### 🔐 Authentification & sécurité
 - Authentification centralisée (login, refresh, logout)
@@ -205,6 +215,23 @@ Le backend fournit une API RESTful pour toutes les opérations.
 - Redirection automatique si non authentifié
 - Protection des routes côté serveur et client
 - Gestion des rôles utilisateurs (admin, manager, employé)
+- Autorisation stricte sur les endpoints (admin, manager, membre d'équipe)
+- Validation renforcée côté client et serveur (email RFC, mot de passe fort, numéro mobile E.164, horaires HH:MM)
+- Messages d'erreur centralisés et sécurisés
+
+### 🧠 Validation & utilitaires
+- Validation stricte des emails, mots de passe, numéros mobiles, horaires (voir `lib/utils/validation.ts`)
+- Helpers pour la normalisation et le parsing des données (voir `lib/utils/formHelpers.ts`)
+- Messages d'erreur centralisés et support i18n (`lib/types/errorMessages.ts`)
+
+## 🛠️ Nouveautés de l'interface d'administration
+
+- Interface d'administration complète (utilisateurs, équipes, horaires, statistiques)
+- Statut de pointage en temps réel sur les pages équipes
+- Pagination, recherche, tri multi-colonnes, modals avancés
+- Validation stricte et messages d'erreur centralisés
+- 19 nouveaux tests unitaires pour les hooks CRUD
+- Sécurité renforcée (autorisation, validation, gestion des erreurs)
 
 ### 🎨 Thème
 - Support du mode sombre/clair
@@ -244,7 +271,7 @@ Swagger est intégré directement dans le backend :
 
 ## 📊 Conclusion & Perspectives
 
-Bootstrap TIME MANAGER offre une base solide pour toute application de gestion du temps passé en entreprise.
+Time Manager offre une base solide pour toute application de gestion du temps passé en entreprise.
 
 ### 🔮 Améliorations possibles :
 - Notifications en temps réel
