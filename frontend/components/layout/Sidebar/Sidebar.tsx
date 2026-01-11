@@ -14,7 +14,7 @@ export default function Sidebar({
   children,
   collapsed: collapsedProp,
 }: SidebarProps & { collapsed?: boolean }) {
-  const [collapsedState, setCollapsedState] = useState(false);
+  const [collapsedState, setCollapsedState] = useState(true);
   const collapsed = collapsedProp ?? collapsedState;
   // Récupérer user côté client uniquement ici
   const { user } = useAuth ? useAuth() : { user: undefined };
