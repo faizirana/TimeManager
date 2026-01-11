@@ -54,6 +54,7 @@ describe("teamTransformers", () => {
         situation: { type: "onsite" },
         status: "planned",
         shift: "09:00 - 17:00",
+        clockStatus: "none",
       });
     });
 
