@@ -47,8 +47,7 @@ export function useTeamStats({
       });
 
       setTeamStats(response);
-    } catch (err) {
-      console.error("Error fetching team statistics:", err);
+    } catch (_err) {
       setError("Impossible de charger les statistiques de l'équipe");
     } finally {
       setLoading(false);

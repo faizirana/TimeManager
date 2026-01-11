@@ -121,6 +121,6 @@ describe("User API", () => {
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("User deleted successfully");
+    expect(res.body.message).toBe("Utilisateur supprimé avec succès");
   });
 });

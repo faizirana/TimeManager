@@ -96,8 +96,7 @@ export default function ProfileEditForm({ profile, onSave, onCancel }: ProfileEd
       }
 
       await onSave(updateData);
-    } catch (error) {
-      console.error("Error updating profile:", error);
+    } catch (_error) {
       setErrors({ submit: "Erreur lors de la mise à jour du profil" });
     } finally {
       setLoading(false);

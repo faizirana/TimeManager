@@ -44,7 +44,7 @@ export const getTeams = async (req, res) => {
     res.status(200).json(teams);
   } catch (error) {
     console.error("Error fetching teams:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -63,11 +63,11 @@ export const getTeamById = async (req, res) => {
       ],
     });
 
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) return res.status(404).json({ message: "Équipe introuvable" });
     return res.status(200).json(team);
   } catch (error) {
     console.error("Error fetching team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -75,17 +75,17 @@ export const getTeamById = async (req, res) => {
 export const createTeam = async (req, res) => {
   const { name, id_manager, id_timetable } = req.body;
   if (!name || !id_manager)
-    return res.status(400).json({ message: "name and id_manager are required" });
+    return res.status(400).json({ message: "Le nom et l'id_manager sont requis" });
 
   try {
     const manager = await User.findByPk(id_manager);
-    if (!manager) return res.status(400).json({ message: "Manager does not exist" });
+    if (!manager) return res.status(400).json({ message: "Le manager n'existe pas" });
 
     const newTeam = await Team.create({ name, id_manager, id_timetable });
     return res.status(201).json(newTeam);
   } catch (error) {
     console.error("Error creating team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -95,11 +95,11 @@ export const updateTeam = async (req, res) => {
 
   try {
     const team = await Team.findByPk(req.params.id);
-    if (!team) return res.status(404).json({ message: "Team not found" });
+    if (!team) return res.status(404).json({ message: "Équipe introuvable" });
 
     if (id_manager) {
       const manager = await User.findByPk(id_manager);
-      if (!manager) return res.status(400).json({ message: "Manager does not exist" });
+      if (!manager) return res.status(400).json({ message: "Le manager n'existe pas" });
     }
 
     await team.update({
@@ -110,7 +110,7 @@ export const updateTeam = async (req, res) => {
     return res.status(200).json(team);
   } catch (error) {
     console.error("Error updating team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -122,16 +122,16 @@ export const deleteTeam = async (req, res) => {
     const team = await Team.findByPk(req.params.id, { transaction });
     if (!team) {
       await transaction.rollback();
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({ message: "Équipe introuvable" });
     }
 
     await team.destroy({ transaction });
     await transaction.commit();
-    return res.status(200).json({ message: "Team deleted successfully" });
+    return res.status(200).json({ message: "Équipe supprimée avec succès" });
   } catch (error) {
     await transaction.rollback();
     console.error("Error deleting team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -140,7 +140,7 @@ export const addUserToTeam = async (req, res) => {
   const { id } = req.params;
   const { id_user } = req.body;
 
-  if (!id_user) return res.status(400).json({ message: "id_user is required" });
+  if (!id_user) return res.status(400).json({ message: "id_user est requis" });
 
   const transaction = await sequelize.transaction();
 
@@ -149,23 +149,23 @@ export const addUserToTeam = async (req, res) => {
     const user = await User.findByPk(id_user, { transaction });
     if (!team || !user) {
       await transaction.rollback();
-      return res.status(404).json({ message: "Team or user not found" });
+      return res.status(404).json({ message: "Équipe ou utilisateur introuvable" });
     }
 
     // Check if already in team
     const exists = await TeamMember.findOne({ where: { id_team: id, id_user }, transaction });
     if (exists) {
       await transaction.rollback();
-      return res.status(400).json({ message: "User already in this team" });
+      return res.status(400).json({ message: "L'utilisateur est déjà dans cette équipe" });
     }
 
     await TeamMember.create({ id_team: id, id_user }, { transaction });
     await transaction.commit();
-    return res.status(201).json({ message: "User added to team" });
+    return res.status(201).json({ message: "Utilisateur ajouté à l'équipe" });
   } catch (error) {
     await transaction.rollback();
     console.error("Error adding user to team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -179,16 +179,16 @@ export const removeUserFromTeam = async (req, res) => {
     const link = await TeamMember.findOne({ where: { id_team: id, id_user }, transaction });
     if (!link) {
       await transaction.rollback();
-      return res.status(404).json({ message: "User not in this team" });
+      return res.status(404).json({ message: "L'utilisateur n'est pas dans cette équipe" });
     }
 
     await link.destroy({ transaction });
     await transaction.commit();
-    return res.status(200).json({ message: "User removed from team" });
+    return res.status(200).json({ message: "Utilisateur retiré de l'équipe" });
   } catch (error) {
     await transaction.rollback();
     console.error("Error removing user from team:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 
@@ -219,13 +219,13 @@ export const getTeamStats = async (req, res) => {
     });
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({ message: "Équipe introuvable" });
     }
 
     // Authorization check
     if (req.user.role === "manager" && team.id_manager !== req.user.id) {
       return res.status(403).json({
-        message: "Forbidden - Cannot access statistics for other managers' teams",
+        message: "Interdit - Impossible d'accéder aux statistiques des équipes d'autres managers",
       });
     }
 
@@ -372,6 +372,6 @@ export const getTeamStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching team statistics:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };

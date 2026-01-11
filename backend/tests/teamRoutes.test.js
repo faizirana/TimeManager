@@ -69,7 +69,7 @@ describe("Teams API", () => {
         .send({ name: "Team Beta", id_manager: 999 });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Manager does not exist");
+      expect(res.body.message).toBe("Le manager n'existe pas");
     });
 
     it("fails if required fields missing", async () => {
@@ -79,7 +79,7 @@ describe("Teams API", () => {
         .send({});
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("name and id_manager are required");
+      expect(res.body.message).toBe("Le nom et l'id_manager sont requis");
     });
   });
 
@@ -152,7 +152,7 @@ describe("Teams API", () => {
         .send({ id_manager: 999 });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Manager does not exist");
+      expect(res.body.message).toBe("Le manager n'existe pas");
     });
   });
 
@@ -165,7 +165,7 @@ describe("Teams API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Team deleted successfully");
+      expect(res.body.message).toBe("Équipe supprimée avec succès");
     });
 
     it("fails if team not found", async () => {
@@ -188,7 +188,7 @@ describe("Teams API", () => {
         .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(201);
-      expect(res.body.message).toBe("User added to team");
+      expect(res.body.message).toBe("Utilisateur ajouté à l'équipe");
     });
 
     it("fails if user already in team", async () => {
@@ -201,7 +201,7 @@ describe("Teams API", () => {
         .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("User already in this team");
+      expect(res.body.message).toBe("L'utilisateur est déjà dans cette équipe");
     });
   });
 
@@ -215,7 +215,7 @@ describe("Teams API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("User removed from team");
+      expect(res.body.message).toBe("Utilisateur retiré de l'équipe");
     });
 
     it("fails if user not in team", async () => {
@@ -226,7 +226,7 @@ describe("Teams API", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body.message).toBe("User not in this team");
+      expect(res.body.message).toBe("L'utilisateur n'est pas dans cette équipe");
     });
   });
 
@@ -314,7 +314,7 @@ describe("Teams API", () => {
         .send({ id_user: managerId });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("User already in this team");
+      expect(res.body.message).toBe("L'utilisateur est déjà dans cette équipe");
     });
   });
 

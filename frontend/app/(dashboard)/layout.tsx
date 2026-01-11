@@ -18,10 +18,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const normalize = (p: string) => (p === "/" ? "/" : p.replace(/\/$/, ""));
 
   const sidebarItems = [
-    { label: "Clock in", icon: Clock, href: "/clock-in", variant: "important" },
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", variant: undefined },
-    { label: "Teams", icon: Users, href: "/teams", variant: undefined },
-    { label: "Statistiques", icon: ChartNoAxesCombined, href: "/statistics", variant: undefined },
+    { label: "Clock in", icon: Clock, href: "/clock-in" },
+    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Teams", icon: Users, href: "/teams" },
+    { label: "Statistiques", icon: ChartNoAxesCombined, href: "/statistics" },
   ].map((item) => {
     const itemPath = normalize(item.href);
     const current = normalize(pathname);
@@ -40,16 +40,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen w-screen">
-      <Sidebar className="min-w-[220px]" items={sidebarItems}>
+      <Sidebar items={sidebarItems}>
         <DarkModeSwitcher />
         <FloatingMenu
           menuItems={userMenuItems}
           buttonContent={
-            <SidebarItem
-              label={`${user?.name} ${user?.surname}`}
-              size={"profile"}
-              hasAvatar={true}
-            ></SidebarItem>
+            <SidebarItem label={undefined} size={"profile"} hasAvatar={true}></SidebarItem>
           }
         />
       </Sidebar>

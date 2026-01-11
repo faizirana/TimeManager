@@ -116,8 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(data);
       return true;
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
+    } catch (_error) {
+      // Silent failure - will be handled by retry logic or session restoration
       return false;
     }
   }, []);
@@ -162,8 +162,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setAccessToken(null);
             }
           }
-        } catch (error) {
-          console.error("Failed to restore session:", error);
+        } catch (_error) {
+          // Session restore failed, will treat as not authenticated
           sessionStorage.removeItem(SESSION_STORAGE_KEY);
         }
       }
@@ -200,8 +200,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         credentials: "include",
       });
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch (_error) {
+      // Logout error is not critical - session will be cleared anyway
     } finally {
       // Clear all auth state
       setAccessToken(null);
@@ -233,9 +233,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(newToken);
 
       return newToken;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      // Auto-logout on refresh failure for security
+    } catch (_error) {
+      // Token refresh failed - security issue, auto-logout
       await logout();
       return null;
     }
@@ -275,12 +274,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!success) {
           throw new Error("Failed to fetch user information");
         }
-      } catch (error) {
-        console.error("Login error:", error);
+      } catch (_error) {
         // Clear any partial state on error
         setAccessToken(null);
         setUser(null);
-        throw error;
+        throw _error;
       } finally {
         setLoading(false);
       }

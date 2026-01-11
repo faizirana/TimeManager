@@ -73,10 +73,9 @@ export function useAuth() {
 
       setLoading(false);
       router.push("/login");
-    } catch (err) {
+    } catch (_err) {
       // Even if logout fails, redirect anyway
       setLoading(false);
-      console.error("Logout error:", err);
       router.push("/login");
     }
   }

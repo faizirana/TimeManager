@@ -48,8 +48,7 @@ export function useTimeRecordingStats({
       });
 
       setStats(response.statistics);
-    } catch (err) {
-      console.error("Error fetching statistics:", err);
+    } catch (_err) {
       setError("Impossible de charger les statistiques");
     } finally {
       setLoading(false);

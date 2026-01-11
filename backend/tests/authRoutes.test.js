@@ -74,14 +74,14 @@ describe("Auth API", () => {
         .send({ email: "kevin@example.com", password: "wrongpass" });
 
       expect(res.statusCode).toBe(401);
-      expect(res.body.message).toBe("Invalid credentials");
+      expect(res.body.message).toBe("Identifiants invalides");
     });
 
     it("fails if email/password missing", async () => {
       const res = await request(app).post("/auth/login").send({ email: "kevin@example.com" });
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.message).toBe("Email and password required");
+      expect(res.body.message).toBe("L'email et le mot de passe sont requis");
     });
   });
 
@@ -90,7 +90,7 @@ describe("Auth API", () => {
       const res = await request(app).post("/auth/logout").set("Cookie", cookie);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Logout successful");
+      expect(res.body.message).toBe("Déconnexion réussie");
     });
   });
 
@@ -124,7 +124,7 @@ describe("Auth API", () => {
     it("fails if refresh token missing", async () => {
       const res = await request(app).post("/auth/refresh");
       expect(res.statusCode).toBe(401);
-      expect(res.body.message).toBe("No token");
+      expect(res.body.message).toBe("Aucun token");
     });
 
     it("fails if refresh token was revoked", async () => {
@@ -135,7 +135,7 @@ describe("Auth API", () => {
       const res = await request(app).post("/auth/refresh").set("Cookie", cookie);
 
       expect(res.statusCode).toBe(403);
-      expect(res.body.message).toBe("Token revoked");
+      expect(res.body.message).toBe("Token révoqué");
     });
 
     it("rotates refresh token on each refresh", async () => {
@@ -206,7 +206,7 @@ describe("Auth API", () => {
       const res2 = await request(app).post("/auth/refresh").set("Cookie", oldToken); // Reuse the token from login that was already refreshed
 
       expect(res2.statusCode).toBe(403);
-      expect(res2.body.message).toContain("Token reuse detected");
+      expect(res2.body.message).toContain("Réutilisation de token détectée");
 
       // Verify all sessions invalidated
       const user = await db.User.findOne({ where: { email: "kevin@example.com" } });
@@ -232,7 +232,7 @@ describe("Auth API", () => {
       const res = await request(app).post("/auth/refresh").set("Cookie", cookie);
 
       expect(res.statusCode).toBe(403);
-      expect(res.body.message).toBe("Token revoked");
+      expect(res.body.message).toBe("Token révoqué");
     });
   });
 

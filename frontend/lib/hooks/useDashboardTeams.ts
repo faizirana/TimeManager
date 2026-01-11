@@ -47,8 +47,7 @@ export function useDashboardTeams({
       setError(null);
       const teams = await getTeams({ id_user: userId });
       setUserTeams(teams);
-    } catch (err) {
-      console.error("Error fetching user teams:", err);
+    } catch (_err) {
       setError("Impossible de charger vos équipes");
     } finally {
       setLoadingUserTeams(false);
@@ -63,8 +62,7 @@ export function useDashboardTeams({
       setError(null);
       const teams = await getTeams({ id_manager: userId });
       setManagedTeams(teams);
-    } catch (err) {
-      console.error("Error fetching managed teams:", err);
+    } catch (_err) {
       setError("Impossible de charger les équipes gérées");
     } finally {
       setLoadingManagedTeams(false);

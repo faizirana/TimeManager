@@ -1,6 +1,7 @@
 /**
  * @fileoverview useTeams Hook
  * Manages teams list with CRUD operations
+ * Errors are handled by apiClient with intelligent logging/notifications
  */
 
 import { useState, useEffect, useCallback } from "react";

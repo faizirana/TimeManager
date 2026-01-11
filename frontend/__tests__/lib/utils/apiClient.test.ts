@@ -218,16 +218,20 @@ describe("apiClient", () => {
         ok: false,
         status: 404,
         statusText: "Not Found",
+        headers: new Headers(),
       } as Response);
 
-      await expect(apiClient.get("/users/999")).rejects.toThrow("GET /users/999 failed: Not Found");
+      await expect(apiClient.get("/users/999")).rejects.toThrow("Not Found");
     });
 
     it("should throw error with message when POST fails", async () => {
+      const headers = new Headers();
+      headers.set("content-type", "application/json");
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
         statusText: "Bad Request",
+        headers,
         json: async () => ({ message: "Invalid email format" }),
       } as Response);
 
@@ -241,11 +245,10 @@ describe("apiClient", () => {
         ok: false,
         status: 403,
         statusText: "Forbidden",
+        headers: new Headers(),
       } as Response);
 
-      await expect(apiClient.put("/users/1", { name: "Test" })).rejects.toThrow(
-        "PUT /users/1 failed: Forbidden",
-      );
+      await expect(apiClient.put("/users/1", { name: "Test" })).rejects.toThrow("Forbidden");
     });
 
     it("should throw error when DELETE fails", async () => {
@@ -253,11 +256,10 @@ describe("apiClient", () => {
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
+        headers: new Headers(),
       } as Response);
 
-      await expect(apiClient.delete("/users/1")).rejects.toThrow(
-        "DELETE /users/1 failed: Internal Server Error",
-      );
+      await expect(apiClient.delete("/users/1")).rejects.toThrow("Internal Server Error");
     });
   });
 

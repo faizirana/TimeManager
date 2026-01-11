@@ -42,7 +42,7 @@ export function useEmployeeStats(
 
       // Transform API response to component data structure
       const userStats =
-        response.statistics.find((stat) => stat.user.id === userId) || response.statistics[0];
+        response.statistics.find((stat) => stat.user.id === userId) ?? response.statistics[0];
 
       if (userStats) {
         const transformedData: EmployeeStatsData = {
@@ -58,10 +58,20 @@ export function useEmployeeStats(
       } else {
         setData(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching employee stats:", err);
-      const errorMessage =
-        err.response?.data?.message || err.message || "An error occurred while fetching stats";
+      let errorMessage = "An error occurred while fetching stats";
+      if (typeof err === "object" && err !== null) {
+        if (
+          "response" in err &&
+          typeof (err as any).response === "object" &&
+          (err as any).response?.data?.message
+        ) {
+          errorMessage = (err as any).response.data.message;
+        } else if ("message" in err && typeof (err as any).message === "string") {
+          errorMessage = (err as any).message;
+        }
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

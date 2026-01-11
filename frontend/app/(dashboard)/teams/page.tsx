@@ -78,7 +78,7 @@ export default function TeamsPage() {
         memberIds: teamData.memberIds ?? [],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create team");
+      setError(err instanceof Error ? err.message : "Échec de la création de l'équipe");
       throw err;
     }
   };
@@ -90,7 +90,7 @@ export default function TeamsPage() {
       setTeamToEdit(team);
       setIsEditModalOpen(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load team details");
+      setError(err instanceof Error ? err.message : "Échec du chargement des détails de l'équipe");
     }
   };
 
@@ -102,7 +102,7 @@ export default function TeamsPage() {
       setIsEditModalOpen(false);
       setTeamToEdit(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update team");
+      setError(err instanceof Error ? err.message : "Échec de la mise à jour de l'équipe");
       throw err;
     }
   };
@@ -176,7 +176,7 @@ export default function TeamsPage() {
                     desc: ClockArrowUp,
                   }}
                 >
-                  Shift
+                  Horaires
                 </TableHead>
                 <TableHead
                   sortable
@@ -187,7 +187,7 @@ export default function TeamsPage() {
                     desc: ArrowUp10,
                   }}
                 >
-                  Members
+                  Membres
                 </TableHead>
                 {canManageTeams(user?.role) && <TableHead className="w-24">Actions</TableHead>}
               </TableRow>
