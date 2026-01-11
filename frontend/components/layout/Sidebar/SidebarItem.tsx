@@ -13,11 +13,12 @@ const sidebarItemVariants = cva(
       variant: {
         default: "text-[var(--foreground)]",
         secondary: "bg-zinc-100 dark:bg-zinc-900",
+        important: "bg-green-700 text-white",
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
       },
       // Style spécial pour l'élément actif (anciennement clock in)
       active: {
-        true: "bg-green-700 hover:bg-green-800 text-white shadow-lg pointer-events-none",
+        true: "bg-secondary pointer-events-none",
         false: "",
       },
       size: { full: "w-full px-4 py-2", icon: "px-3 py-3", profile: "w-full px-2 py-2" },
@@ -25,6 +26,7 @@ const sidebarItemVariants = cva(
     compoundVariants: [
       { variant: "default", active: false, class: "hover:bg-zinc-100 dark:hover:bg-zinc-900" },
       { variant: "secondary", active: false, class: "hover:bg-zinc-200 dark:hover:bg-zinc-800" },
+      { variant: "important", active: false, class: "hover:bg-green-800" },
     ],
     defaultVariants: { variant: "default", active: false, size: "full" },
   },
@@ -75,7 +77,13 @@ export default function SidebarItem({
           />
         </div>
       ) : (
-        Icon && <Icon size={18} color={"var(--color-primary)"} />
+        Icon && (
+          <Icon
+            size={18}
+            stroke={variant === "important" && !active ? "white" : "var(--color-primary)"}
+            color={variant === "important" && !active ? "white" : "var(--color-primary)"}
+          />
+        )
       )}
       {!collapsed && label && <span>{label}</span>}
     </Wrapper>
