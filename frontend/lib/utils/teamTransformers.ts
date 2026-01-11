@@ -30,6 +30,7 @@ export function transformMember(apiMember: User, managerId: number, shift: strin
     situation: { type: "onsite" as const }, // Placeholder - will be from timerecording
     status: "planned" as const, // Placeholder - will be from timerecording
     shift,
+    clockStatus: "none" as const, // Placeholder - will be from timerecording
   };
 }
 

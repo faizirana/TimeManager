@@ -14,6 +14,7 @@ import {
   calculateSituation,
   hasActiveClockIn,
 } from "@/lib/services/statusCalculator";
+import type { ClockInStatus } from "@/lib/types/teams";
 
 interface UseTeamMembersResult {
   members: Member[];
@@ -98,7 +99,7 @@ export function useTeamMembers(
         situation: calculatedSituation,
         lastClockIn: lastClockIn ? new Date(lastClockIn.timestamp) : undefined,
         lastClockOut: lastClockOut ? new Date(lastClockOut.timestamp) : undefined,
-        clockStatus: (isActive ? "active" : lastClockOut ? "paused" : "none") as const,
+        clockStatus: (isActive ? "active" : lastClockOut ? "paused" : "none") as ClockInStatus,
       };
     });
   }, [baseMembers, timeRecordings, recordingsLoading]);
