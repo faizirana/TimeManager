@@ -42,7 +42,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
         className={`focus:outline-none w-full ${menuItems.length > 0 ? "cursor-pointer" : ""}`}
       >
         {isValidElement(buttonContent)
-          ? cloneElement(buttonContent as React.ReactElement, { collapsed } as unknown)
+          ? cloneElement(buttonContent as React.ReactElement<any>, { collapsed })
           : buttonContent}
       </button>
 

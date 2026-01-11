@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 
 # Build Next.js application
 WORKDIR /app/frontend
-RUN npm run build
+RUN rm -rf .next && npm run build
 
 # Stage 3: Runner (Production)
 FROM node:20-alpine AS runner

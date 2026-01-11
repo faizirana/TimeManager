@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
   output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
 
   experimental: {
-    turbo: {
-      // Set the root directory for Next.js to the workspace root
-      root: path.resolve(__dirname, ".."),
-    },
+    // Removed deprecated experimental.turbo config
+  },
+  turbopack: {
+    // Set the root directory for Next.js to the workspace root
+    root: path.resolve(__dirname, ".."),
   },
   /**
    * Security headers to protect against common web vulnerabilities

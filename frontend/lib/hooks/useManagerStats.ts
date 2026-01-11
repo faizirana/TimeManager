@@ -100,8 +100,18 @@ export function useManagerStats(
       setData(transformedData);
     } catch (err: unknown) {
       console.error("Error fetching manager stats:", err);
-      const errorMessage =
-        err.response?.data?.message ?? err.message ?? "An error occurred while fetching stats";
+      let errorMessage = "An error occurred while fetching stats";
+      if (typeof err === "object" && err !== null) {
+        if (
+          "response" in err &&
+          typeof (err as any).response === "object" &&
+          (err as any).response?.data?.message
+        ) {
+          errorMessage = (err as any).response.data.message;
+        } else if ("message" in err && typeof (err as any).message === "string") {
+          errorMessage = (err as any).message;
+        }
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);
