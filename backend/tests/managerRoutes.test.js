@@ -6,16 +6,16 @@ import db from "../models/index.cjs";
 let adminToken;
 let managerToken;
 let managerId;
-let manager2Id; // Pour tester qu'un manager ne peut pas voir l'équipe d'un autre
+let manager2Id; // To test that a manager cannot see another's team
 
 beforeAll(async () => {
-  // 1. Nettoyage de la DB
+  // 1. DB Cleanup
   await db.sequelize.sync({ force: true });
   await db.User.destroy({ where: {} });
 
   const hashedPassword = await bcrypt.hash("Password123!", 12);
 
-  // 2. Création de l'ADMIN
+  // 2. Creation of ADMIN
   await db.User.create({
     name: "Admin",
     surname: "Super",
@@ -25,13 +25,13 @@ beforeAll(async () => {
     role: "admin",
   });
 
-  // Login Admin pour récupérer le token
+  // Login Admin to retrieve token
   const resAdmin = await request(app)
     .post("/auth/login")
     .send({ email: "admin@test.com", password: "Password123!" });
   adminToken = resAdmin.body.accessToken;
 
-  // 3. Création du MANAGER 1 (Celui qu'on va utiliser pour les tests)
+  // 3. Creation of MANAGER 1 (The one we will use for tests)
   const manager1 = await db.User.create({
     name: "Manager",
     surname: "One",
@@ -42,13 +42,13 @@ beforeAll(async () => {
   });
   managerId = manager1.id;
 
-  // Login Manager 1 pour récupérer son token
+  // Login Manager 1 to retrieve their token
   const resManager = await request(app)
     .post("/auth/login")
     .send({ email: "manager1@test.com", password: "Password123!" });
   managerToken = resManager.body.accessToken;
 
-  // 4. Création du MANAGER 2 (Pour vérifier les restrictions)
+  // 4. Creation of MANAGER 2 (To verify restrictions)
   const manager2 = await db.User.create({
     name: "Manager",
     surname: "Two",
@@ -59,8 +59,8 @@ beforeAll(async () => {
   });
   manager2Id = manager2.id;
 
-  // 5. Création d'EMPLOYÉS
-  // Employé assigné au Manager 1
+  // 5. Creation of EMPLOYEES
+  // Employee assigned to Manager 1
   await db.User.create({
     name: "Employee",
     surname: "Team1",
@@ -68,10 +68,10 @@ beforeAll(async () => {
     password: hashedPassword,
     mobileNumber: "0600000010",
     role: "employee",
-    id_manager: managerId, // Lien avec Manager 1
+    id_manager: managerId, // Link with Manager 1
   });
 
-  // Employé assigné au Manager 2
+  // Employee assigned to Manager 2
   await db.User.create({
     name: "Employee",
     surname: "Team2",
@@ -79,7 +79,7 @@ beforeAll(async () => {
     password: hashedPassword,
     mobileNumber: "0600000011",
     role: "employee",
-    id_manager: manager2Id, // Lien avec Manager 2
+    id_manager: manager2Id, // Link with Manager 2
   });
 });
 
@@ -88,16 +88,16 @@ afterAll(async () => {
 });
 
 describe("Manager API Routes", () => {
-  // --- Test de GET /managers ---
+  // --- GET /managers Test ---
   describe("GET /managers", () => {
     it("Admin peut récupérer la liste de tous les managers", async () => {
       const res = await request(app).get("/managers").set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
-      // On doit trouver au moins nos 2 managers créés
+      // We must find at least our 2 created managers
       expect(res.body.length).toBeGreaterThanOrEqual(2);
-      // Vérifier que le premier élément est bien un manager
+      // Verify that the first element is indeed a manager
       expect(res.body[0].role).toBe("manager");
     });
 
@@ -106,7 +106,7 @@ describe("Manager API Routes", () => {
         .get("/managers")
         .set("Authorization", `Bearer ${managerToken}`);
 
-      expect(res.statusCode).toBe(403); // Middleware authorize('admin') bloque
+      expect(res.statusCode).toBe(403); // Middleware authorize('admin') blocks it
     });
 
     it("Utilisateur non authentifié ne peut pas accéder (Unauthorized)", async () => {
@@ -115,7 +115,7 @@ describe("Manager API Routes", () => {
     });
   });
 
-  // --- Test de GET /managers/:id/team ---
+  // --- GET /managers/:id/team Test ---
   describe("GET /managers/:id/team", () => {
     it("Admin peut voir l'équipe du Manager 1", async () => {
       const res = await request(app)
@@ -123,7 +123,7 @@ describe("Manager API Routes", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.length).toBe(1); // Il y a 1 employé créé pour Manager 1
+      expect(res.body.length).toBe(1); // There is 1 employee created for Manager 1
       expect(res.body[0].email).toBe("emp1@test.com");
     });
 
@@ -138,7 +138,7 @@ describe("Manager API Routes", () => {
     });
 
     it("Manager 1 NE PEUT PAS voir l'équipe du Manager 2", async () => {
-      // Manager 1 essaie d'accéder à l'ID de Manager 2
+      // Manager 1 tries to access Manager 2's ID
       const res = await request(app)
         .get(`/managers/${manager2Id}/team`)
         .set("Authorization", `Bearer ${managerToken}`);
@@ -151,14 +151,14 @@ describe("Manager API Routes", () => {
       const fakeId = 99999;
       const res = await request(app)
         .get(`/managers/${fakeId}/team`)
-        .set("Authorization", `Bearer ${adminToken}`); // Admin pour passer la sécu role
+        .set("Authorization", `Bearer ${adminToken}`); // Admin to bypass role security
 
       expect(res.statusCode).toBe(404);
       expect(res.body.message).toBe("Manager not found");
     });
 
     it("Vérifie qu'un manager sans équipe retourne une liste vide (et non une erreur)", async () => {
-      // Créons un manager 3 sans employé pour ce test rapide
+      // Let's create a manager 3 with no employee for this quick test
       const hashedPassword = await bcrypt.hash("Pwd!", 10);
       const emptyManager = await db.User.create({
         name: "Empty",
@@ -174,7 +174,7 @@ describe("Manager API Routes", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual([]); // Tableau vide
+      expect(res.body).toEqual([]); // Empty array
     });
   });
 });

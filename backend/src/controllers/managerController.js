@@ -8,7 +8,7 @@ const { User } = db;
  */
 export const getAllManagers = async (req, res) => {
   try {
-    // On filtre pour ne récupérer que les utilisateurs avec le rôle 'manager'
+    // We filter to retrieve only users with the 'manager' role
     const managers = await User.findAll({
       where: { role: "manager" },
       attributes: ["id", "name", "surname", "mobileNumber", "email", "role"],
@@ -28,29 +28,29 @@ export const getAllManagers = async (req, res) => {
 export const getManagerTeam = async (req, res) => {
   try {
     const managerId = parseInt(req.params.id, 10);
-    const requestingUser = req.user; // Injecté par le middleware authenticate
+    const requestingUser = req.user; // Injected by the authenticate middleware
 
-    // 1. Vérification de sécurité (Authorization Logic)
-    // Si l'utilisateur n'est PAS admin ET que son ID ne correspond pas à l'ID demandé
+    // 1. Security check (Authorization Logic)
+    // If the user is NOT admin AND their ID does not match the requested ID
     if (requestingUser.role !== "admin" && requestingUser.id !== managerId) {
       return res.status(403).json({
         message: "Forbidden: You can only view your own team.",
       });
     }
 
-    // 2. Vérifier si le manager existe (optionnel, mais propre)
+    // 2. Check if the manager exists (optional, but best practice)
     const manager = await User.findByPk(managerId);
     if (!manager) {
       return res.status(404).json({ message: "Manager not found" });
     }
 
-    // 3. Vérifier que c'est bien un manager (optionnel, selon votre logique métier)
+    // 3. Verify that it is indeed a manager (optional, depending on your business logic)
     if (manager.role !== "manager" && manager.role !== "admin") {
-      // Note : Parfois des admins peuvent aussi avoir des subordonnés
-      // Si ce n'est pas le cas, vous pouvez restreindre ici.
+      // Note: Sometimes admins can also have subordinates
+      // If that is not the case, you can restrict it here.
     }
 
-    // 4. Récupérer les employés liés à ce manager
+    // 4. Retrieve employees linked to this manager
     const teamMembers = await User.findAll({
       where: { id_manager: managerId },
       attributes: ["id", "name", "surname", "mobileNumber", "email", "role"],
