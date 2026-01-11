@@ -104,12 +104,12 @@ export function useManagerStats(
       if (typeof err === "object" && err !== null) {
         if (
           "response" in err &&
-          typeof (err as any).response === "object" &&
-          (err as any).response?.data?.message
+          typeof (err as { response?: unknown }).response === "object" &&
+          (err as { response?: { data?: { message?: string } } }).response?.data?.message
         ) {
-          errorMessage = (err as any).response.data.message;
-        } else if ("message" in err && typeof (err as any).message === "string") {
-          errorMessage = (err as any).message;
+          errorMessage = (err as { response: { data: { message: string } } }).response.data.message;
+        } else if ("message" in err && typeof (err as { message?: unknown }).message === "string") {
+          errorMessage = (err as { message: string }).message;
         }
       }
       setError(errorMessage);

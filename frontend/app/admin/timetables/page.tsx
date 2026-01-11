@@ -75,7 +75,7 @@ import {
 } from "@/components/UI/Table";
 import { AddTimetableModal } from "@/components/modals/timetable/AddTimetableModal";
 import { DeleteTimetableModal } from "@/components/modals/timetable/DeleteTimetableModal";
-import { SUCCESS_MESSAGES, RESOURCES } from "@/lib/types/errorMessages";
+import { SUCCESS_MESSAGES } from "@/lib/types/errorMessages";
 
 export default function AdminTimetablesPage() {
   const { user, loading: authLoading } = useProtectedRoute();

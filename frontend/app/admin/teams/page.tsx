@@ -131,7 +131,7 @@ export default function AdminTeamsPage() {
     try {
       await createNewTeam({
         ...teamData,
-        memberIds: teamData.memberIds || [],
+        memberIds: teamData.memberIds ?? [],
       });
       addModal.close();
       showSuccess(SUCCESS_MESSAGES.CREATED("Équipe"));

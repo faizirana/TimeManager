@@ -16,7 +16,7 @@ export default function Sidebar({
   setCollapsedState: setCollapsedStateProp,
 }: SidebarProps & { collapsed?: boolean; setCollapsedState?: (collapsed: boolean) => void }) {
   const [collapsedState, setCollapsedStateLocal] = useState(true);
-  const setCollapsedState = setCollapsedStateProp || setCollapsedStateLocal;
+  const setCollapsedState = setCollapsedStateProp ?? setCollapsedStateLocal;
   const collapsed = collapsedProp ?? collapsedState;
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Récupérer user côté client uniquement ici

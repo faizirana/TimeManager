@@ -149,7 +149,7 @@ export function useTeams(userId?: number): UseTeamsResult {
       if (memberIds !== undefined) {
         // Get current team to compare members
         const currentTeam = await getTeamById(teamId);
-        const currentMemberIds = currentTeam.members?.map((m) => m.id) || [];
+        const currentMemberIds = currentTeam.members?.map((m) => m.id) ?? [];
 
         // Find members to add (in new list but not in current)
         const membersToAdd = memberIds.filter((id) => !currentMemberIds.includes(id));

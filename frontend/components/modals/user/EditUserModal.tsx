@@ -50,7 +50,7 @@ import { Label } from "@/components/UI/Label";
 import { ErrorDisplay } from "@/components/UI/ErrorDisplay";
 import { useErrorHandler } from "@/lib/hooks/useErrorHandler";
 import { validateEmail, validateMobile } from "@/lib/utils/validation";
-import { VALIDATION_ERRORS, API_ERRORS } from "@/lib/types/errorMessages";
+import { API_ERRORS } from "@/lib/types/errorMessages";
 import type { User } from "@/lib/types/teams";
 
 interface EditUserModalProps {

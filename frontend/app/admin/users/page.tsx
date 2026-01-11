@@ -39,7 +39,7 @@ import type { User } from "@/lib/types/teams";
 import { AddUserModal } from "@/components/modals/user/AddUserModal";
 import { EditUserModal } from "@/components/modals/user/EditUserModal";
 import { DeleteUserModal } from "@/components/modals/user/DeleteUserModal";
-import { SUCCESS_MESSAGES, RESOURCES } from "@/lib/types/errorMessages";
+import { SUCCESS_MESSAGES } from "@/lib/types/errorMessages";
 
 /**
  * AdminUsersPage Component
