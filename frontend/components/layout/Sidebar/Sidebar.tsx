@@ -28,19 +28,22 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg transition-all duration-200 ease-in-out",
+        "flex flex-col bg-[var(--background-2)] shadow-md h-full rounded-r-lg",
+        "transition-[width,padding] duration-500 ease-in-out",
         collapsed ? "w-20 p-2" : "w-72 p-5",
         className,
       )}
       onMouseEnter={() => setCollapsedState(false)}
       onMouseLeave={() => setCollapsedState(true)}
-      style={{ zIndex: 100 }}
+      style={{ zIndex: 100, overflow: "hidden" }}
     >
       {/* Le bouton de toggle est supprimé, le panneau se déplie/replie au survol */}
       <div
         className={cn(
-          "flex gap-3 items-center mb-6",
-          collapsed ? "justify-center px-0 py-0 flex-col gap-0" : "px-3 py-2",
+          "flex gap-3 items-center mb-6 transition-all duration-500 ease-in-out",
+          collapsed
+            ? "justify-center px-0 py-0 flex-col gap-0 opacity-70"
+            : "px-3 py-2 opacity-100",
         )}
       >
         <Image

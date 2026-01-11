@@ -12,21 +12,18 @@ const sidebarItemVariants = cva(
     variants: {
       variant: {
         default: "text-[var(--foreground)]",
-        important: "bg-green-700 hover:bg-green-800 text-white",
         secondary: "bg-zinc-100 dark:bg-zinc-900",
         disabled: "opacity-50 cursor-not-allowed pointer-events-none text-[var(--foreground)]",
       },
-      // Changement ici : couleur de fond plus visible pour l'item actif
-      // Contraste fort : fond bleu vif, texte blanc, ombre
+      // Style spécial pour l'élément actif (anciennement clock in)
       active: {
-        true: "bg-blue-600 text-white dark:bg-blue-400 dark:text-zinc-900 pointer-events-none shadow-lg",
+        true: "bg-green-700 hover:bg-green-800 text-white shadow-lg pointer-events-none",
         false: "",
       },
       size: { full: "w-full px-4 py-2", icon: "px-3 py-3", profile: "w-full px-2 py-2" },
     },
     compoundVariants: [
       { variant: "default", active: false, class: "hover:bg-zinc-100 dark:hover:bg-zinc-900" },
-      { variant: "important", active: false, class: "hover:bg-primary-soft" },
       { variant: "secondary", active: false, class: "hover:bg-zinc-200 dark:hover:bg-zinc-800" },
     ],
     defaultVariants: { variant: "default", active: false, size: "full" },
@@ -61,9 +58,7 @@ export default function SidebarItem({
         // Ajout d'une bordure à gauche pour l'item actif quand le panneau est rétracté
         collapsed &&
           active &&
-          "border-l-4 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-200",
-        // If active, add bg-secondary for test compatibility
-        active && "bg-secondary",
+          "border-l-4 border-green-800 dark:border-green-400 bg-green-50 dark:bg-green-200",
         className,
       )}
       aria-disabled={variant === "disabled"}
@@ -72,18 +67,15 @@ export default function SidebarItem({
     >
       {/* Render image if provided, otherwise render icon */}
       {hasAvatar ? (
-        <Avatar
-          name={user?.name ?? ""}
-          surname={user?.surname ?? ""}
-          size={size === "profile" ? "w-10 h-10" : "w-6 h-6"}
-        />
-      ) : (
-        Icon && (
-          <Icon
-            size={18}
-            color={variant === "important" && active === false ? "white" : "var(--color-primary)"}
+        <div className={collapsed ? "flex justify-center w-full" : undefined}>
+          <Avatar
+            name={user?.name ?? ""}
+            surname={user?.surname ?? ""}
+            size={size === "profile" ? "w-10 h-10" : "w-6 h-6"}
           />
-        )
+        </div>
+      ) : (
+        Icon && <Icon size={18} color={"var(--color-primary)"} />
       )}
       {!collapsed && label && <span>{label}</span>}
     </Wrapper>
